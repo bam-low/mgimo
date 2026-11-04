@@ -1,38 +1,59 @@
 name: Node CI
-
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   node:
     name: Node checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+        env:
+          POSTGRES_DB: campus_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-ci-only
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
       NEXT_TELEMETRY_DISABLED: '1'
+      DATABASE_URL: postgresql://postgres:isolated-ci-only@localhost:5432/campus_test
+      BETTER_AUTH_URL: http://localhost:3000
+      ALLOW_DEMO_SEED: 'yes'
     steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Install locked dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts
-      - name: Lint
-        run: npm run lint
-      - name: Type check
-        run: npm run typecheck
-      - name: Unit tests
-        run: npm test -- --run
-      - name: Production build
-        run: npm run build
+      - name: Ephemeral test-only secrets
+        run: node -e 'const fs=require("fs"),c=require("crypto");for(const k of ["BETTER_AUTH_SECRET","DEMO_STAFF_PASSWORD","DEMO_STUDENT_PASSWORD"])fs.appendFileSync(process.env.GITHUB_ENV,k+"="+c.randomBytes(32).toString("hex")+"\n")'
+      - run: npm ci --ignore-scripts
+      - run: npm run db:generate
+      - run: npm run db:migrate
+      - run: npm run db:seed && npm run db:seed
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test -- --run
+      - run: npm run test:integration
+      - run: npm run build
+      - run: npm run check:runtime
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Synthetic test screenshots and runtime manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-runtime-evidence
+          path: |
+            test-results/**/*.png
+            .runtime-evidence/files.txt
+          include-hidden-files: true
+          retention-days: 7

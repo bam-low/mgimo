@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { platform } from "@/lib/platform";
 
 export default function Home() {
@@ -19,10 +20,10 @@ export default function Home() {
           <section aria-labelledby="project-status" className="mt-10 max-w-xl border-l-2 border-stone-500 pl-5">
             <h2 id="project-status" className="font-semibold">{platform.disclaimer}</h2>
             <p className="mt-3 leading-relaxed text-stone-700">
-              Это стартовая страница конкурсного прототипа. Личный кабинет,
-              регистрация и учебные данные пока не реализованы.
+              Это стартовая страница конкурсного прототипа. Регистрация и подтверждение прикрепления доступны в демо. Учебные разделы ещё разрабатываются.
             </p>
           </section>
+          <nav className="mt-8 flex flex-wrap gap-6 underline" aria-label="Доступ к платформе"><Link href="/register">Регистрация студента</Link><Link href="/login">Войти</Link></nav>
         </main>
         <footer className="border-t border-stone-300 py-6 text-sm leading-relaxed text-stone-600">
           Рабочее имя платформы — «{platform.name}». Оно не обозначает конкретный университет.
