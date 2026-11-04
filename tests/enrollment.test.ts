@@ -124,6 +124,7 @@ describe("real PostgreSQL enrollment/security", () => {
       data: { active: false },
     });
     try {
+      expect((await actor(await login(d.email))).membership.requests[0].targetGroup.active).toBe(false);
       await expect(
         decide(
           staffId,

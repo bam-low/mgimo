@@ -32,9 +32,7 @@ export default async function Page() {
     },
     select: { id: true, name: true },
   });
-  const selected = last
-    ? groups.find((g) => g.id === last.targetGroupId)
-    : null;
+  const selected = last?.targetGroup;
   return (
     <main className="panel">
       <RefreshContext />

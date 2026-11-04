@@ -37,6 +37,7 @@ export default async function Page() {
               {r.membership.profile?.firstName} {r.membership.profile?.lastName}
             </h2>
             <p>Группа: {r.targetGroup.name}</p>
+              {!r.targetGroup.active && <p>Группа недоступна: одобрение запрещено, запрос можно отклонить.</p>}
             <ActionForm url="/api/staff/decision" requestId={r.id} />
           </section>
         ))

@@ -49,7 +49,7 @@ export async function actor(headers: Headers) {
               group: { include: { program: { include: { faculty: true } } } },
             },
           },
-          requests: { orderBy: { createdAt: "desc" } },
+          requests: { orderBy: { createdAt: "desc" }, include: { targetGroup: true } },
         },
       },
     },
