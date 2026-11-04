@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Temporary neutral scaffold; these are not approved brand tokens. */
+@layer base {
+  body {
+    @apply bg-stone-50 text-stone-900 antialiased;
+    overflow-wrap: anywhere;
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: black;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
