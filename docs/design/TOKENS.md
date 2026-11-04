@@ -83,7 +83,7 @@
 | `motion.easing.standard` | Роль motion.easing.standard | TBD | TBD | открытый вопрос | H1 | Значение требует утверждения. |
 | `motion.reduced` | Роль motion.reduced | TBD | TBD | открытый вопрос | H1 | Поддержка reduced motion обязательна, конкретное поведение TBD. |
 | `breakpoint.mobileMin` | Минимальная ширина mobile-first | 360 | CSS px | утверждено | H1 | Значение требует утверждения. |
-| `viewport.studentReference` | Ширина эталона главной студента | 390 | CSS px | утверждено | H1 | Целевая ширина; файл эталона ASSET_NOT_PROVIDED. |
+| `viewport.studentReference` | Ширина эталона главной студента | 390 | CSS px | утверждено | H1 | Целевая ширина; концепция № 1 на design_concept.png получена; точный source-макет ASSET_NOT_PROVIDED. |
 | `breakpoint.tablet` | Переход к широкому layout | TBD | TBD | предложено | H1 | Имя дополнительной роли — предложение; значение не утверждено. |
 | `breakpoint.desktop` | Переход к широкому layout | TBD | TBD | предложено | H1 | Имя дополнительной роли — предложение; значение не утверждено. |
 
