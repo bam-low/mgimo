@@ -40,7 +40,15 @@ for (const width of [360, 1280])
     await expect(page.getByTestId("membership-status")).toHaveText(
       "Ожидает подтверждения",
     );
-    expect((await page.request.get("/api/group")).status()).toBe(403);
+    const sessionCookie = (await page.context().cookies()).find((c) =>
+      c.name.endsWith("session_token"),
+    );
+    expect(sessionCookie?.httpOnly).toBe(true);
+    expect(sessionCookie?.secure).toBe(true);
+    expect(sessionCookie?.sameSite).toBe("Lax");
+    expect(
+      await page.evaluate(() => fetch("/api/group").then((r) => r.status)),
+    ).toBe(403);
     await page.getByRole("button", { name: "Выйти" }).click();
     await expect(page).toHaveURL(/\/login$/);
     if (!process.env.DEMO_STAFF_PASSWORD)
@@ -64,15 +72,21 @@ for (const width of [360, 1280])
     await expect(page.getByTestId("membership-status")).toHaveText(
       "Подтверждено",
     );
-    expect((await page.request.get("/api/group")).status()).toBe(200);
-    expect((await page.request.get("/api/group?id=group-2")).status()).toBe(
-      403,
-    );
+    expect(
+      await page.evaluate(() => fetch("/api/group").then((r) => r.status)),
+    ).toBe(200);
+    expect(
+      await page.evaluate(() =>
+        fetch("/api/group?id=group-2").then((r) => r.status),
+      ),
+    ).toBe(403);
     await page.screenshot({
       path: info.outputPath(`approved-${width}.png`),
       fullPage: true,
     });
     await page.getByRole("button", { name: "Выйти" }).click();
     await expect(page).toHaveURL(/\/login$/);
-    expect((await page.request.get("/api/group")).status()).toBe(401);
+    expect(
+      await page.evaluate(() => fetch("/api/group").then((r) => r.status)),
+    ).toBe(401);
   });

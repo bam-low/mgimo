@@ -9,6 +9,10 @@ export function makeAuth(
   return betterAuth({
     secret: process.env.BETTER_AUTH_SECRET,
     logger: { disabled: true },
+    advanced: {
+      useSecureCookies: process.env.NODE_ENV === "production",
+      defaultCookieAttributes: { httpOnly: true, sameSite: "lax" },
+    },
     baseURL: process.env.BETTER_AUTH_URL,
     trustedOrigins: process.env.BETTER_AUTH_URL
       ? [process.env.BETTER_AUTH_URL]
