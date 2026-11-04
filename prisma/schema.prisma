@@ -1,0 +1,152 @@
+generator client {
+ provider = "prisma-client"
+ importFileExtension = "ts"
+ output = "../src/generated/prisma"
+}
+datasource db {
+ provider = "postgresql"
+}
+model User {
+ id String @id
+ name String
+ email String @unique
+ emailVerified Boolean @default(false)
+ image String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ active Boolean @default(true)
+ memberships UniversityMembership[]
+ sessions Session[]
+ accounts Account[]
+}
+model Session {
+ id String @id
+ token String @unique
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ ipAddress String?
+ userAgent String?
+ userId String
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model Account {
+ id String @id
+ accountId String
+ providerId String
+ userId String
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ accessToken String?
+ refreshToken String?
+ idToken String?
+ accessTokenExpiresAt DateTime?
+ refreshTokenExpiresAt DateTime?
+ scope String?
+ password String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+model Verification {
+ id String @id
+ identifier String
+ value String
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+model University {
+ id String @id
+ name String
+ timezone String
+ active Boolean @default(true)
+ faculties Faculty[]
+ memberships UniversityMembership[]
+}
+model Faculty {
+ id String @id
+ name String
+ universityId String
+ university University @relation(fields:[universityId],references:[id])
+ programs Program[]
+}
+model Program {
+ id String @id
+ name String
+ facultyId String
+ faculty Faculty @relation(fields:[facultyId],references:[id])
+ groups StudentGroup[]
+}
+model StudentGroup {
+ id String @id
+ name String
+ active Boolean @default(true)
+ programId String
+ program Program @relation(fields:[programId],references:[id])
+ requests EnrollmentRequest[]
+ enrollments GroupMembership[]
+}
+model UniversityMembership {
+ id String @id @default(cuid())
+ userId String
+ universityId String
+ role String @default("STUDENT")
+ status String @default("PENDING")
+ resubmissionAllowed Boolean @default(false)
+ university University @relation(fields:[universityId],references:[id])
+ user User @relation(fields:[userId],references:[id])
+ profile StudentProfile?
+ requests EnrollmentRequest[]
+ enrollments GroupMembership[]
+ @@unique([userId,universityId])
+}
+model StudentProfile {
+ id String @id @default(cuid())
+ membershipId String @unique
+ firstName String
+ lastName String
+ membership UniversityMembership @relation(fields:[membershipId],references:[id])
+}
+model EnrollmentRequest {
+ id String @id @default(cuid())
+ membershipId String
+ targetGroupId String
+ status String @default("PENDING")
+ reason String?
+ decidedBy String?
+ createdAt DateTime @default(now())
+ decidedAt DateTime?
+ membership UniversityMembership @relation(fields:[membershipId],references:[id])
+ targetGroup StudentGroup @relation(fields:[targetGroupId],references:[id])
+}
+model GroupMembership {
+ id String @id @default(cuid())
+ membershipId String
+ groupId String
+ startedAt DateTime @default(now())
+ endedAt DateTime?
+ revokedAt DateTime?
+ sourceId String
+ membership UniversityMembership @relation(fields:[membershipId],references:[id])
+ group StudentGroup @relation(fields:[groupId],references:[id])
+}
+model AuditLog {
+ id String @id @default(cuid())
+ actorId String
+ universityId String
+ targetId String
+ action String
+ reason String?
+ oldGroupId String?
+ newGroupId String?
+ createdAt DateTime @default(now())
+}
+model RateLimit {
+ id String @id @default(cuid())
+ key String @unique
+ count Int
+ lastRequest BigInt
+}
+model RateBucket {
+ key String @id
+ count Int @default(1)
+}
