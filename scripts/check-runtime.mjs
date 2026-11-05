@@ -15,7 +15,7 @@ import process from "node:process";
 import console from "node:console";
 const root = process.argv[2] ?? ".next/standalone";
 const banned =
-  /(?:@visx|@prisma\/studio|node_modules\/prisma(?:\/|$)|\.bin\/prisma)/;
+  /(?:@visx|@prisma\/studio|node_modules\/prisma(?:\/|$)|\.bin\/prisma|(?:^|\/)scripts\/launch-[^/]+\.mjs|(?:^|\/)[^/]+\.env(?:\.[^/]*)?$)/;
 async function files(directory, allowedRoot) {
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -44,6 +44,8 @@ const secretValues = [
   "DEMO_STAFF_PASSWORD",
   "DEMO_STUDENT1_PASSWORD",
   "DEMO_STUDENT2_PASSWORD",
+  "CAMPUS_RUNTIME_PASSWORD",
+  "VERCEL_TOKEN",
 ]
   .map((key) => process.env[key])
   .filter((value) => value && value.length >= 12);

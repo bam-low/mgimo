@@ -62,6 +62,8 @@ const secretValues = [
   "DEMO_STAFF_PASSWORD",
   "DEMO_STUDENT1_PASSWORD",
   "DEMO_STUDENT2_PASSWORD",
+  "CAMPUS_RUNTIME_PASSWORD",
+  "VERCEL_TOKEN",
 ].map((key) => process.env[key]);
 secretValues.push(
   ...Object.values(

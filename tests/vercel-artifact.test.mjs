@@ -39,6 +39,9 @@ test("rejects dev tools, Studio/alpha packages and test/env files", async () => 
     "node_modules/@visx/group/index.js",
     "tests/leak.test.js",
     ".env.local",
+    "owner.env",
+    "runtime.env",
+    "scripts/launch-vercel.mjs",
     "node_modules/vitest/index.js",
   ])
     await fixture(async (root) => {
@@ -124,17 +127,25 @@ test("rejects dev-only modules in a server bundle before names can be minified a
   assert.throws(() => inspectBundledGraph([], lock));
 });
 
-test("standalone rejects env files before tracing or packaging", () =>
-  fixture(async (root) => {
-    await writeFile(path.join(root, ".env.local"), "fictional-only");
-    const result = spawnSync(
-      process.execPath,
-      ["scripts/check-runtime.mjs", root],
-      { encoding: "utf8" },
-    );
-    assert.equal(result.status, 1);
-    assert(result.stderr.includes("Forbidden runtime files/traces"));
-  }));
+test("standalone rejects env files and owner tools before tracing or packaging", async () => {
+  for (const file of [
+    ".env.local",
+    "owner.env",
+    "runtime.env",
+    "scripts/launch-vercel.mjs",
+  ])
+    await fixture(async (root) => {
+      await mkdir(path.dirname(path.join(root, file)), { recursive: true });
+      await writeFile(path.join(root, file), "fictional-only");
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/check-runtime.mjs", root],
+        { encoding: "utf8" },
+      );
+      assert.equal(result.status, 1);
+      assert(result.stderr.includes("Forbidden runtime files/traces"));
+    });
+});
 test("standalone rejects secret canaries without printing values", () =>
   fixture(async (root) => {
     const secret = "fictional-build-only-standalone-canary";
