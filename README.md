@@ -14,6 +14,7 @@
 - [Дизайн Academic Editorial и границы утверждения](docs/DESIGN.md)
 - [Решения и открытые вопросы](docs/DECISIONS.md)
 - [Журнал ИИ-разработки](docs/AI_LOG.md)
+- [Отдельный VPS-путь: пошаговый runbook](docs/VPS_DEPLOY_RUNBOOK.md), [GO/NO-GO checklist](docs/VPS_LAUNCH_CHECKLIST.md) и [threat model](docs/VPS_ARCHITECTURE.md) — подготовка Issue #24, без разрешения покупки/deploy. Vercel/Neon альтернатива сохранена.
 
 Источник требований: [Issue #1](https://github.com/bam-low/mgimo/issues/1). По [Issue #7](https://github.com/bam-low/mgimo/issues/7) утверждены модульный монолит и набор технологий (Next.js App Router/React/TypeScript/Tailwind CSS/PostgreSQL/Prisma/Zod/Vitest/Playwright); версии технического каркаса зафиксированы ниже; для этапа 2 утверждён Better Auth 1.7.17 (A35). Конкурсная демонстрация допускает только вымышленные данные (приоритетное уточнение Issue #18); до подтверждения сотрудником и действующего прикрепления учебный доступ закрыт. Подробности — в [Architecture v2](docs/ARCHITECTURE.md). По [Issue #5](https://github.com/bam-low/mgimo/issues/5) выбран Academic Editorial и направление логотипа B; точные визуальные значения открыты, две исходные доски переданы, выбран B (второй выделенный) и концепция № 1; финальный SVG и точные source-макеты ещё не переданы, см. [дизайн-спецификацию](docs/DESIGN.md). Команды установки и запуска каркаса приведены ниже. Конкурсные материалы — отдельная часть работы.
 

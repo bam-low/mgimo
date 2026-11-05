@@ -14,3 +14,5 @@ test-results/
 
 .vercel/
 test-results-vercel/
+
+ops/vps/__pycache__/

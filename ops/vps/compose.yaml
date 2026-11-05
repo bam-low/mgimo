@@ -1,0 +1,93 @@
+name: campus
+x-log: &logs
+  driver: local
+  options: {max-size: "10m", max-file: "3"}
+x-security: &security
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  logging: *logs
+services:
+  db:
+    image: postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: campus_admin
+      POSTGRES_DB: campus
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg-admin-pw
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/run/secrets/db-server.crt, -c, ssl_key_file=/run/secrets/db-server.key, -c, hba_file=/etc/postgresql/campus-hba.conf, -c, shared_buffers=256MB, -c, work_mem=4MB, -c, max_connections=40, -c, log_statement=none]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/campus-hba.conf:ro
+    secrets: [pg-admin-pw, db-server.crt, db-server.key]
+    networks: [private]
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 0.75
+    pids_limit: 256
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U campus_admin -d campus"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging: *logs
+  app:
+    <<: *security
+    image: ${CAMPUS_APP_IMAGE:?verified runtime image ID/digest required}
+    pull_policy: never
+    restart: unless-stopped
+    depends_on: {db: {condition: service_healthy}}
+    ports: ["127.0.0.1:${CAMPUS_APP_PORT:-3000}:3000"]
+    secrets: [runtime.env, db-ca.pem]
+    networks: [private, edge]
+    tmpfs: ["/tmp:size=64m,uid=1000,gid=1000,mode=1700", "/app/.next/cache:size=64m,uid=1000,gid=1000,mode=0700"]
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1
+    pids_limit: 128
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/structure').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+  tools:
+    <<: *security
+    profiles: [ops]
+    image: ${CAMPUS_TOOLS_IMAGE:?verified separate tools image required}
+    pull_policy: never
+    secrets: [bootstrap.env, migration.env, runtime.env, db-ca.pem]
+    networks: [private]
+    tmpfs: ["/tmp:size=64m,uid=1000,gid=1000,mode=1700"]
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.75
+    pids_limit: 128
+  cleanup:
+    <<: *security
+    profiles: [ops]
+    image: ${CAMPUS_APP_IMAGE:?verified runtime image required}
+    pull_policy: never
+    entrypoint: [node, /opt/campus/cleanup-client.mjs]
+    secrets: [cron]
+    networks: [private]
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.1
+    pids_limit: 32
+networks:
+  private: {internal: true}
+  edge: {}
+volumes:
+  pgdata:
+secrets:
+  pg-admin-pw: {file: "${CAMPUS_SECRETS_DIR:?private secrets directory required}/pg-admin-pw"}
+  db-server.crt: {file: "${CAMPUS_SECRETS_DIR}/db-server.crt"}
+  db-server.key: {file: "${CAMPUS_SECRETS_DIR}/db-server.key"}
+  db-ca.pem: {file: "${CAMPUS_SECRETS_DIR}/db-ca.pem"}
+  runtime.env: {file: "${CAMPUS_SECRETS_DIR}/runtime.env"}
+  migration.env: {file: "${CAMPUS_SECRETS_DIR}/migration.env"}
+  bootstrap.env: {file: "${CAMPUS_SECRETS_DIR}/bootstrap.env"}
+  cron: {file: "${CAMPUS_SECRETS_DIR}/cron"}

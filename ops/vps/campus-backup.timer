@@ -1,0 +1,8 @@
+[Unit]
+Description=Campus daily encrypted snapshot UTC
+[Timer]
+OnCalendar=*-*-* 02:10:00 UTC
+Persistent=true
+RandomizedDelaySec=10m
+[Install]
+WantedBy=timers.target

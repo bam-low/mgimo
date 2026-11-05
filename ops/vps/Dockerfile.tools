@@ -1,0 +1,11 @@
+# Separate, owner-only migration image. NEVER use as the app image.
+FROM postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5 AS pgcrypto
+FROM node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c
+LABEL io.campus.role="tools"
+COPY --from=pgcrypto /usr/lib/x86_64-linux-gnu/libssl.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/
+COPY --from=pgcrypto /usr/bin/openssl /usr/bin/openssl
+WORKDIR /tools
+COPY --chown=1000:1000 payload/ /tools/
+ENV NODE_ENV=production PRISMA_SCHEMA_ENGINE_BINARY=/tools/node_modules/@prisma/engines/schema-engine-debian-openssl-3.0.x NEXT_TELEMETRY_DISABLED=1
+USER 1000:1000
+CMD ["node", "ops/vps/admin.mjs"]

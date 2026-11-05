@@ -1,0 +1,66 @@
+name: VPS CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  vps:
+    name: VPS images and closed rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm audit --omit=dev
+      - run: npm run db:generate
+      - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs
+      - run: node scripts/prepare-vps-context.mjs
+      - name: Build isolated pinned images without network
+        run: |
+          context=$(cat .runtime-evidence/vps-context.txt)
+          docker pull node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c
+          docker pull gcr.io/distroless/cc-debian13:nonroot@sha256:08476c244888bfb425bae1ae4dd7c17f093e972aab8426883d97f3c6f280f7c1
+          docker build --network=none -t campus24-runtime "$context/runtime"
+          docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+          docker build --network=none -t campus24-tools "$context/tools"
+      - name: Local rehearsal prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends age
+          npx --no-install playwright install --with-deps chromium
+          docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+          docker pull nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609
+      - run: node scripts/test-vps.mjs
+      - name: Scan minimal runtime (full report and fixable HIGH/CRITICAL gate)
+        run: |
+          curl --fail --location --silent --show-error https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o /tmp/trivy.tar.gz
+          echo 'bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  /tmp/trivy.tar.gz' | sha256sum -c -
+          tar -xf /tmp/trivy.tar.gz -C /tmp trivy
+          /tmp/trivy image --image-src docker --scanners vuln --format json --output /tmp/vps-vulnerabilities.json campus24-runtime
+          /tmp/trivy image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 campus24-runtime
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: vps-security-report
+          path: /tmp/vps-vulnerabilities.json
+          retention-days: 7
+      - name: Package only verified release files, no secrets
+        run: bash scripts/package-vps-release.sh /tmp/campus-vps-release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: campus-vps-unsigned-${{ github.event.pull_request.head.sha || github.sha }}
+          path: /tmp/campus-vps-release/*
+          compression-level: 0
+          retention-days: 7

@@ -1,0 +1,11 @@
+[Unit]
+Description=Campus authenticated internal rate cleanup
+After=docker.service
+Requires=docker.service
+OnFailure=campus-attention.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/campus/current
+ExecStart=/usr/bin/docker compose --env-file /etc/campus/release.env -f ops/vps/compose.yaml run --rm --no-deps cleanup
+TimeoutStartSec=90
+UMask=0077
