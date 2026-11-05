@@ -145,8 +145,11 @@ model RateLimit {
  key String @unique
  count Int
  lastRequest BigInt
+ @@index([lastRequest, id])
 }
 model RateBucket {
  key String @id
  count Int @default(1)
+ expiresAt DateTime
+ @@index([expiresAt, key])
 }
