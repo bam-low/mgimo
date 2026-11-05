@@ -34,7 +34,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Ephemeral test-only secrets
-        run: node -e 'const fs=require("fs"),c=require("crypto");for(const k of ["BETTER_AUTH_SECRET","DEMO_STAFF_PASSWORD","DEMO_STUDENT1_PASSWORD","DEMO_STUDENT2_PASSWORD","CRON_SECRET"])fs.appendFileSync(process.env.GITHUB_ENV,k+"="+c.randomBytes(32).toString("hex")+"\n")'
+        run: node -e 'const fs=require("fs"),c=require("crypto");for(const k of ["BETTER_AUTH_SECRET","DEMO_STAFF_PASSWORD","DEMO_STUDENT1_PASSWORD","DEMO_STUDENT2_PASSWORD","CRON_SECRET"]){const value=c.randomBytes(32).toString("hex");process.stdout.write("::add-mask::"+value+"\n");fs.appendFileSync(process.env.GITHUB_ENV,k+"="+value+"\n");}'
       - run: npm ci --ignore-scripts
       - run: npm audit --omit=dev
       - run: npm run db:generate
