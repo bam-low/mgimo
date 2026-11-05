@@ -19,7 +19,8 @@
     "db:seed": "node prisma/seed.mjs",
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:e2e": "playwright test && node scripts/verify-runtime-loads.mjs",
-    "check:runtime": "node scripts/check-runtime.mjs"
+    "check:runtime": "node scripts/check-runtime.mjs",
+    "db:cleanup-rates": "node scripts/cleanup-rate-buckets.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",

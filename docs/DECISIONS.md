@@ -48,6 +48,8 @@
 
 IMPLEMENTED, Codex, 2026-11-04, разрешённый scope Issue #15: Node 24/Next 16 сохранены; версии зависимостей и команды — README/lockfile. TTL 8ч/updateAge 30м/freshAge 15м; штатный scrypt, origin checks/nonce CSP/no-store, PostgreSQL rate counters. Это выбранные технические значения для ревью владельцем, не прежние утверждённые продуктовые числа. Частичные уникальные индексы и audit immutable trigger реализованы миграцией. Предложения P09/P10 ниже сохраняют историю; реализованное подмножество описано в Architecture/миграции, остальные детали future остаются открытыми.
 
+IMPLEMENTED, Codex, 2026-11-05, [ревью PR #16](https://github.com/bam-low/mgimo/pull/16#pullrequestreview-5776005065): site-wide/email-only отказ заменён лимитами доверенного источника и пары источник+email; logout не зависит от лимита входа. Нет неявного доверия X-Forwarded-For: публичный запуск требует ingress overwrite/изоляции и платформенной anti-abuse защиты (конкретная реализация OPEN, deploy вне scope). RateBucket получает expiry/index и bounded concurrent cleanup, включая legacy RateLimit; maintenance-команда для простоя. Технические детали и остаточные риски — README/Architecture. Это устранение замечаний текущего scope, не новое продуктовое решение.
+
 ## Предложено
 
 | ID | Предложение | Что нужно для утверждения |

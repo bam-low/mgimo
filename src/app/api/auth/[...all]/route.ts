@@ -3,6 +3,7 @@ import {
   readJSON,
   sameOrigin,
   limited,
+  requestSource,
   failure,
   Denied,
 } from "@/server/security";
@@ -23,11 +24,16 @@ export async function POST(request: Request) {
       ].includes(path)
     )
       throw new Denied();
-    await limited("auth-global", 120, 60000);
     if (path.endsWith("/sign-in/email")) {
+      const source = requestSource(request);
+      await limited(JSON.stringify(["login-source", source]), 20, 60000);
       const data = await readJSON(request.clone());
       await limited(
-        "login:" + String(data.email).toLowerCase(),
+        JSON.stringify([
+          "login-email",
+          source,
+          String(data.email).trim().toLowerCase(),
+        ]),
         10,
         15 * 60000,
       );
