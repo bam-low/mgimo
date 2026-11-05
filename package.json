@@ -24,6 +24,7 @@
     "build:vercel": "node scripts/build-vercel.mjs",
     "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",
     "test:vercel-checker": "node tests/vercel-artifact.test.mjs",
+    "test:launch-tools": "node --test tests/launch-tools.test.mjs",
     "test:vercel-e2e": "playwright test --config playwright.vercel.config.ts && node scripts/test-vercel-cold-start.mjs && node scripts/verify-vercel-loads.mjs",
     "build:vercel-app": "next build --webpack && node scripts/prepare-runtime.mjs"
   },

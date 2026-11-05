@@ -4,7 +4,7 @@ import path from "node:path";
 import { nodeFileTrace } from "@vercel/nft";
 
 export const forbidden =
-  /(?:^|\/)(?:tests?|\.git|\.env[^/]*|prisma\/migrations)(?:\/|$)|(?:^|\/)[^/]+\.(?:test|spec)\.[^/]+$|node_modules\/(?:prisma(?:\/|$)|@visx\/|@prisma\/(?:studio[^/]*|engines(?:-version)?)(?:\/|$)|vercel(?:\/|$)|vitest(?:\/|$)|typescript(?:\/|$)|eslint(?:\/|$)|@vercel\/(?:next|nft|build-utils)(?:\/|$)|@rolldown\/|@workflow\/)/;
+  /(?:^|\/)(?:tests?|\.git|\.env[^/]*|prisma\/migrations)(?:\/|$)|(?:^|\/)[^/]+\.env(?:\.[^/]*)?$|(?:^|\/)scripts\/launch-[^/]+\.mjs|(?:^|\/)[^/]+\.(?:test|spec)\.[^/]+$|node_modules\/(?:prisma(?:\/|$)|@visx\/|@prisma\/(?:studio[^/]*|engines(?:-version)?)(?:\/|$)|vercel(?:\/|$)|vitest(?:\/|$)|typescript(?:\/|$)|eslint(?:\/|$)|@vercel\/(?:next|nft|build-utils)(?:\/|$)|@rolldown\/|@workflow\/)/;
 export function inside(root, file) {
   const relative = path.relative(root, file);
   return (

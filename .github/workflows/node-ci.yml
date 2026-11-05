@@ -18,6 +18,8 @@ jobs:
           POSTGRES_DB: campus_test
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: isolated-ci-only
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+          POSTGRES_INITDB_ARGS: '--auth-host=scram-sha-256'
         ports: ['5432:5432']
         options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 12
     env:
@@ -44,6 +46,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test -- --run
       - run: npm run test:vercel-checker
+      - run: npm run test:launch-tools
       - run: npm run test:integration
       - run: npm run build
       - run: npm run check:runtime

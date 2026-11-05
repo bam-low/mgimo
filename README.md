@@ -68,7 +68,7 @@ npx --no-install playwright install chromium
 npm run test:e2e
 ```
 
-Команды предполагают экспортированные env (или запуск через Node `--env-file` аналогично примерам выше). На машине с готовым Chromium можно задать PLAYWRIGHT_EXECUTABLE_PATH; в CI Playwright устанавливает официальный закреплённый браузер. Unit: 2 теста, PostgreSQL integration: 26 сценариев. E2E: 8 сценариев standalone и 9 Functions, включая реальную цепочку student→staff→student на 360/1280 px, второго студента, privacy/error/empty; отдельный cold-start DB session test. E2E стартует production standalone, не dev; проверьте отсутствие другого сервера на 3000. Подробные результаты и версии HEAD CI — в Draft PR, не в обещании этого текста.
+Команды предполагают экспортированные env (или запуск через Node `--env-file` аналогично примерам выше). На машине с готовым Chromium можно задать PLAYWRIGHT_EXECUTABLE_PATH; в CI Playwright устанавливает официальный закреплённый браузер. Unit: 2 теста, PostgreSQL integration: 31 сценарий (включая отдельный child probe реального auth workflow под limited ролью). E2E: 8 сценариев standalone и 9 Functions, включая реальную цепочку student→staff→student на 360/1280 px, второго студента, privacy/error/empty; отдельный cold-start DB session test. E2E стартует production standalone, не dev; проверьте отсутствие другого сервера на 3000. Подробные результаты и версии HEAD CI — в Draft PR, не в обещании этого текста.
 
 ### Production-артефакт и граница исключения Prisma
 
@@ -190,3 +190,18 @@ git diff --check
 ### Известные ограничения проверок зависимостей
 
 `npm audit` на этапе Issue #13 сообщил 10 moderate-находок (0 high/critical) в dev-цепочке ESLint/TypeScript ESLint: minimatch/globparts amplification DoS. Они не скрываются; принудительный downgrade/несовместимые major-overrides не применены. `npm audit --omit=dev` на этапе Issue #13 сообщил 0 находок; актуальные audit этапа 2 приведены в PR. Это не проверка безопасности будущей auth/БД. Состояние advisories может меняться; перед расширением приложения повторить аудит и обновить совместимые инструменты. Проверенные результаты тестов и двух CI с точным HEAD публикуются в описании PR.
+
+## Первый закрытый запуск — Issue #22
+
+После merged PR #21 подготовлен [пошаговый runbook](docs/FIRST_DEPLOY_RUNBOOK.md) и [облачный checklist](docs/LAUNCH_CHECKLIST.md). Начать владельческую подготовку можно только после ревью/ручного merge этого PR и отдельного Free-разрешения; первый Deploy — после pre-deploy GO и ещё одного явного разрешения, до Git link. В Codex ресурсы/deploy/настоящие секреты не используются. Docker владельцу не нужен; Node24 и psql17 работают с новой synthetic Neon DB.
+
+Важное уточнение: Vercel Authentication + **All Deployments** теперь документированы как бесплатные на Hobby; Standard/Preview не закрывают production domains. Первый deploy нового проекта может быть production даже без --prod. Runbook использует пустой проект с атомарным All в create request, без Git/deploy, затем API readback/UI review до первого build. Нет безопасной настройки до deploy — STOP без публикации; применимость Hobby к конкурсу с возможным призом отдельно NOT VERIFIED. A36/A38 не отменены.
+
+Подготовленные инструменты (не приложение/не публичные API):
+
+- `scripts/launch-config.mjs init|runtime|ca --output ABSOLUTE_PRIVATE_PATH` — exclusive private файлы вне Git; отдельный runtime файл с пятью ключами, без admin/DEMO/API token; CA mode экспортирует существующий доверенный публичный ISRG Root X1 для psql verify-full. Нужные private env и команды для ОС — только runbook.
+- `scripts/launch-db.mjs grant --apply --dedicated-synthetic-db` / `check` — транзакционные grants на выделенной DB и read-only audit реальной limited роли/TLS; без password reset/автопочинки схемы. Локальное исключение допускает только loopback *_test.
+- `scripts/launch-vercel.mjs create --apply --owner-approved-free-project` — **только владелец после разрешения**, создаёт пустой All-protected Hobby проект. `check` / `check-linked` — read-only конфигурация/verified origin/no bypass; никаких deployment/Git-link/env-upload calls.
+- `npm run test:launch-tools` — локальные helper fixtures, mock Vercel API, без сети/аккаунтов. Полный Node CI сохраняет standalone/Functions gates и добавляет эти проверки. PostgreSQL integration проверяет реальную аутентифицированную limited роль, отрицательные привилегии, idempotence и сохранность аудита.
+
+Остальные cloud gates — реальный ingress, Neon TLS/pooling/resume, фактические Functions, cron, РФ без VPN, backup restore и тариф. Непройденное остаётся NOT VERIFIED. Жюри/публика не получают доступ автоматически; расписание, оценки, обычные заявки, уведомления и учебный staff CRUD ещё не реализованы.
