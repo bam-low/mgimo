@@ -34,7 +34,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Ephemeral test-only secrets
-        run: node -e 'const fs=require("fs"),c=require("crypto");for(const k of ["BETTER_AUTH_SECRET","DEMO_STAFF_PASSWORD","DEMO_STUDENT_PASSWORD"])fs.appendFileSync(process.env.GITHUB_ENV,k+"="+c.randomBytes(32).toString("hex")+"\n")'
+        run: node -e 'const fs=require("fs"),c=require("crypto");for(const k of ["BETTER_AUTH_SECRET","DEMO_STAFF_PASSWORD","DEMO_STUDENT_PASSWORD","CRON_SECRET"])fs.appendFileSync(process.env.GITHUB_ENV,k+"="+c.randomBytes(32).toString("hex")+"\n")'
       - run: npm ci --ignore-scripts
       - run: npm audit --omit=dev
       - run: npm run db:generate
@@ -43,11 +43,15 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test -- --run
+      - run: npm run test:vercel-checker
       - run: npm run test:integration
       - run: npm run build
       - run: npm run check:runtime
       - run: npx --no-install playwright install --with-deps chromium
       - run: npm run test:e2e
+      - run: npm run build:vercel
+      - run: npm run check:vercel-runtime
+      - run: npm run test:vercel-e2e
       - name: Synthetic test screenshots and runtime manifest
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -56,5 +60,8 @@ jobs:
           path: |
             test-results/**/*.png
             .runtime-evidence/files.txt
+            test-results-vercel/**/*.png
+            .runtime-evidence/vercel-manifest.json
+            .vercel/output/campus-module-graph.json
           include-hidden-files: true
           retention-days: 7

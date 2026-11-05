@@ -1,0 +1,103 @@
+# Подготовка бесплатного размещения «Кампуса»
+
+Дата проверки источников: **05.11.2026 (МСК)**. Основание: полная [Issue #18](https://github.com/bam-low/mgimo/issues/18), включая конкурсное уточнение и условное расширение A36. Это инструкция подготовки и будущей ручной приёмки, **не разрешение публикации**. Проекты Vercel/Neon не созданы, облачная БД/секреты не подключены, HTTPS URL не опубликован. Standalone остаётся разрешённым путём; Functions — условный кандидат до выполнения всех gates ниже.
+
+## Статусы и границы доказательств
+
+| Проверка | Что доказано / что ещё требуется |
+| --- | --- |
+| Next.js 16.4.5 / Node 24 / Prisma 7.10.1 / Better Auth 1.7.17 | Закреплённые зависимости, PostgreSQL 17 integration и локальные сборки. Vercel поддерживает 24.x, но управляет minor/patch отдельно от нашего Node 24.22.1. |
+| Конечные Functions | Официальный @vercel/next **28.0.1**, ABI 2; материализация в Build Output API v3 через официальный @vercel/build-utils **15.2.1**. Проверяются фактические .func, aliases, webpack module graph, NFT graph, файлы/lockfile, canaries и исполнения обработчиков вне checkout. |
+| Neon | Документированный PostgreSQL protocol/transaction pooling совместим с adapter-pg; реальная Neon БД и TLS/cold start именно Neon ещё **NOT VERIFIED** — создавать её запрещено на этапе подготовки. Локальные проверки PostgreSQL не подменяют эту приёмку. |
+| Trusted ingress | Документация Vercel подтверждает overwrite. Локальный harness проверяет приложение после имитации overwrite по socket peer; **реальный Vercel ingress NOT VERIFIED** до отдельного разрешённого запуска. |
+| Россия без VPN / срок до 28 ноября | **NOT VERIFIED**. Нужна реальная внешняя проверка, план ниже. Успешная сборка не подтверждает доступность. |
+| Demo-safe UX | Только вымышленные данные обязательны. Предложение ниже **PROPOSED**, требуется ревью/утверждение и реализация до открытой демонстрации. Текущая свободная форма не гарантирует отсутствие настоящих данных. |
+
+Функции не получили безусловное разрешение A36. Доказательства ограничены закреплённым builder, текущим исходным кодом, проверенными Node-путями и перечисленными optional ветками библиотек. Это не формальное доказательство всех динамических импортов, всех возможностей платформы или всей безопасности приложения.
+
+## Тарифы и доступность
+
+Проверены официальные источники:
+
+- [Vercel Hobby](https://vercel.com/docs/plans/hobby): $0, личное некоммерческое использование, 4 CPU-hours, 360 GB-hours provisioned memory, 1 млн invocations, 100 GB transfer в опубликованных included limits. При превышении возможна пауза, а не обещание непрерывной бесплатной работы. Не включать Pro/trial/add-ons/платный расход.
+- [Fair use](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage): финансовая выгода любого участника может считаться commercial use. Личная учебная демонстрация без продаж/рекламы — предполагаемый профиль; допустимость конкретного конкурса с денежным призом или оплачиваемой разработкой не подтверждена. При таком условии владелец должен уточнить применимость тарифа у Vercel до публикации. Агент не контактировал с поддержкой.
+- [Private Git](https://vercel.com/docs/git#deploying-private-git-repositories): репозиторий private, владелец bam-low — личный User. Ограничение Hobby на private GitHub organizations сейчас не применяется; перенос в organization меняет вывод. Git auto-deploy отключён конфигурацией, чтобы PR/новый commit не публиковался автоматически.
+- [Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions): выбрать 24.x, не платформенный default 26.x; exact patch платформы не закрепляется `.nvmrc`.
+- [Neon plans](https://neon.com/docs/introduction/plans): Free $0, 100 CU-hours/project/month, 1 GB Postgres/project (20 GB account total), 5 GB egress/project/month; compute спит после 5 минут, отключить сон на Free нельзя. При исчерпании compute/egress — suspend до нового периода/разрешённого upgrade, при storage cap — ошибки увеличивающих storage операций. Данные при этом не объявляются удалёнными. Не переходить на paid plan.
+- [Pooling](https://neon.com/docs/connect/connection-pooling), [Prisma](https://neon.com/docs/guides/prisma), [TLS](https://neon.com/docs/connect/connect-securely): runtime — pooled host, административные операции — direct host. Neon guide рекомендует также adapter-neon, но **здесь не заменяем adapter-pg**: он использует обычный PostgreSQL/TLS transport. Действующие транзакции/constraints/database sessions сохраняются.
+- [Vercel IP headers](https://vercel.com/docs/headers/request-headers): `x-vercel-forwarded-for` — кандидат доверенного одиночного IP при прямом Vercel ingress. Внешний proxy поверх Vercel не добавлять без новой проверки. Нельзя переносить это доверие на произвольный standalone-хост.
+- [Firewall](https://vercel.com/docs/vercel-firewall), [rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting): бесплатная DDoS-защита, Hobby — 3 custom rules, из них 1 rate-limit rule с опубликованным included allowance. Уточнить текущие условия в UI перед сохранением; не принимать priced feature/upgrade. WAF не заменяет DB limits и не гарантирует защиту от всех распределённых атак.
+- [Build Output API](https://vercel.com/docs/build-output-api): готовые Functions/static/routes — отдельный контракт платформы. [Официальный Next builder](https://github.com/vercel/vercel/tree/main/packages/next) и [serializer CLI](https://github.com/vercel/vercel/blob/main/internals/builder-orchestration/src/write-build-result.ts) использованы как источники формата. Стандартный локальный CLI оставлял filePathMap; наш путь копирует все FileFsRefs официальным download, без ссылок на checkout.
+
+Источники могут измениться. Перепроверить лимиты/условия в аккаунтах перед запуском. Доступность регистрации аккаунта из страны владельца и доступность конкурсного URL не проверялись. Нет автоматического согласия на платёж, карту, trial или апгрейд.
+
+## Как получить и проверить артефакт без аккаунта
+
+```sh
+npm ci --ignore-scripts
+npm run db:generate
+npm run build
+npm run check:runtime
+npm run test:vercel-checker
+npm run build:vercel
+npm run check:vercel-runtime
+```
+
+`build:vercel` не вызывает login/link/pull/deploy или provider API. Он создаёт отдельный `/tmp` build workspace по явному списку исходников, **без .env*, .git, owner .vercel/project.json, evidence и результатов тестов**; устанавливает lockfile с ignore-scripts и подставляет только случайные canaries вместо DB/auth/cron/demo secrets. Реальные build credentials не нужны. Миграции/seed не запускаются. @vercel/next вызывает Next webpack build; обычный `npm run build` сохраняет Turbopack и standalone. Все четыре текущие уникальные Node24 Functions и их route aliases копируются в `.vercel/output`, без filePathMap; неиспользуемые файлы не удаляются после проверки, чтобы скрыть нарушения. Builder намеренно отказывает неизвестным output types и prerender приватных страниц; допускаются только framework error fallbacks.
+
+Почему отдельная staging-сборка: официальный builder добавлял `.env.example` независимо от Next tracing excludes. Исходный SDK/handler не патчится. Canary-значения должны отсутствовать в Functions, static и metadata; `.vc-config.json.environment` и `Next config.env` пусты. В runtime настоящие секреты поступят только из защищённого окружения платформы — необходимое использование env не является их встраиванием в bundle.
+
+Проверка fail-closed: запрещены Studio/девять @visx alpha, CLI/engines, dev-only/unknown/prerelease external packages, собственные test/env файлы, внешние symlinks, filePathMap, неизвестный runtime и неизвестные NFT warnings. Webpack graph с importer reasons проверяет также **встроенные** модули до минификации. NFT повторно строит граф по реальным launcher/server files. Встроенные в закреплённый Next framework shims (например testmode) относятся к framework runtime, не к нашим тестам. Узкие optional warnings Next/React (@opentelemetry, неиспользуемый Edge sandbox, React development branch), pg-native/Cloudflare sockets перечислены в checker; неизвестный warning требует нового ревью. Попытка реально выйти за границы Function при CJS/ESM resolution блокируется тестовым hook, не замалчивается.
+
+Для поведения на отдельной синтетической *_test БД после migrate/двойного seed:
+
+```sh
+npm run test:integration
+npm run test:e2e
+npm run test:vercel-e2e
+```
+
+Functions запускаются из отдельной копии вне checkout, каждая в отдельном Node-процессе. Harness маршрутизирует только проверяемые текущие routes, не заявляет эмуляцию всей платформы. Проверяются браузерная цепочка 360/1280px, source/email isolation, spoofed headers после simulated overwrite, reject/retry/approve/audit, PENDING/foreign access, logout/cron и новый процесс с прежней DB-сессией. Это локальный cold start, не реальный Neon resume.
+
+Evidence: `.runtime-evidence/vercel-manifest.json` (файлы, SHA256, NFT graphs и число bundle identifiers), `.vercel/output/campus-module-graph.json` (module identifiers/reasons без source), синтетические screenshots. CI не публикует целые bundles, .vc-config, secret canaries, raw env, typed-password traces или session cookies. Временные build/isolated каталоги локальны и не содержат настоящих секретов; после проверки их можно удалить. На ephemeral CI runner они удаляются вместе с runner.
+
+## Действия владельца после ревью и отдельного разрешения
+
+Ниже будущие ручные шаги. Сейчас их **не выполнять**. Сначала закрыть тарифный, demo-safe и доступностный gates. Аккаунты/токены/пароли не присылать в чат и не добавлять в GitHub/PR/logs.
+
+1. В Neon выбрать **Free**, PostgreSQL **17**, отдельный проект/БД только для вымышленного demo. Регион близко к Vercel Frankfurt (`fra1`), сверить доступные регионы. Не включать Neon Managed Auth вместо нашего Better Auth, платные интеграции, автоматический upgrade или постоянные keepalive.
+2. Сохранить direct admin URL только локально в защищённом env для миграций, с `sslmode=verify-full`; не отключать TLS/проверку сертификата. Выполнить на новой пустой demo БД `npm run db:migrate` с DIRECT_DATABASE_URL; перед повтором проверить migration status. Это контролируемый шаг владельца, **не build/start hook**. На существующей БД сначала проверенная резервная копия и план совместимости. Не использовать reset/db push.
+3. Доверенным seed с ALLOW_DEMO_SEED=yes подготовить STAFF и двух разных студентов. Сильные случайные demo-пароли задать локально в env; seed повторить для проверки идемпотентности. Убрать ALLOW_DEMO_SEED и DEMO_* из публичного runtime. Рабочие credentials жюри передать только в предусмотренном закрытом/безопасном комментарии конкурсной работы, не в Git/CI/скриншотах.
+4. Создать отдельную ограниченную роль runtime. Через доверенный psql: `CREATE ROLE campus_runtime LOGIN;` и интерактивный `\password campus_runtime` (не печатать пароль в SQL/логе). Дать CONNECT к demo БД, USAGE schema public, SELECT на University/Faculty/Program/StudentGroup; SELECT/INSERT/UPDATE/DELETE на User/Account/Session/Verification/UniversityMembership/StudentProfile/EnrollmentRequest/GroupMembership/RateBucket/RateLimit; только SELECT/INSERT на AuditLog. Не давать DDL/CREATEROLE/superuser/BYPASSRLS, не делать роль владельцем таблиц. Immutable audit trigger сохраняется. Проверить все сценарии с этой ролью, а миграции/seed оставить admin-role. Не выдавать автоматические права на будущие таблицы без ревью.
+5. Получить для этой роли **pooled** Neon URL (host с `-pooler`) и `sslmode=verify-full`. В приложении max=2 на процесс, connection timeout 15s/idle 10s, повторно используется Prisma instance; не передавать Prisma 6 connection_limit как замену pg pool options. Serverless fan-out всё равно может исчерпать pool/квоту: проверить concurrency в разрешённой demo, затем наблюдать dashboard. На Free нет private network/IP allow; endpoint должен требовать TLS+роль+пароль, URL не публикуется.
+6. Создать личный Vercel **Hobby** проект для private bam-low/mgimo только после разрешения. Выбрать **Other** / Build Output API, Node **24.x**, build command из vercel.json (`npm run build:vercel && npm run check:vercel-runtime`), install `npm ci --ignore-scripts`; **не Next.js preset**, который повторно упакует уже проверенный output. Не указывать `.next/standalone` как static output. `git.deploymentEnabled=false` запрещает последующие Git auto-deploy; первоначальный Deploy/ручной Redeploy — уже публикация, требует отдельного разрешения. Не подключать Preview deploys к demo DB автоматически. Перед первым запуском включить доступную Hobby Vercel Authentication, чтобы приёмочный URL был доступен только владельцу, и сверить фактическую поддержку настройки в аккаунте.
+7. Runtime env в Vercel: DATABASE_URL (pooled limited role), BETTER_AUTH_SECRET (случайный >=32), BETTER_AUTH_URL (точный HTTPS origin выбранного URL), CRON_SECRET (отдельный случайный >=32), AUTH_TRUSTED_IP_HEADER=`x-vercel-forwarded-for`. Ни один из них не NEXT_PUBLIC_*. DIRECT_DATABASE_URL/admin credentials/DEMO_* в Vercel не нужны. Builder подставляет canaries, Functions получают настоящие env при invocation. Точное имя доступного домена узнать в UI, не угадывать; при изменении origin обновить конфигурацию и повторить проверки.
+8. Проверить, что итог размещения — наши Build Output API v3 Node24 Functions, region fra1, не изменённый Next preset output; сверить builder version/evidence и новую сборку. Настроить бесплатную WAF rule для POST /api/register и /api/auth/sign-in/email с IP/JA4 ключом, без общего глобального отказа; deny/challenge/Attack Mode только с проверкой доступности форм. Не включать платный rate feature. Проверить, что служебный cron не блокируется, а на неизвестном/отсутствующем source auth остаётся fail-closed. Один Hobby rate rule не устраняет все распределённые атаки.
+9. Под защищённым владельческим доступом выполнить реальные проверки ниже, затем разрешённую внешнюю приёмку из РФ. Снимать платформенную защиту и открывать публичную регистрацию можно только после утверждения/реализации demo-safe UX и остальных gates. Непройденный gate означает отсутствие разрешения публичного запуска, а не отключение защиты.
+
+## Реальные smoke / ingress / cold start gates
+
+- Проверить HTTPS, корректный origin, Secure/HttpOnly/SameSite=Lax cookies, no-store и nonce CSP; отсутствие клиентских секретов/внешних development chunks. Проверить, что вход с неверного Origin запрещён, прямой Better Auth sign-up закрыт, публичных STAFF нет.
+- На собственном приёмочном URL после разрешения: из одной сети повторять заведомо неверные попытки входа с разными подставными X-Forwarded-For/x-vercel-forwarded-for. Подмена не должна сбрасывать реальный source limit. Из **другой независимой сети** в тот же момент нормальный вымышленный пользователь должен войти. Не публиковать IP/пароли/cookies. Не проводить нагрузку на чужие сервисы. Если overwrite не подтверждён — не открывать auth и не ослаблять лимиты.
+- Два различных вымышленных студента: PENDING закрыт, staff reject → retry → approve, история/аудит сохранены; чужая группа/заявка/STAFF actions запрещены; logout/отзыв session/User.active немедленно закрывают новые запросы. Тестировать на 360px и ПК с ограниченной runtime-role.
+- Дождаться >5 минут отсутствия DB activity (не держать polling/health checks, не имитировать постоянное бодрствование); повторить вход/чтение сессии/защищённый запрос, проверить разумный ответ при Neon resume и новом Function instance. Затем проверить истечение/отзыв сессии. Данные не должны зависеть от memory cache конкретного процесса.
+- [Hobby cron](https://vercel.com/docs/cron-jobs/usage-and-pricing): один раз в сутки, точность внутри временного окна, не обещание запуска ровно в минуту. `17 3 * * *` — 03:17 UTC / 06:17 МСК, но возможна задержка. Vercel передаёт Bearer CRON_SECRET; без/с неверным secret — 401, без настройки — 503. Handler выполняет <=10 bounded batches и лимит времени, живые окна не трогает. Проверить реальные Invocation/Cron logs, не выводя secret. При малом трафике возможен backlog до следующего cron; есть доверенная `db:cleanup-rates` для простоя, внешнего платного scheduler нет.
+- Перед конкурсом сохранить зашифрованную/защищённую резервную копию synthetic DB доверенной admin-role через direct URL; проверить восстановление на отдельной разрешённой БД. Neon Free 6h restore window не заменяет резервный план до 28 ноября. Не публиковать dump с password hashes/session tokens.
+
+## Россия без VPN и бесплатный резерв
+
+Приёмка — **из реальной российской сети**, не Codex/VPN/geolocation emulator. Владелец/доверенный тестировщик проверяет как минимум мобильный интернет двух операторов и фиксированный доступ: дата/время МСК, оператор/город без персонального IP, браузер/устройство, DNS/TLS/страницы/static assets, login/logout, student→STAFF→student, reject/retry, cold start и ошибки. Локальный тест 360px не подменяет телефон в РФ. Зафиксировать обезличенный результат, а credentials не помещать в отчёт.
+
+Проверить до разрешённого открытия URL, перед началом подачи **08.11.2026 19:00 МСК**, после изменений deploy и ежедневно вручную до **28.11.2026 включительно**. Не поддерживать БД постоянными keepalive ради видимости доступности: это расходует 100 CU-hours. Год и даты взяты из Issue; окончательный дедлайн подачи остаётся OPEN. Бесплатные квоты/отсутствие SLA не гарантируют работу до итогов.
+
+**Резерв PROPOSED: Render Free Docker + та же Neon Free DB** — запуск проверенного standalone в минимальном runtime image без репозитория/полного node_modules/CLI. [Render Docker](https://render.com/docs/docker), [Free limits](https://render.com/docs/free): 750 часов/workspace/month, сон после 15 минут, пробуждение около минуты; без платёжного метода превышение bandwidth/build quotas приводит к suspend/остановке build, а не разрешению оплаты. Внешний DB traffic может привести к отдельному suspend. Регистрацию/доступность аккаунта, доверенный ingress и бесплатную anti-abuse защиту Render ещё надо проверить; нельзя просто доверить произвольный X-Forwarded-For. Это план, не созданный/проверенный резервный URL.
+
+Порядок переключения после разрешения: проверить Render URL из тех же российских сетей; подтвердить TLS/IP overwrite/WAF и весь smoke; задать отдельный точный BETTER_AUTH_URL/runtime env, подключить ту же ограниченную Neon роль, не запускать повторные миграции/seed. Ожидается повторный вход на новом origin; сохраняются записи и серверные права, не обещается перенос cookie между доменами. Закрыть старый ingress/остановить конкурирующие операции, обновить URL конкурсной работы и безопасную выдачу demo credentials. Если недоступна/исчерпана сама Neon, замена frontend-хоста это **не исправляет**: остановить публичный доступ и согласовать восстановление synthetic backup на отдельно разрешённой бесплатной PostgreSQL, без автоматического paid upgrade.
+
+## Rollback и конкурсные ограничения
+
+Rollback — ручной возврат на последний проверенный deployment в Vercel UI, с тем же origin/env и совместимой схемой; новый build/output снова проходит gate. Не откатывать БД разрушительными down migrations/reset и не обнулять регистрацию/аудит посетителей. При инциденте сначала закрыть доступ на ingress; при компрометации отозвать сессии/ротацию секретов провести доверенной операцией. Конфигурация cron должна соответствовать выбранному deployment; отсутствие нового handler на старом rollback требует остановить его cron. Платное восстановление автоматически не включать.
+
+**Только вымышленные данные** — актуальное конкурсное уточнение имеет приоритет над прежним допущением собственных реальных данных пользователя. PROPOSED demo-safe UX для ревью: сервер выдаёт вымышленные имя/фамилию и уникальный @example.test alias, запрещает подмену этих полей, выдаёт отдельные случайные demo credentials; пользователь выбирает только вымышленную структуру/группу. Нужны отдельное утверждение и реализация этого UX, не скрытая подмена существующей регистрации в deploy Issue. Баннер сам по себе не исключает персональные данные. До решения свободную публичную регистрацию не открывать. Маркировка уточнена: «Конкурсный концепт, не официальный сервис»; официальных университетских логотипов/новой айдентики не добавлено.
+
+Этап 2 ещё не реализует расписание сегодня/неделю, оценки/сессию, заявки и уведомления. Эти требования конкурсного MVP должны войти в следующие Issues до подачи; Issue #18 готовит размещение, не выдаёт их за готовые. Для подачи владелец готовит URL/безопасные demo accounts, исходники/архив и PDF/документ процесса (ИИ-инструменты, промпты, скриншоты, безопасность, ручные этапы); видео <=5 минут желательно. Не добавлять реальные вузовские данные/интеграции и не называть текущий этап полным конкурсным MVP.

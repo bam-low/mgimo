@@ -11,3 +11,6 @@ src/generated/
 playwright-report/
 test-results/
 .runtime-evidence/
+
+.vercel/
+test-results-vercel/

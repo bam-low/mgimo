@@ -40,7 +40,7 @@ export default async function Page() {
         <h1>Личный кабинет</h1>
         <Logout />
       </header>
-      <p>Концепт, не официальный сервис</p>
+      <p>Конкурсный концепт, не официальный сервис</p>
       <h2>{a.user.name}</h2>
       <p data-testid="membership-status" role="status">
         {status}
