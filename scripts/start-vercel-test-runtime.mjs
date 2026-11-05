@@ -1,3 +1,4 @@
+import { runtimeTestEnv } from "./runtime-test-env.mjs";
 import { setTimeout, clearTimeout } from "node:timers";
 import { URL } from "node:url";
 const { fetch, Headers } = globalThis;
@@ -31,7 +32,7 @@ async function discover(directory) {
         cwd: p,
         stdio: ["ignore", "inherit", "inherit", "ipc"],
         env: {
-          ...process.env,
+          ...runtimeTestEnv(),
           NODE_ENV: "production",
           NODE_PATH: "",
           VERCEL_TEST_LOADS: loads,

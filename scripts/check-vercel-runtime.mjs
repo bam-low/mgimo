@@ -60,7 +60,8 @@ const secretValues = [
   "BETTER_AUTH_SECRET",
   "CRON_SECRET",
   "DEMO_STAFF_PASSWORD",
-  "DEMO_STUDENT_PASSWORD",
+  "DEMO_STUDENT1_PASSWORD",
+  "DEMO_STUDENT2_PASSWORD",
 ].map((key) => process.env[key]);
 secretValues.push(
   ...Object.values(

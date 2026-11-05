@@ -1,7 +1,10 @@
+import { issueRegistrationTicket } from "../src/server/demo-identity";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
-import { randomUUID } from "node:crypto";
 import { db } from "../src/server/db";
-import { register, decide } from "../src/server/enrollment";
+import {
+  register as createRegistration,
+  decide,
+} from "../src/server/enrollment";
 import { auth } from "../src/server/auth";
 import { actor, studentAccess } from "../src/server/security";
 if (
@@ -10,22 +13,38 @@ if (
 )
   throw Error("Integration tests require a dedicated *_test database");
 const origin = process.env.BETTER_AUTH_URL!;
-const password = "Synthetic-test-" + randomUUID();
+const passwords = new Map<string, string>();
 const input = () => ({
-  firstName: "Тест",
-  lastName: "Вымышленный",
-  email: randomUUID() + "@example.test",
-  password,
+  email: "",
+  password: "",
   universityId: "demo-university",
   facultyId: "faculty-1",
   programId: "program-1",
   groupId: "group-1",
 });
 const headers = new Headers({ origin });
+async function register(
+  data: ReturnType<typeof input> & Record<string, unknown>,
+  headers: Headers,
+) {
+  const { email: ignoredEmail, password: ignoredPassword, ...selection } = data;
+  void ignoredEmail;
+  void ignoredPassword;
+  const ticket = issueRegistrationTicket("integration");
+  data.email = `student-${ticket.split(".")[0]}@example.test`;
+  const identity = await createRegistration(
+    { ...selection, ticket },
+    headers,
+    "integration",
+  );
+  Object.assign(data, identity);
+  passwords.set(identity.email, identity.password);
+  return identity;
+}
 async function login(email: string) {
   const r = await auth.api.signInEmail({
     headers,
-    body: { email, password },
+    body: { email, password: passwords.get(email)! },
     asResponse: true,
   });
   expect(r.status).toBe(200);
@@ -35,6 +54,14 @@ async function login(email: string) {
       .map((x) => x.split(";")[0])
       .join("; "),
   });
+}
+async function rejected(promise: Promise<unknown>) {
+  try {
+    await promise;
+    return false;
+  } catch {
+    return true;
+  }
 }
 let staffId: string;
 beforeAll(async () => {
@@ -86,10 +113,12 @@ describe("real PostgreSQL enrollment/security", () => {
   });
   it("rejects self-STAFF and wrong hierarchy without orphan auth user", async () => {
     const d = input();
-    await expect(register({ ...d, role: "STAFF" }, headers)).rejects.toThrow();
-    await expect(
-      register({ ...d, facultyId: "faculty-2" }, headers),
-    ).rejects.toThrow();
+    expect(await rejected(register({ ...d, role: "STAFF" }, headers))).toBe(
+      true,
+    );
+    expect(
+      await rejected(register({ ...d, facultyId: "faculty-2" }, headers)),
+    ).toBe(true);
     expect(await db.user.count({ where: { email: d.email } })).toBe(0);
   });
   it("rolls back User and Account when domain insertion fails after auth signup", async () => {
@@ -101,7 +130,7 @@ describe("real PostgreSQL enrollment/security", () => {
       `CREATE TRIGGER gate_fail BEFORE INSERT ON "UniversityMembership" FOR EACH ROW EXECUTE FUNCTION gate_fail_membership()`,
     );
     try {
-      await expect(register(d, headers)).rejects.toThrow();
+      expect(await rejected(register(d, headers))).toBe(true);
       expect(await db.user.count({ where: { email: d.email } })).toBe(0);
       expect(
         await db.enrollmentRequest.count({
@@ -124,7 +153,10 @@ describe("real PostgreSQL enrollment/security", () => {
       data: { active: false },
     });
     try {
-      expect((await actor(await login(d.email))).membership.requests[0].targetGroup.active).toBe(false);
+      expect(
+        (await actor(await login(d.email))).membership.requests[0].targetGroup
+          .active,
+      ).toBe(false);
       await expect(
         decide(
           staffId,
@@ -275,22 +307,28 @@ describe("real PostgreSQL enrollment/security", () => {
     );
     expect(blocked.status).toBe(403);
   });
-  it("parallel duplicate registration leaves a single coherent membership, not orphan users", async () => {
-    const d = input();
+  it("replaying one signed registration ticket creates only one coherent account", async () => {
+    const ticket = issueRegistrationTicket("integration");
+    const {
+      email: ignoredEmail,
+      password: ignoredPassword,
+      ...selection
+    } = input();
+    void ignoredEmail;
+    void ignoredPassword;
     const result = await Promise.allSettled([
-      register(d, headers),
-      register(d, headers),
+      createRegistration({ ...selection, ticket }, headers, "integration"),
+      createRegistration({ ...selection, ticket }, headers, "integration"),
     ]);
     expect(result.filter((x) => x.status === "fulfilled")).toHaveLength(1);
-    expect(await db.user.count({ where: { email: d.email } })).toBe(1);
+    const email = `student-${ticket.split(".")[0]}@example.test`;
+    expect(await db.user.count({ where: { email } })).toBe(1);
     expect(
-      await db.universityMembership.count({
-        where: { user: { email: d.email } },
-      }),
+      await db.universityMembership.count({ where: { user: { email } } }),
     ).toBe(1);
     expect(
       await db.enrollmentRequest.count({
-        where: { membership: { user: { email: d.email } } },
+        where: { membership: { user: { email } } },
       }),
     ).toBe(1);
   });

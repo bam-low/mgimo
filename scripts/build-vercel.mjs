@@ -50,7 +50,8 @@ for (const key of [
   "BETTER_AUTH_SECRET",
   "CRON_SECRET",
   "DEMO_STAFF_PASSWORD",
-  "DEMO_STUDENT_PASSWORD",
+  "DEMO_STUDENT1_PASSWORD",
+  "DEMO_STUDENT2_PASSWORD",
 ])
   canaries[key] = "build-canary-" + randomBytes(32).toString("hex");
 canaries.DATABASE_URL =

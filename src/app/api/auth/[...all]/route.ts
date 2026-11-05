@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { auth } from "@/server/auth";
 import {
   readJSON,
@@ -27,7 +28,16 @@ export async function POST(request: Request) {
     if (path.endsWith("/sign-in/email")) {
       const source = requestSource(request);
       await limited(JSON.stringify(["login-source", source]), 20, 60000);
-      const data = await readJSON(request.clone());
+      const data = z
+        .object({
+          email: z
+            .string()
+            .max(254)
+            .regex(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@example\.test$/i),
+          password: z.string().min(12).max(128),
+        })
+        .strict()
+        .parse(await readJSON(request.clone()));
       await limited(
         JSON.stringify([
           "login-email",

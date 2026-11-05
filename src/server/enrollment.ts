@@ -1,22 +1,16 @@
 import type { Prisma } from "../generated/prisma/client";
-import { hashPassword } from "better-auth/crypto";
+import { syntheticIdentity } from "./demo-identity";
 import { z } from "zod";
 import { db } from "./db";
 import { makeAuth } from "./auth";
 import { Denied } from "./security";
 export const registration = z
   .object({
-    firstName: z.string().trim().min(1).max(80),
-    lastName: z.string().trim().min(1).max(80),
-    email: z
-      .email()
-      .max(254)
-      .transform((s) => s.toLowerCase()),
-    password: z.string().min(12).max(128),
-    universityId: z.string().max(100),
-    facultyId: z.string().max(100),
-    programId: z.string().max(100),
-    groupId: z.string().max(100),
+    ticket: z.string().max(200),
+    universityId: z.literal("demo-university"),
+    facultyId: z.enum(["faculty-1", "faculty-2"]),
+    programId: z.enum(["program-1", "program-2"]),
+    groupId: z.enum(["group-1", "group-2"]),
   })
   .strict();
 export async function validGroup(
@@ -40,12 +34,17 @@ export async function validGroup(
     throw new Denied();
   return group;
 }
-export async function register(input: unknown, headers: Headers) {
-  const data = registration.parse(input);
-  return db.$transaction(
+export async function register(
+  input: unknown,
+  headers: Headers,
+  source: string,
+) {
+  const selection = registration.parse(input);
+  const identity = syntheticIdentity(selection.ticket, source);
+  const data = { ...selection, ...identity };
+  await db.$transaction(
     async (tx) => {
       if (await tx.user.findUnique({ where: { email: data.email } })) {
-        await hashPassword(data.password);
         throw new Denied(409);
       }
       const group = await validGroup(tx, data.groupId, data.universityId);
@@ -93,6 +92,7 @@ export async function register(input: unknown, headers: Headers) {
     },
     { timeout: 20000 },
   );
+  return identity;
 }
 export async function decide(
   actorId: string,

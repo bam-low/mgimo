@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import process from "node:process";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, symlink, rm } from "node:fs/promises";
@@ -121,3 +123,47 @@ test("rejects dev-only modules in a server bundle before names can be minified a
   );
   assert.throws(() => inspectBundledGraph([], lock));
 });
+
+test("standalone rejects env files before tracing or packaging", () =>
+  fixture(async (root) => {
+    await writeFile(path.join(root, ".env.local"), "fictional-only");
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/check-runtime.mjs", root],
+      { encoding: "utf8" },
+    );
+    assert.equal(result.status, 1);
+    assert(result.stderr.includes("Forbidden runtime files/traces"));
+  }));
+test("standalone rejects secret canaries without printing values", () =>
+  fixture(async (root) => {
+    const secret = "fictional-build-only-standalone-canary";
+    await writeFile(path.join(root, "bundle.js"), JSON.stringify(secret));
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/check-runtime.mjs", root],
+      { encoding: "utf8", env: { ...process.env, BETTER_AUTH_SECRET: secret } },
+    );
+    assert.equal(result.status, 1);
+    assert(result.stderr.includes("Build-time secret leaked"));
+    assert(!result.stderr.includes(secret));
+  }));
+
+test("standalone directory aliases cannot conceal secret-bearing files", () =>
+  fixture(async (root) => {
+    const secret = "fictional-alias-only-build-canary";
+    await mkdir(path.join(root, "target"));
+    await writeFile(
+      path.join(root, "target/bundle.js"),
+      JSON.stringify(secret),
+    );
+    await symlink("target", path.join(root, "alias"));
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/check-runtime.mjs", root],
+      { encoding: "utf8", env: { ...process.env, BETTER_AUTH_SECRET: secret } },
+    );
+    assert.equal(result.status, 1);
+    assert(result.stderr.includes("Build-time secret leaked"));
+    assert(!result.stderr.includes(secret));
+  }));
