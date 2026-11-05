@@ -1,3 +1,4 @@
+import { runtimeTestEnv } from "./runtime-test-env.mjs";
 import { URL } from "node:url";
 // Restart real generated auth/group Functions; prove database session continuity.
 import { readFile } from "node:fs/promises";
@@ -10,7 +11,7 @@ import console from "node:console";
 const { fetch } = globalThis;
 if (
   !new URL(process.env.DATABASE_URL).pathname.endsWith("_test") ||
-  !process.env.DEMO_STUDENT_PASSWORD
+  !process.env.DEMO_STUDENT1_PASSWORD
 )
   throw Error("Dedicated seeded *_test DB required");
 const root = (
@@ -23,7 +24,7 @@ async function start() {
     cwd: entry,
     stdio: ["ignore", "inherit", "inherit", "ipc"],
     env: {
-      ...process.env,
+      ...runtimeTestEnv(),
       NODE_ENV: "production",
       NODE_PATH: "",
       AUTH_TRUSTED_IP_HEADER: "x-vercel-forwarded-for",
@@ -66,7 +67,7 @@ try {
       headers: headers(),
       body: JSON.stringify({
         email: "student1@example.test",
-        password: process.env.DEMO_STUDENT_PASSWORD,
+        password: process.env.DEMO_STUDENT1_PASSWORD,
       }),
     },
   );

@@ -41,6 +41,7 @@ export default async function Page() {
         <Logout />
       </header>
       <p>Конкурсный концепт, не официальный сервис</p>
+      <p>Не вводите настоящие ФИО, email или личные пароли. Используйте только выданные демонстрационные данные.</p>
       <h2>{a.user.name}</h2>
       <p data-testid="membership-status" role="status">
         {status}

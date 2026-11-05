@@ -21,7 +21,7 @@
 
 ## Локальный запуск этапа 2
 
-Node **24.22.1 LTS**, npm **11.9.0**, PostgreSQL **17**. Один package-lock, `.npmrc` сохраняет ignore-scripts и strict engines. Данные demo/тестов исключительно вымышленные; публичную форму нельзя открывать до согласования demo-safe UX, см. deployment gates. Не подключайте тесты/seed к реальной или production БД.
+Node **24.22.1 LTS**, npm **11.9.0**, PostgreSQL **17**. Один package-lock, `.npmrc` сохраняет ignore-scripts и strict engines. Данные demo/тестов исключительно вымышленные; публичную форму нельзя открывать до ручного ревью synthetic-only UX, см. deployment gates. Не подключайте тесты/seed к реальной или production БД.
 
 1. Установите Node из `.nvmrc`, выполните `npm ci --ignore-scripts`.
 2. Поднимите PostgreSQL 17 локально. Официальный проверенный образ: `postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5`. Например, экспортируйте локально созданный `POSTGRES_PASSWORD` (не коммитьте его) и запустите:
@@ -37,7 +37,7 @@ node --env-file=.env.local node_modules/prisma/build/index.js generate
 node --env-file=.env.local node_modules/prisma/build/index.js migrate deploy
 ```
 
-4. Только для отдельной demo/dev БД укажите ALLOW_DEMO_SEED=yes и два разных сильных DEMO_STAFF_PASSWORD/DEMO_STUDENT_PASSWORD в `.env.local`, затем:
+4. Только для отдельной demo/dev БД укажите ALLOW_DEMO_SEED=yes и три разных сильных DEMO_STAFF_PASSWORD/DEMO_STUDENT1_PASSWORD/DEMO_STUDENT2_PASSWORD в `.env.local`, затем:
 
 ```sh
 node --env-file=.env.local prisma/seed.mjs
@@ -68,11 +68,11 @@ npx --no-install playwright install chromium
 npm run test:e2e
 ```
 
-Команды предполагают экспортированные env (или запуск через Node `--env-file` аналогично примерам выше). На машине с готовым Chromium можно задать PLAYWRIGHT_EXECUTABLE_PATH; в CI Playwright устанавливает официальный закреплённый браузер. Unit: 2 теста, PostgreSQL integration: 20 сценариев, E2E: реальная цепочка student→staff→student на 360 и 1280 px. E2E стартует production standalone, не dev; проверьте отсутствие другого сервера на 3000. Подробные результаты и версии HEAD CI — в Draft PR, не в обещании этого текста.
+Команды предполагают экспортированные env (или запуск через Node `--env-file` аналогично примерам выше). На машине с готовым Chromium можно задать PLAYWRIGHT_EXECUTABLE_PATH; в CI Playwright устанавливает официальный закреплённый браузер. Unit: 2 теста, PostgreSQL integration: 26 сценариев. E2E: 6 сценариев standalone и 7 Functions, включая реальную цепочку student→staff→student на 360/1280 px, второго студента, privacy/error/empty; отдельный cold-start DB session test. E2E стартует production standalone, не dev; проверьте отсутствие другого сервера на 3000. Подробные результаты и версии HEAD CI — в Draft PR, не в обещании этого текста.
 
 ### Production-артефакт и граница исключения Prisma
 
-`npm run build` создаёт `.next/standalone` и копирует туда `.next/static`. При копировании сохраняйте относительные symlinks Next (например, `cp -a`; для Node fs.cp — verbatimSymlinks:true). Проверка делает изолированную копию вне checkout. Публичный runtime по A36 до закрытия условных gates Functions — **только этот каталог**, с собственными runtime-env, запуск `HOSTNAME=0.0.0.0 PORT=3000 node server.js` внутри него. Для локальной проверки `HOSTNAME=127.0.0.1 npm run start`. Не копировать весь репозиторий/node_modules, не запускать npm install/ci, Prisma CLI/Studio, seed или миграции в публичном runtime. Миграции — отдельная доверенная build/admin-операция до запуска runtime; deploy/хостинг эта задача не выбирает.
+`npm run build` создаёт `.next/standalone` и копирует туда `.next/static`. При копировании сохраняйте относительные symlinks Next (например, `cp -a`; для Node fs.cp — verbatimSymlinks:true). Проверка делает изолированную копию вне checkout. Публичный runtime по A36 до закрытия условных gates Functions — **только этот каталог**, с собственными runtime-env, запуск `HOSTNAME=0.0.0.0 PORT=3000 node server.js` внутри него. Для локальной проверки `HOSTNAME=127.0.0.1 npm run start`. Не копировать .env* в production-артефакт; builder источники должны быть без env-файлов, runtime env задаётся отдельно. Standalone checker отказывает env files/известным secret canaries. Не копировать весь репозиторий/node_modules, не запускать npm install/ci, Prisma CLI/Studio, seed или миграции в публичном runtime. Миграции — отдельная доверенная build/admin-операция до запуска runtime; deploy/хостинг эта задача не выбирает.
 
 `npm run check:runtime` проверяет файловый манифест, Next NFT traces и bundle-маркеры. E2E пишет наблюдённые Node CJS/ESM resolve-пути; явная команда после Playwright проверяет отсутствие Prisma/Studio/@visx и fallback во внешние source node_modules. Это дополнение к manifests/traces, а не полное покрытие всех возможных dynamic imports. Evidence в `.runtime-evidence/`, screenshots тестов в `test-results/`, не коммитятся. CI сохраняет только синтетические screenshots/manifest, без env/паролей/trace с вводом форм.
 
@@ -82,9 +82,9 @@ Prisma **7.10.1**, Better Auth **1.7.17** утверждены коммента�
 
 Better Auth: User/Account/Session/Verification, пароль только Account.password (штатный scrypt: N=16384, r=16, p=1, dkLen=64). PostgreSQL sessions, cookieCache выключен, secondary store/JWT-only отсутствуют. TTL 8 часов, refresh после 30 минут, freshAge 15 минут — явная техническая конфигурация MVP, не прежние library defaults. Каждый защищённый запрос заново проверяет сессию/User.active/университет/роль/статус/активное прикрепление и ownership. CSP с per-request nonce, CSRF/origin, HttpOnly/Secure в production/SameSite cookies, private/no-store ответы и актуализация кабинета при возврате на страницу.
 
-Регистрация auth+PENDING/profile/request/audit — одна транзакция, Better Auth использует transaction-bound Prisma adapter; вложенная транзакция отключена. Публичный auth signup endpoint закрыт, чтобы исключить обход обязательного прикрепления. Дубли регистрации дают нейтральный ответ и сопоставимую hashing-работу; это не абсолютная гарантия против всех timing side channels.
+Регистрация вымышленного студента auth+PENDING/profile/request/audit — одна транзакция, Better Auth использует transaction-bound Prisma adapter; вложенная транзакция отключена. Публичный auth signup endpoint закрыт, чтобы исключить обход обязательного прикрепления. Повтор того же подписанного ticket не создаёт второй аккаунт и не возвращает credentials. Адрес создаётся из серверного UUID; произвольный email не принимается.
 
-Rate limiting после [ревью PR #16](https://github.com/bam-low/mgimo/pull/16#pullrequestreview-5776005065): общих блокирующих site-wide/email-only счётчиков нет. Регистрация: 40/минуту на источник и 5/15 минут на пару источник+нормализованный email; вход: 20/минуту на источник и 10/15 минут на ту же пару. Источник и email хранятся лишь в HMAC-SHA256 ключах с BETTER_AUTH_SECRET; смена секрета сбрасывает эти технические лимиты. Невалидные запросы также расходуют лимит источника. Logout/get-session не используют эти лимиты: исчерпание входа не мешает завершить сессию. Встроенный IP limiter Better Auth и IP tracking отключены, чтобы не доверять произвольному X-Forwarded-For; публичная защита находится в обёртках API, внутренние auth.api требуют доверенного вызывающего кода.
+Rate limiting после [ревью PR #16](https://github.com/bam-low/mgimo/pull/16#pullrequestreview-5776005065): общих блокирующих site-wide/email-only счётчиков нет. Регистрация: 40 POST/минуту и 5 валидных попыток создания/15 минут на источник, ticket issuance — 40 GET/минуту на источник; вход: 20/минуту на источник и 10/15 минут на ту же пару. Источник и email хранятся лишь в HMAC-SHA256 ключах с BETTER_AUTH_SECRET; смена секрета сбрасывает эти технические лимиты. Невалидные запросы также расходуют лимит источника. Logout/get-session не используют эти лимиты: исчерпание входа не мешает завершить сессию. Встроенный IP limiter Better Auth и IP tracking отключены, чтобы не доверять произвольному X-Forwarded-For; публичная защита находится в обёртках API, внутренние auth.api требуют доверенного вызывающего кода.
 
 **Контракт источника перед публичной демонстрацией:** задайте AUTH_TRUSTED_IP_HEADER только для одного заголовка с одиночным IP, который выбранный ingress гарантированно перезаписывает, удаляя значение посетителя. Закройте прямой доступ к приложению в обход ingress. Списки IP/порты/пустые значения запрещены (503), автоматического доверия X-Forwarded-For/Forwarded/Host нет. Без настройки публичный BETTER_AUTH_URL закрывает регистрацию/вход с 503, а не объединяет всех в один bucket. Только для изолированного loopback BETTER_AUTH_URL (localhost/127.0.0.1/::1) допустим общий local-demo источник, не доверяющий входным IP-заголовкам. Этот режим нельзя публиковать через туннель или с loopback URL. IPv6-формы нормализуются, IPv4-mapped IPv6 соответствует IPv4. Несколько пользователей за одним NAT делят лимит источника; IPv6-ротация/ботнет обходят локальную защиту. **До публичного запуска обязательны выбранные и проверенные платформенные WAF/anti-abuse ограничения на ingress, включая распределённые попытки перебора.** Конкретная платформа/её настройки остаются OPEN в рамках отдельного deploy-этапа; здесь инфраструктура не создавалась, распределённая защита не объявляется реализованной.
 
@@ -94,20 +94,40 @@ PENDING/REJECTED видят только собственный статус/м�
 
 ### Ручная проверка
 
-1. Зарегистрируйте вымышленного студента, последовательно выбрав вуз/факультет/направление/группу. Войдите: «Ожидает подтверждения», `/api/group` возвращает 403.
+1. Выберите демо-вуз/факультет/направление/группу. Сервер создаст вымышленного студента и покажет private credentials один раз; сохраните их без скриншотов, перейдите к входу. Войдите: «Ожидает подтверждения», `/api/group` возвращает 403.
 2. Выйдите, войдите staff@example.test с вашим локальным demo-паролем. В очереди отклоните заявку с причиной. Студент видит отказ и может создать новую попытку; история первой остаётся.
 3. STAFF подтверждает новую попытку. Студент видит подтверждённую группу; `/api/group` возвращает только её, запрос с чужим `?id=` — 403. Обычный студент не открывает `/staff` и не может вызвать staff decision.
 4. Выйдите и повторите защищённый запрос — 401. Проверьте 360 px и desktop, клавиатурные поля/ошибки/кнопки. Демо-пароли не вводите в issue, скриншоты или публичные ответы.
+
+## Демонстрационная регистрация — Issue #20
+
+Публичная форма принимает только выбор из двух seed-цепочек и короткоживущий ticket. Имя «Демо Студент <синтетическое обозначение>», уникальный `student-<UUID>@example.test` и случайный 256-битный пароль создаются сервером. ФИО/email/password/role/userId в POST запрещены strict schema; не существует переключателя обратно на свободную регистрацию. Вход принимает только технические адреса `@example.test`; не вводите реальные данные или свой личный пароль.
+
+Ticket — серверный UUID/время/HMAC, привязан к проверенному source и действителен 10 минут (30s допустимого clock skew). Это технический анти-replay nonce, **не сессия**. Повтор одного ticket, включая гонку, оставляет один User/Account/PENDING и не выдаёт пароль повторно; новая явно начатая попытка получает новую личность. User.email unique и общая регистрационная транзакция — последний барьер дублей. Source limits не позволяют одному посетителю заблокировать весь сайт; общий NAT делит квоту, distributed abuse остаётся внешним launch gate.
+
+Credentials возвращаются только после commit с private/no-store, не в URL/cookie/log/storage. На клиенте они находятся лишь в памяти, пароль изначально скрыт; при переходе/обновлении/скрытии вкладки состояние очищается, ожидающий fetch прерывается, поздний ответ не должен восстановить данные. Сохраните собственные demo credentials приватно. При потере ответа уже созданный PENDING остаётся в истории; новый пароль/старые credentials публично восстановить нельзя, новая попытка расходует лимит. Гарантия не распространяется на произвольные HTTP-запросы, память/расширения браузера, provider logs или вручную сделанные пользователем копии.
+
+| Seed персонаж | Технический логин | Прикрепление | Пароль только в private env владельца |
+| --- | --- | --- | --- |
+| Демо Сотрудник | staff@example.test | STAFF / APPROVED | DEMO_STAFF_PASSWORD |
+| Демо Студент Один | student1@example.test | APPROVED / Демо-группа 1 | DEMO_STUDENT1_PASSWORD |
+| Демо Студент Два | student2@example.test | APPROVED / Демо-группа 2 | DEMO_STUDENT2_PASSWORD |
+
+Все три пароля должны различаться, иметь 12–128 символов и храниться отдельно от Git/CI artifacts. Seed при повторе проверяет hash/password и readiness, не сбрасывает пароль, не восстанавливает роль/статус/группу/отзыв и не печатает credentials. При несовпадении — ошибка, а не ложная готовность; используйте сохранённые исходные private credentials либо отдельно разрешённую чистую demo БД. Старый общий `DEMO_STUDENT_PASSWORD` больше не используется; legacy seed с общим паролем не мигрирует автоматически, никаких production reset/rotation здесь нет. Открытого списка passwords/credentials API нет. Жюри владелец передаёт свои три env-credentials только предусмотренным безопасным способом вне Git/CI/скриншотов. Не предоставляйте STAFF пароль всем публичным посетителям.
+
+Скрипты runtime-тестов удаляют DEMO_* и ALLOW_DEMO_SEED из env дочернего сервера; production на Vercel/standalone также не должен получать их. Playwright traces выключены, чтобы не сохранять выданные/вводимые credentials при неудаче; скриншоты делаются только в кабинете после удаления credential panel. UI проверяется на 360/1280 px, включая ошибки/пустую структуру/скрытие/поздний ответ и чужой доступ вторым студентом.
+
+Расписание/оценки/заявки/уведомления пока отсутствуют: отличающиеся учебные данные seed в этом этапе — факультет/направление/группа, не выдуманная готовность учебных модулей. Публикация по-прежнему требует оставшихся [deployment gates](docs/DEPLOYMENT.md), отдельного разрешения и ручного ревью.
 
 ## Подготовка deployment — Issue #18
 
 **Выбран Vercel Hobby + Neon Free условно:** A36 не отменено. [Пошаговая инструкция, ограничения и ручные gates](docs/DEPLOYMENT.md) описывают аккаунты/роли/секреты, миграции, trusted ingress, доступ из РФ до 28 ноября, бесплатный резерв и rollback. Здесь приложение/БД не опубликованы. Реальные Vercel ingress, Neon resume/TLS, российские сети и допустимость конкретного конкурса на Hobby ещё требуют приёмки владельцем.
 
 - `npm run build:vercel` — отдельная чистая сборка официальным @vercel/next 28.0.1 и @vercel/build-utils 15.2.1, без аккаунта/CLI/deploy/реальных секретов. Для Functions выбран webpack; `npm run build` сохраняет Turbopack/standalone.
-- `npm run check:vercel-runtime` — fail-closed контроль конечных Functions, webpack/NFT graphs, package provenance, файлов/aliases и canaries. `npm run test:vercel-checker` — 8 негативных/положительных сценариев самого checker.
-- `npm run test:vercel-e2e` — реальные handlers в изолированных процессах: 360/1280px, source abuse/CSRF/права, reject/retry/approve/audit, logout, cron и cold-start session. Требуются только вымышленные *_test DB и demo secrets, как для существующих тестов.
+- `npm run check:vercel-runtime` — fail-closed контроль конечных Functions, webpack/NFT graphs, package provenance, файлов/aliases и canaries. `npm run test:vercel-checker` — 11 негативных/положительных сценариев checker (включая standalone env/secret guards).
+- `npm run test:vercel-e2e` — реальные handlers в изолированных процессах: 360/1280px, source abuse/CSRF/права, reject/retry/approve/audit, logout, cron, privacy/ошибки/пустую структуру и cold-start session. Требуются только вымышленные *_test DB и demo secrets, как для существующих тестов.
 - vercel.json выбирает **Other / Build Output API**, запрещает Git auto-deploy и задаёт daily cleanup. Создание проекта/ручной Deploy/ввод секретов — отдельные действия владельца после ревью. Не переключать на Next preset без повторной проверки конечного output.
-- Только вымышленные данные: прежнее разрешение публичного ввода настоящих данных отменено конкурсным уточнением. Генерируемые synthetic aliases/credentials предложены для ревью; свободная форма пока не исключает настоящие данные и не готова к открытому конкурсному доступу. Учебные разделы следующих Issues здесь не реализованы.
+- Только вымышленные данные: прежнее разрешение публичного ввода настоящих данных отменено конкурсным уточнением. Серверные synthetic aliases/credentials реализованы в Issue #20; поля ФИО/email/пароля отсутствуют в регистрации и запрещены API. Другие launch gates сохраняются. Учебные разделы следующих Issues здесь не реализованы.
 
 Runtime DB — pooled DATABASE_URL с TLS verify-full и ограниченной ролью, pg pool max=2/connection timeout 15s/idle 10s на процесс. DIRECT_DATABASE_URL применяется только доверенным миграциям, fallback сохраняет прежний локальный DATABASE_URL. Реальный Neon endpoint в этой задаче не создан и не проверен; режим квот/сна не гарантирует uptime. Production audit в подготовленном дереве — 0; full audit — 13 moderate, 0 high/critical (10 прежних dev + 3 в новом build-инструментарии), результаты CI — в Draft PR.
 

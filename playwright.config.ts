@@ -6,7 +6,7 @@ export default defineConfig({
   timeout: 60000,
   use: {
     baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-    trace: "retain-on-failure",
+    trace: "off",
     launchOptions: process.env.PLAYWRIGHT_EXECUTABLE_PATH
       ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
       : {},

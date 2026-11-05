@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { test, expect } from "@playwright/test";
 import { request as httpRequest } from "node:http";
-import { randomUUID } from "node:crypto";
 import { db } from "../../src/server/db";
 const origin = process.env.BETTER_AUTH_URL!;
 function call(
@@ -51,17 +51,23 @@ test("real generated Functions retain source limits, isolation, logout and guard
     throw Error("Dedicated *_test DB required");
   const a = "127.0.0.2",
     b = "127.0.0.3";
-  const data = {
-    firstName: "Тест",
-    lastName: "Вымышленный",
-    email: randomUUID() + "@example.test",
-    password: "Synthetic-" + randomUUID(),
-    universityId: "demo-university",
-    facultyId: "faculty-1",
-    programId: "program-1",
-    groupId: "group-1",
-  };
-  expect((await call("/api/register", a, data)).status).toBe(202);
+  async function selection(source: string) {
+    const response = await call("/api/register", source);
+    expect(response.status).toBe(200);
+    const ticket = JSON.parse(response.body).ticket;
+    return {
+      ticket,
+      universityId: "demo-university",
+      facultyId: "faculty-1",
+      programId: "program-1",
+      groupId: "group-1",
+    };
+  }
+  const registered = await call("/api/register", a, await selection(a));
+  expect(registered.status).toBe(201);
+  const data: { email: string; password: string } = JSON.parse(
+    registered.body,
+  ).credentials;
   for (let i = 0; i < 10; i++)
     expect(
       (
@@ -162,14 +168,7 @@ test("real generated Functions retain source limits, isolation, logout and guard
   expect((await call("/api/group", b, undefined, cookie)).status).toBe(401);
   for (let i = 0; i < 41; i++) await call("/api/register", a, {});
   expect((await call("/api/register", a, {})).status).toBe(429);
-  expect(
-    (
-      await call("/api/register", b, {
-        ...data,
-        email: randomUUID() + "@example.test",
-      })
-    ).status,
-  ).toBe(202);
+  expect((await call("/api/register", b, await selection(b))).status).toBe(201);
   expect((await call("/api/internal/rate-cleanup", a)).status).toBe(401);
   if (!process.env.CRON_SECRET) throw Error("Test cron secret required");
   expect(

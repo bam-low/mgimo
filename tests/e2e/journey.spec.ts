@@ -1,18 +1,21 @@
 import { test, expect } from "@playwright/test";
-import { randomUUID } from "node:crypto";
 for (const width of [360, 1280])
   test(`student → staff → approved at ${width}px`, async ({ page }, info) => {
     if (!process.env.DATABASE_URL?.split("?")[0].endsWith("_test"))
       throw Error("E2E must use a dedicated *_test DB");
-    const password = "Synthetic-" + randomUUID();
-    const name = "Тест-" + randomUUID().slice(0, 8);
-    const email = randomUUID() + "@example.test";
+    const consoleMessages: string[] = [];
+    const urls: string[] = [];
+    page.on("console", (message) => consoleMessages.push(message.text()));
+    page.on("request", (request) => urls.push(request.url()));
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/register");
-    await page.getByLabel("Имя", { exact: true }).fill(name);
-    await page.getByLabel("Фамилия", { exact: true }).fill("Вымышленный");
-    await page.getByLabel("Email", { exact: true }).fill(email);
-    await page.getByLabel("Пароль", { exact: true }).fill(password);
+    expect(
+      await page
+        .locator(
+          'input[name="firstName"],input[name="lastName"],input[name="email"],input[name="password"]',
+        )
+        .count(),
+    ).toBe(0);
     await page
       .getByLabel("Университет", { exact: true })
       .selectOption("demo-university");
@@ -28,13 +31,52 @@ for (const width of [360, 1280])
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("button", { name: "Создать учётную запись" }).click();
-    await expect(page.getByRole("status")).toContainText("Проверьте данные");
+    await page
+      .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Демонстрационный аккаунт создан" }),
+    ).toBeVisible();
+    const name = await page.getByLabel("Вымышленный персонаж").inputValue();
+    const email = await page.getByTestId("demo-email").inputValue();
+    const password = await page.getByTestId("demo-password").inputValue();
+    expect(email.endsWith("@example.test")).toBe(true);
+    expect(password.length >= 32).toBe(true);
+    await expect(page.getByTestId("demo-password")).toHaveAttribute(
+      "type",
+      "password",
+    );
+    expect(consoleMessages.some((s) => s.includes(password))).toBe(false);
+    expect(urls.some((s) => s.includes(password))).toBe(false);
+    expect(
+      await page.evaluate(
+        () =>
+          Object.keys(localStorage).length + Object.keys(sessionStorage).length,
+      ),
+    ).toBe(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.getByRole("link", { name: "Перейти к входу" }).click();
+    await expect(page.getByTestId("demo-password")).toHaveCount(0);
     async function login(user: string, pass: string) {
       await page.goto("/login");
-      await page.getByLabel("Email", { exact: true }).fill(user);
-      await page.getByLabel("Пароль", { exact: true }).fill(pass);
+      await page
+        .getByLabel("Демонстрационный логин", { exact: true })
+        .fill(user);
+      const passwordInput = page.getByLabel("Демонстрационный пароль", {
+        exact: true,
+      });
+      await expect(passwordInput).toBeVisible();
+      // Do not put a password in fill(value) action logs on failure.
+      await passwordInput.evaluate((element, value) => {
+        (element as HTMLInputElement).value = value;
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      }, pass);
       await page.getByRole("button", { name: "Войти", exact: true }).click();
+      await expect(page).toHaveURL(/\/(?:cabinet|staff)$/);
     }
     await login(email, password);
     await expect(page.getByTestId("membership-status")).toHaveText(
@@ -80,6 +122,7 @@ for (const width of [360, 1280])
         fetch("/api/group?id=group-2").then((r) => r.status),
       ),
     ).toBe(403);
+    expect(consoleMessages.some((s) => s.includes(password))).toBe(false);
     await page.screenshot({
       path: info.outputPath(`approved-${width}.png`),
       fullPage: true,
@@ -89,4 +132,132 @@ for (const width of [360, 1280])
     expect(
       await page.evaluate(() => fetch("/api/group").then((r) => r.status)),
     ).toBe(401);
+    if (!process.env.DEMO_STUDENT2_PASSWORD)
+      throw Error("Second private demo credential required");
+    await login("student2@example.test", process.env.DEMO_STUDENT2_PASSWORD);
+    expect(
+      await page.evaluate(() =>
+        fetch("/api/group?id=group-1").then((r) => r.status),
+      ),
+    ).toBe(403);
+    expect(
+      await page.evaluate(() => fetch("/api/group").then((r) => r.status)),
+    ).toBe(200);
+    await page.getByRole("button", { name: "Выйти" }).click();
   });
+
+test("registration empty/error states stay usable without collecting identities", async ({
+  page,
+}) => {
+  await page.route("**/api/structure", (route) => route.fulfill({ json: [] }));
+  await page.goto("/register");
+  await expect(
+    page.getByRole("button", { name: "Создать демонстрационный аккаунт" }),
+  ).toBeDisabled();
+  await expect(
+    page.locator('input[name="email"],input[name="password"]'),
+  ).toHaveCount(0);
+});
+
+test("issued credentials are discarded when the page is hidden", async ({
+  page,
+}) => {
+  await page.goto("/register");
+  await page
+    .getByLabel("Университет", { exact: true })
+    .selectOption("demo-university");
+  await page.getByLabel("Факультет", { exact: true }).selectOption("faculty-1");
+  await page
+    .getByLabel("Направление", { exact: true })
+    .selectOption("program-1");
+  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+  await page
+    .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+    .click();
+  await expect(page.getByTestId("demo-password")).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  await expect(page.getByTestId("demo-password")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Новая попытка" }),
+  ).toBeVisible();
+});
+
+test("a late registration response cannot re-expose credentials after pagehide", async ({
+  page,
+}) => {
+  let release: () => void = () => {};
+  let reached: () => void = () => {};
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const pending = new Promise<void>((resolve) => {
+    reached = resolve;
+  });
+  await page.route("**/api/register", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    reached();
+    await blocked;
+    try {
+      await route.fulfill({
+        json: {
+          credentials: {
+            firstName: "Демо",
+            lastName: "Студент Отмена",
+            email: "cancelled@example.test",
+            password: "cancelled-" + Date.now() + "-synthetic-only",
+          },
+        },
+      });
+    } catch {
+      /* Aborted request must not be retried or expose a body. */
+    }
+  });
+  await page.goto("/register");
+  await page
+    .getByLabel("Университет", { exact: true })
+    .selectOption("demo-university");
+  await page.getByLabel("Факультет", { exact: true }).selectOption("faculty-1");
+  await page
+    .getByLabel("Направление", { exact: true })
+    .selectOption("program-1");
+  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+  await page
+    .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+    .click();
+  await pending;
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  release();
+  await expect(page.getByTestId("demo-password")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Новая попытка" }),
+  ).toBeVisible();
+});
+
+test("account quota errors are accessible and never display credentials", async ({
+  page,
+}) => {
+  await page.route("**/api/register", async (route) => {
+    if (route.request().method() === "POST")
+      await route.fulfill({ status: 429, json: { error: "Unavailable" } });
+    else await route.continue();
+  });
+  await page.goto("/register");
+  await page
+    .getByLabel("Университет", { exact: true })
+    .selectOption("demo-university");
+  await page.getByLabel("Факультет", { exact: true }).selectOption("faculty-1");
+  await page
+    .getByLabel("Направление", { exact: true })
+    .selectOption("program-1");
+  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+  await page
+    .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Лимит попыток достигнут",
+  );
+  await expect(page.getByTestId("demo-password")).toHaveCount(0);
+});

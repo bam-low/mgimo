@@ -8,6 +8,12 @@ import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import path from "node:path";
 import process from "node:process";
+if (
+  Object.keys(process.env).some(
+    (key) => key.startsWith("DEMO_") || key === "ALLOW_DEMO_SEED",
+  )
+)
+  throw Error("Seed-only environment leaked to Function runtime");
 const root = process.argv[2],
   destination = process.env.VERCEL_TEST_LOADS;
 const config = JSON.parse(

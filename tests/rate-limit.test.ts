@@ -1,3 +1,4 @@
+import { issueRegistrationTicket } from "../src/server/demo-identity";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -19,15 +20,14 @@ if (
   throw Error("Rate-limit tests require a dedicated *_test database");
 const origin = process.env.BETTER_AUTH_URL!;
 const trustedHeader = "x-test-ingress-ip";
-const input = () => ({
-  firstName: "Тест",
-  lastName: "Вымышленный",
-  email: randomUUID() + "@example.test",
-  password: "Synthetic-test-" + randomUUID(),
+const input = (source: string) => ({
   universityId: "demo-university",
   facultyId: "faculty-1",
   programId: "program-1",
   groupId: "group-1",
+  ticket: issueRegistrationTicket(
+    requestSource(request("/api/register", source, {})),
+  ),
 });
 // TEST ONLY: emulate an ingress which replaces the incoming source header.
 function request(path: string, source: string, body: unknown, cookie = "") {
@@ -82,39 +82,41 @@ describe("rate-limit ingress trust and independent clients", () => {
       "192.0.2.1",
     );
   });
-  it("registration abuse and email attempts from A do not block B, including the same email", async () => {
+  it("source account quota and malformed request quota cannot block another source", async () => {
     vi.stubEnv("AUTH_TRUSTED_IP_HEADER", trustedHeader);
     const suffix = randomUUID().replaceAll("-", "").slice(0, 4);
     const a = `2001:db8:${suffix}::10`,
-      b = `2001:db8:${suffix}::11`,
-      d = input();
+      b = `2001:db8:${suffix}::11`;
     for (let i = 0; i < 5; i++)
       expect(
-        (await registerPost(request("/api/register", a, { email: d.email })))
-          .status,
-      ).toBe(400);
-    expect((await registerPost(request("/api/register", a, d))).status).toBe(
-      429,
-    );
-    expect((await registerPost(request("/api/register", b, d))).status).toBe(
-      202,
-    );
-    for (let i = 0; i < 40; i++)
-      await registerPost(request("/api/register", a, {}));
+        (await registerPost(request("/api/register", a, input(a)))).status,
+      ).toBe(201);
     expect(
-      (await registerPost(request("/api/register", a, input()))).status,
+      (await registerPost(request("/api/register", a, input(a)))).status,
     ).toBe(429);
     expect(
-      (await registerPost(request("/api/register", b, input()))).status,
-    ).toBe(202);
+      (await registerPost(request("/api/register", b, input(b)))).status,
+    ).toBe(201);
+    for (let i = 0; i < 40; i++)
+      await registerPost(request("/api/register", a, {}));
+    expect((await registerPost(request("/api/register", a, {}))).status).toBe(
+      429,
+    );
+    expect(
+      (await registerPost(request("/api/register", b, input(b)))).status,
+    ).toBe(201);
   });
   it("login abuse from A cannot block B or logout, and arbitrary XFF rotation does not bypass A's limit", async () => {
     vi.stubEnv("AUTH_TRUSTED_IP_HEADER", trustedHeader);
     const suffix = randomUUID().replaceAll("-", "").slice(0, 4);
     const a = `2001:db8:${suffix}::20`,
       b = `2001:db8:${suffix}::21`,
-      d = input();
-    await register(d, new Headers({ origin }));
+      selection = input(a);
+    const d = await register(
+      selection,
+      new Headers({ origin }),
+      requestSource(request("/api/register", a, {})),
+    );
     const login = "/api/auth/sign-in/email";
     for (let i = 0; i < 10; i++)
       expect(
@@ -127,7 +129,13 @@ describe("rate-limit ingress trust and independent clients", () => {
           )
         ).status,
       ).toBe(401);
-    expect((await authPost(request(login, a, d))).status).toBe(429);
+    expect(
+      (
+        await authPost(
+          request(login, a, { email: d.email, password: d.password }),
+        )
+      ).status,
+    ).toBe(429);
     const ok = await authPost(
       request(login, b, { email: d.email, password: d.password }),
     );
@@ -145,7 +153,13 @@ describe("rate-limit ingress trust and independent clients", () => {
       ).ipAddress,
     ).toBe("");
     for (let i = 0; i < 20; i++) await authPost(request(login, a, {}));
-    expect((await authPost(request(login, a, d))).status).toBe(429);
+    expect(
+      (
+        await authPost(
+          request(login, a, { email: d.email, password: d.password }),
+        )
+      ).status,
+    ).toBe(429);
     expect(
       (
         await authPost(
