@@ -159,82 +159,190 @@ test("registration empty/error states stay usable without collecting identities"
   ).toHaveCount(0);
 });
 
-test("issued credentials are discarded when the page is hidden", async ({
-  page,
-}) => {
-  await page.goto("/register");
-  await page
-    .getByLabel("Университет", { exact: true })
-    .selectOption("demo-university");
-  await page.getByLabel("Факультет", { exact: true }).selectOption("faculty-1");
-  await page
-    .getByLabel("Направление", { exact: true })
-    .selectOption("program-1");
-  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
-  await page
-    .getByRole("button", { name: "Создать демонстрационный аккаунт" })
-    .click();
-  await expect(page.getByTestId("demo-password")).toBeVisible();
-  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
-  await expect(page.getByTestId("demo-password")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Новая попытка" }),
-  ).toBeVisible();
-});
-
-test("a late registration response cannot re-expose credentials after pagehide", async ({
-  page,
-}) => {
-  let release: () => void = () => {};
-  let reached: () => void = () => {};
-  const blocked = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  const pending = new Promise<void>((resolve) => {
-    reached = resolve;
-  });
-  await page.route("**/api/register", async (route) => {
-    if (route.request().method() !== "POST") {
-      await route.continue();
-      return;
-    }
-    reached();
-    await blocked;
-    try {
-      await route.fulfill({
-        json: {
-          credentials: {
-            firstName: "Демо",
-            lastName: "Студент Отмена",
-            email: "cancelled@example.test",
-            password: "cancelled-" + Date.now() + "-synthetic-only",
-          },
-        },
+for (const width of [360, 1280])
+  test(`issued credentials survive tab switching, then clear on explicit exit at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/register");
+    await page
+      .getByLabel("Университет", { exact: true })
+      .selectOption("demo-university");
+    await page
+      .getByLabel("Факультет", { exact: true })
+      .selectOption("faculty-1");
+    await page
+      .getByLabel("Направление", { exact: true })
+      .selectOption("program-1");
+    await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+    await page
+      .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+      .click();
+    await expect(page.getByTestId("demo-password")).toBeVisible();
+    const password = await page.getByTestId("demo-password").inputValue();
+    await page
+      .getByRole("button", { name: "Показать пароль", exact: true })
+      .click();
+    await expect(page.getByTestId("demo-password")).toHaveAttribute(
+      "type",
+      "text",
+    );
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        value: "hidden",
       });
-    } catch {
-      /* Aborted request must not be retried or expose a body. */
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await expect(page.getByTestId("demo-password")).toHaveAttribute(
+      "type",
+      "password",
+    );
+    expect(
+      (await page.getByTestId("demo-password").inputValue()) === password,
+    ).toBe(true);
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        value: "visible",
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await page
+      .getByRole("button", { name: "Показать пароль", exact: true })
+      .click();
+    await expect(page.getByTestId("demo-password")).toHaveAttribute(
+      "type",
+      "text",
+    );
+    expect(
+      (await page.getByTestId("demo-password").inputValue()) === password,
+    ).toBe(true);
+    expect(
+      await page.evaluate(
+        () =>
+          Object.keys(localStorage).length + Object.keys(sessionStorage).length,
+      ),
+    ).toBe(0);
+    expect(
+      (await page.context().cookies()).some((cookie) =>
+        cookie.value.includes(password),
+      ),
+    ).toBe(false);
+    expect(page.url().includes(password)).toBe(false);
+    if (width === 360) {
+      await page.getByRole("link", { name: "Перейти к входу" }).click();
+      await expect(page).toHaveURL(/\/login$/);
+    } else {
+      await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+      await expect(
+        page.getByRole("button", { name: "Новая попытка" }),
+      ).toBeVisible();
     }
+    await expect(page.getByTestId("demo-password")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByTestId("demo-password")).toHaveCount(0);
   });
-  await page.goto("/register");
-  await page
-    .getByLabel("Университет", { exact: true })
-    .selectOption("demo-university");
-  await page.getByLabel("Факультет", { exact: true }).selectOption("faculty-1");
-  await page
-    .getByLabel("Направление", { exact: true })
-    .selectOption("program-1");
-  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
-  await page
-    .getByRole("button", { name: "Создать демонстрационный аккаунт" })
-    .click();
-  await pending;
-  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
-  release();
-  await expect(page.getByTestId("demo-password")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Новая попытка" }),
-  ).toBeVisible();
-});
+
+for (const event of ["pagehide", "hidden"] as const)
+  test(`a late registration response cannot re-expose credentials after ${event}`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const state = window as Window & {
+        finishRegistration?: () => void;
+        registrationSignal?: AbortSignal | null;
+        registrationCalls?: number;
+      };
+      const original = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        if (input !== "/api/register" || init?.method !== "POST")
+          return original(input, init);
+        state.registrationSignal = init.signal;
+        state.registrationCalls = (state.registrationCalls ?? 0) + 1;
+        // Deliberately ignore AbortSignal: even a transport delivering after cancel
+        // must not resurrect credentials. No request reaches the real signup API.
+        return new Promise<Response>((resolve) => {
+          state.finishRegistration = () =>
+            resolve(
+              Response.json({
+                credentials: {
+                  firstName: "Демо",
+                  lastName: "Студент Отмена",
+                  email: "cancelled@example.test",
+                  password: crypto.randomUUID() + crypto.randomUUID(),
+                },
+              }),
+            );
+        });
+      };
+    });
+    await page.goto("/register");
+    await page
+      .getByLabel("Университет", { exact: true })
+      .selectOption("demo-university");
+    await page
+      .getByLabel("Факультет", { exact: true })
+      .selectOption("faculty-1");
+    await page
+      .getByLabel("Направление", { exact: true })
+      .selectOption("program-1");
+    await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+    await page
+      .getByRole("button", { name: "Создать демонстрационный аккаунт" })
+      .click();
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Boolean(
+            (window as Window & { finishRegistration?: () => void })
+              .finishRegistration,
+          ),
+        ),
+      )
+      .toBe(true);
+    await page.evaluate((event) => {
+      if (event === "pagehide") window.dispatchEvent(new Event("pagehide"));
+      else {
+        Object.defineProperty(document, "visibilityState", {
+          configurable: true,
+          value: "hidden",
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+        Object.defineProperty(document, "visibilityState", {
+          configurable: true,
+          value: "visible",
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+      }
+    }, event);
+    expect(
+      await page.evaluate(() =>
+        Boolean(
+          (window as Window & { registrationSignal?: AbortSignal })
+            .registrationSignal?.aborted,
+        ),
+      ),
+    ).toBe(true);
+    await page.evaluate(async () => {
+      (
+        window as Window & { finishRegistration?: () => void }
+      ).finishRegistration?.();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+    });
+    await expect(page.getByTestId("demo-password")).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () =>
+          (window as Window & { registrationCalls?: number }).registrationCalls,
+      ),
+    ).toBe(1);
+    await expect(
+      page.getByRole("button", { name: "Новая попытка" }),
+    ).toBeVisible();
+  });
 
 test("account quota errors are accessible and never display credentials", async ({
   page,

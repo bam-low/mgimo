@@ -55,18 +55,36 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       const clear = () => {
         mayShow.current = false;
         pending.current?.abort();
+        pending.current = null;
         setCredentials(null);
         setTicket("");
         setReveal(false);
+        setBusy(false);
       };
       const hidden = () => {
-        if (document.visibilityState === "hidden") clear();
+        if (document.visibilityState !== "hidden") return;
+        setReveal(false);
+        // Delivered credentials stay in this page's memory while the user saves
+        // them elsewhere. An unfinished attempt must never deliver a late secret.
+        mayShow.current = false;
+        if (pending.current) {
+          pending.current.abort();
+          pending.current = null;
+          setTicket("");
+          setBusy(false);
+          setMessage(
+            "Попытка прервана при скрытии страницы. Если аккаунт уже создан, реквизиты повторно не выдаются. Начните новую попытку.",
+          );
+        }
       };
       window.addEventListener("pagehide", clear);
       document.addEventListener("visibilitychange", hidden);
       return () => {
         window.removeEventListener("pagehide", clear);
         document.removeEventListener("visibilitychange", hidden);
+        mayShow.current = false;
+        pending.current?.abort();
+        pending.current = null;
       };
     }
   }, [register]);
@@ -83,9 +101,11 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           Демонстрационный аккаунт создан
         </h2>
         <p>
-          Это вымышленная личность. Данные показаны только сейчас. Сохраните их
-          приватно: после перехода, скрытия вкладки или обновления страницы
-          пароль повторно не выдаётся.
+          Это вымышленная личность. Сохраните реквизиты приватно перед переходом
+          ко входу: после ухода или обновления страницы пароль повторно не
+          выдаётся. Можно переключиться в заметки или менеджер паролей и
+          вернуться: реквизиты останутся только в памяти этой открытой страницы,
+          а показ пароля выключится.
         </p>
         <label>
           Вымышленный персонаж
@@ -128,6 +148,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         <Link
           href="/login"
           onClick={() => {
+            mayShow.current = false;
             setCredentials(null);
             setReveal(false);
           }}
@@ -186,11 +207,15 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             router.refresh();
           }
         } catch {
-          setMessage(
-            "Не удалось выполнить действие. Проверьте данные или попробуйте позже.",
-          );
+          if (pending.current === controller)
+            setMessage(
+              "Не удалось выполнить действие. Проверьте данные или попробуйте позже.",
+            );
         } finally {
-          if (pending.current === controller) setBusy(false);
+          if (pending.current === controller) {
+            pending.current = null;
+            setBusy(false);
+          }
         }
       }}
       className="space-y-5"
