@@ -5,7 +5,7 @@ export default function Page() {
     <main className="panel">
       <Link href="/">Кампус</Link>
       <h1>Вход в Кампус</h1>
-      <p>Концепт, не официальный сервис</p>
+      <p>Конкурсный концепт, не официальный сервис</p>
       <AuthForm />
       <Link href="/register">Регистрация студента</Link>
     </main>

@@ -8,7 +8,7 @@ describe("публичная идентификация платформы", () 
   });
 
   it("сохраняет заметное предупреждение о неофициальном концепте и в метаданных", () => {
-    expect(platform.disclaimer).toBe("Концепт, не официальный сервис");
+    expect(platform.disclaimer).toBe("Конкурсный концепт, не официальный сервис");
     expect(platformMetadata.description).toContain(platform.disclaimer);
     expect(platformMetadata.description).toContain(platform.description);
   });

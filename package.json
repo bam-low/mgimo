@@ -20,7 +20,12 @@
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:e2e": "playwright test && node scripts/verify-runtime-loads.mjs",
     "check:runtime": "node scripts/check-runtime.mjs",
-    "db:cleanup-rates": "node scripts/cleanup-rate-buckets.mjs"
+    "db:cleanup-rates": "node scripts/cleanup-rate-buckets.mjs",
+    "build:vercel": "node scripts/build-vercel.mjs",
+    "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",
+    "test:vercel-checker": "node tests/vercel-artifact.test.mjs",
+    "test:vercel-e2e": "playwright test --config playwright.vercel.config.ts && node scripts/test-vercel-cold-start.mjs && node scripts/verify-vercel-loads.mjs",
+    "build:vercel-app": "next build --webpack && node scripts/prepare-runtime.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
@@ -41,6 +46,9 @@
     "@types/pg": "8.15.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@vercel/build-utils": "15.2.1",
+    "@vercel/next": "28.0.1",
+    "@vercel/nft": "1.10.0",
     "eslint": "10.14.0",
     "prisma": "7.10.1",
     "tailwindcss": "4.3.4",
