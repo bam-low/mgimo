@@ -78,7 +78,7 @@ for (const key of Object.keys(env))
     !(key in canaries)
   )
     delete env[key];
-run("npm", ["ci", "--ignore-scripts"], env);
+run("npm", ["ci", "--include=dev", "--ignore-scripts"], env);
 run(
   process.execPath,
   [path.join(stage, "scripts/vercel-builder-worker.mjs")],
