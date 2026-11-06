@@ -5,6 +5,8 @@ test.use({ timezoneId: "Pacific/Honolulu", locale: "en-US" });
 test("Russian fields, real multi-lesson/empty days, and isolated clock boundary states", async ({
   page,
 }) => {
+  if (!process.env.DATABASE_URL?.split("?")[0].endsWith("_test"))
+    throw Error("Dedicated synthetic *_test DB required");
   test.setTimeout(90000);
   await page.goto("/login");
   await page
