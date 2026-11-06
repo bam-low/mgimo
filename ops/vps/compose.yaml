@@ -63,7 +63,7 @@ services:
     profiles: [ops]
     image: ${CAMPUS_TOOLS_IMAGE:?verified separate tools image required}
     pull_policy: never
-    secrets: [bootstrap.env, migration.env, runtime.env, db-ca.pem]
+    secrets: [migration.env, runtime-db.env, db-ca.pem]
     networks: [private]
     tmpfs: ["/tmp:size=64m,uid=1000,gid=1000,mode=1700"]
     mem_limit: 768m
@@ -92,6 +92,7 @@ secrets:
   db-server.crt: {file: "${CAMPUS_SECRETS_DIR}/db-server.crt"}
   db-server.key: {file: "${CAMPUS_SECRETS_DIR}/db-server.key"}
   db-ca.pem: {file: "${CAMPUS_SECRETS_DIR}/db-ca.pem"}
+  runtime-db.env: {file: "${CAMPUS_SECRETS_DIR}/runtime-db.env"}
   runtime.env: {file: "${CAMPUS_SECRETS_DIR}/runtime.env"}
   migration.env: {file: "${CAMPUS_SECRETS_DIR}/migration.env"}
   bootstrap.env: {file: "${CAMPUS_SECRETS_DIR}/bootstrap.env"}

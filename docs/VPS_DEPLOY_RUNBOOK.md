@@ -185,7 +185,11 @@ docker compose --env-file /etc/campus/release.env -f ops/vps/compose.yaml up -d 
 
 ```sh
 owner_db() {
- docker compose --profile ops --env-file /etc/campus/release.env -f ops/vps/compose.yaml run --rm --no-deps tools node ops/vps/admin.mjs "$1" --owner-approved
+ if [ "$1" = bootstrap ]; then
+  docker compose --profile ops --env-file /etc/campus/release.env -f ops/vps/compose.yaml run --rm --no-deps --volume /etc/campus/secrets/bootstrap.env:/run/secrets/bootstrap.env:ro tools node ops/vps/admin.mjs bootstrap --owner-approved
+ else
+  docker compose --profile ops --env-file /etc/campus/release.env -f ops/vps/compose.yaml run --rm --no-deps tools node ops/vps/admin.mjs "$1" --owner-approved
+ fi
 }
 owner_db bootstrap
 owner_db migrate
@@ -195,7 +199,7 @@ owner_db grant
 owner_db check
 ```
 
-Каждый шаг должен завершиться `PASS`. Ошибка — **не стартовать app**, не ослаблять TLS/SCRAM/grants. `seed` дважды не сбрасывает пароли/права, не создавайте реальные профили. Tools default start без action запрещён. Административные переменные не копировать в runtime.env.
+Каждый шаг должен завершиться `PASS`. Ошибка — **не стартовать app**, не ослаблять TLS/SCRAM/grants. `seed` дважды не сбрасывает пароли/права, не создавайте реальные профили. Tools default start без action запрещён. Административные переменные не копировать в runtime.env. Bootstrap file добавляется только явным volume в bootstrap-вызове; обычный tools не получает его, runtime.env с auth/cron ключами также не монтируется. Для check используется отдельный runtime-db.env только с DATABASE_URL. Не добавлять эти файлы обратно в default tools secrets.
 
 ```sh
 docker compose --env-file /etc/campus/release.env -f ops/vps/compose.yaml up -d --wait app

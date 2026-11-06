@@ -49,7 +49,7 @@ try {
       (action === "bootstrap"
         ? "bootstrap.env"
         : action === "check"
-          ? "runtime.env"
+          ? "runtime-db.env"
           : "migration.env"),
   );
   if (action === "bootstrap") {

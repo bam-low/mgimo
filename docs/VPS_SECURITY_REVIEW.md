@@ -19,7 +19,7 @@ Final DB scan определяет Alpine3.24.4 и выполняет OS package
 
 ## Что НЕ утверждено
 
-**NO-GO до security review D:** runtime HIGH `CVE-2026-76844` в zlib1g и 7 HIGH в OS пакетах tools. Это не автоматическое исключение для unfixed. Учитывайте реальную достижимость, условия эксплуатации, обновления vendor и lifecycle одноразового job; не записывайте «неэксплуатируемо» только из-за private network. Tools имеет миграционные полномочия и доступ к private env, поэтому отсутствие web-порта не делает его безопасным автоматически.
+**NO-GO до security review D:** runtime HIGH `CVE-2026-76844` в zlib1g и 7 HIGH в OS пакетах tools. Это не автоматическое исключение для unfixed. Учитывайте реальную достижимость, условия эксплуатации, обновления vendor и lifecycle одноразового job; не записывайте «неэксплуатируемо» только из-за private network. Tools имеет миграционные полномочия и доступ к migration env; superuser bootstrap.env добавляется лишь отдельной явной bootstrap-командой, default tools не имеет его или runtime.env с auth/cron ключами, поэтому отсутствие web-порта не делает его безопасным автоматически.
 
 Группы HIGH в tools (число — package findings, один CVE может повторяться в нескольких пакетах):
 

@@ -274,7 +274,20 @@ try {
   );
   stage = "PostgreSQL bootstrap/migration";
   dc(["up", "-d", "--wait", "db"]);
-  const operations = `import {spawnSync} from 'node:child_process';for(const action of ['bootstrap','bootstrap','migrate','seed','seed','grant','check']){const r=spawnSync(process.execPath,['ops/vps/admin.mjs',action,'--owner-approved'],{stdio:'inherit'});if(r.status!==0)process.exit(r.status??1);}`;
+  const runActions = (actions, guard = "") =>
+    `import {spawnSync} from 'node:child_process';import {existsSync} from 'node:fs';${guard}for(const action of ${JSON.stringify(actions)}){const r=spawnSync(process.execPath,['ops/vps/admin.mjs',action,'--owner-approved'],{stdio:'inherit'});if(r.status!==0)process.exit(r.status??1);}`;
+  dc([
+    "run",
+    "--rm",
+    "--no-deps",
+    "--volume",
+    root + "/secrets/bootstrap.env:/run/secrets/bootstrap.env:ro",
+    "tools",
+    "node",
+    "--input-type=module",
+    "-e",
+    runActions(["bootstrap", "bootstrap"]),
+  ]);
   dc([
     "run",
     "--rm",
@@ -283,8 +296,14 @@ try {
     "node",
     "--input-type=module",
     "-e",
-    operations,
+    runActions(
+      ["migrate", "seed", "seed", "grant", "check"],
+      "if(existsSync('/run/secrets/bootstrap.env')||existsSync('/run/secrets/runtime.env'))throw Error('Overprivileged migration mounts');",
+    ),
   ]);
+  console.log(
+    "PASS migration job cannot read bootstrap credentials or auth/cron secrets",
+  );
   // A wrong database password must fail on the actual TLS/SCRAM server.
   const wrong = `import pg from 'pg'; const u=new URL(process.env.DATABASE_URL);u.password='incorrect-test-password';const c=new pg.Client({connectionString:u.href});try{await c.connect();process.exitCode=1;}catch(e){if(e.code!=='28P01')process.exitCode=2;}finally{await c.end().catch(()=>{});}const plain=new URL(process.env.DATABASE_URL);plain.search='';const p=new pg.Client({connectionString:plain.href,ssl:false,connectionTimeoutMillis:5000});try{await p.connect();process.exitCode=1;}catch(e){if(e.code!=='28000')process.exitCode=2;}finally{await p.end().catch(()=>{});}`;
   dc([
@@ -293,7 +312,7 @@ try {
     "--no-deps",
     "tools",
     "node",
-    "--env-file=/run/secrets/runtime.env",
+    "--env-file=/run/secrets/runtime-db.env",
     "--input-type=module",
     "-e",
     wrong,
@@ -305,7 +324,7 @@ try {
     "--no-deps",
     "tools",
     "node",
-    "--env-file=/run/secrets/runtime.env",
+    "--env-file=/run/secrets/runtime-db.env",
     "--input-type=module",
     "-e",
     noDDL,

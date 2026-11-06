@@ -28,6 +28,7 @@ try:
     ports = s['app']['ports']
     require(len(ports) == 1 and ports[0]['host_ip'] == '127.0.0.1' and ports[0]['target'] == 3000)
     require({x['source'] for x in s['app']['secrets']} == {'runtime.env', 'db-ca.pem'})
+    require({x['source'] for x in s['tools']['secrets']} == {'migration.env', 'runtime-db.env', 'db-ca.pem'})
     for name in ['app', 'tools', 'cleanup', 'db']:
         v = s[name]
         require(re.fullmatch(r'(sha256:[a-f0-9]{64}|[^\s]+@sha256:[a-f0-9]{64})', v['image']))

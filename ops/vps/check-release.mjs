@@ -47,6 +47,13 @@ export function validate(config, images) {
     s.app.secrets.some((x) => !["runtime.env", "db-ca.pem"].includes(x.source))
   )
     throw Error("Owner credentials in app");
+  if (
+    s.tools.secrets
+      .map((x) => x.source)
+      .sort()
+      .join(",") !== "db-ca.pem,migration.env,runtime-db.env"
+  )
+    throw Error("Bootstrap/session secrets in migration job");
 }
 if (process.argv[1]?.endsWith("/check-release.mjs")) {
   try {

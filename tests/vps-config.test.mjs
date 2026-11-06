@@ -22,7 +22,14 @@ function fixture() {
         ports: [{ host_ip: "127.0.0.1", target: 3000 }],
         secrets: [{ source: "runtime.env" }, { source: "db-ca.pem" }],
       },
-      tools: restricted(tools),
+      tools: {
+        ...restricted(tools),
+        secrets: [
+          { source: "migration.env" },
+          { source: "runtime-db.env" },
+          { source: "db-ca.pem" },
+        ],
+      },
       cleanup: restricted(app),
     },
     networks: { private: { internal: true }, edge: {} },
@@ -48,6 +55,14 @@ const images = {
 test("accepts constrained immutable release", () =>
   validate(fixture(), images));
 for (const [label, change] of [
+  [
+    "bootstrap secret in migration",
+    (c) => c.services.tools.secrets.push({ source: "bootstrap.env" }),
+  ],
+  [
+    "session secret in migration",
+    (c) => c.services.tools.secrets.push({ source: "runtime.env" }),
+  ],
   [
     "root DB override",
     (c) => {
