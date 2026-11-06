@@ -1,9 +1,14 @@
 import { headers } from "next/headers";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { platformMetadata } from "@/lib/platform";
 import "./globals.css";
 
 export const metadata: Metadata = platformMetadata;
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 export default async function RootLayout({
   children,

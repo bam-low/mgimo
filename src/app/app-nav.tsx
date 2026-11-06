@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon, type IconName } from "./ui-icon";
 export function AppNav({
   role,
   active,
@@ -8,22 +9,30 @@ export function AppNav({
   active: string;
   canStudy?: boolean;
 }) {
-  const links =
+  const links: { href: string; label: string; icon: IconName }[] =
     role === "STAFF"
       ? [
-          ["/staff/structure", "Учебная структура"],
-          ["/staff/schedule", "Расписание"],
-          ["/staff", "Прикрепления"],
+          {
+            href: "/staff/structure",
+            label: "Учебная структура",
+            icon: "structure",
+          },
+          { href: "/staff/schedule", label: "Расписание", icon: "calendar" },
+          { href: "/staff", label: "Прикрепления", icon: "people" },
         ]
       : [
-          ["/today", "Главная"],
-          ["/schedule", "Расписание"],
-          ["/cabinet", "Профиль"],
+          { href: "/today", label: "Главная", icon: "home" },
+          { href: "/schedule", label: "Расписание", icon: "calendar" },
+          { href: "/cabinet", label: "Профиль", icon: "user" },
         ];
   return (
     <>
+      <a className="skip-link" href="#workspace">
+        К содержанию
+      </a>
       <header className="campus-masthead">
         <Link
+          className="wordmark"
           href={
             role === "STAFF"
               ? "/staff/structure"
@@ -31,32 +40,39 @@ export function AppNav({
                 ? "/today"
                 : "/cabinet"
           }
-          className="wordmark"
         >
-          Кампус<span>Пространство учёбы</span>
+          <span className="brand-building">
+            <Icon name="building" />
+          </span>
+          <span>
+            Кампус<small>ЦИФРОВОЙ ДЕКАНАТ</small>
+          </span>
         </Link>
         <span className="edition">
-          {role === "STAFF" ? "Деканат / демо" : "Личный кампус / демо"}
+          {role === "STAFF" ? "ДЕКАНАТ" : "СТУДЕНТ"}
         </span>
       </header>
       <nav className="campus-nav" aria-label="Разделы платформы">
         {links
-          .filter(
-            ([href]) => role === "STAFF" || canStudy || href === "/cabinet",
-          )
-          .map(([href, label]) => (
+          .filter((l) => role === "STAFF" || canStudy || l.href === "/cabinet")
+          .map((l) => (
             <Link
-              key={href}
-              href={href}
+              href={l.href}
+              key={l.href}
               prefetch={false}
-              aria-current={active === href ? "page" : undefined}
+              aria-current={active === l.href ? "page" : undefined}
             >
-              {label}
+              <Icon name={l.icon} />
+              <span>{l.label}</span>
             </Link>
           ))}
+        <span className="nav-context">
+          {role === "STAFF" ? "Рабочее пространство" : "Ваш учебный день"}
+          <small>Демонстрационный кампус</small>
+        </span>
       </nav>
       <p className="concept-note">
-        Концепт, не официальный сервис. Только вымышленные данные.
+        Концепт, не официальный сервис · Только вымышленные данные
       </p>
     </>
   );

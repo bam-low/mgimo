@@ -1,5 +1,13 @@
 # Контракты компонентов без реализации
 
+## Уточнение UI-контрактов07.11
+
+[Исправления P0/P1](UI_REVIEW_2026-11-07.md): Workspace отделяет mobile scroll от nav; GroupFilter показывает полное имя группы и раскрывает parent path; ScheduleField детерминированно отображает ru дату/24h, сохраняя native picker и ISO payload; LessonTitleField растёт по содержимому/ширине/шрифту, остаётся доступным при уменьшении viewport. Compact calendar tile — keyboard button, полные данные в inspector. Save/close/status/danger визуально разделены, прежние server mutations/confirmation/409 сохранены. [Demo-content](DEMO_CONTENT_PROPOSAL.md) только PROPOSED.
+
+
+> **Реализация #34 для ревью:** [inventory/сверка](ASSET_INVENTORY_V3.md), [конкретные tokens и breakpoints](TOKENS.md), [реальные screenshots/QA](../screenshots/issue-34/README.md). Три PNG теперь локальны; missing-assets состояния ниже исторические. Утверждённая пара Literata/Onest; собственные SVG/CSS разрешены владельцем в чате. STAFF mobile — список семи дней с выбором и тем же inspector, desktop — grid; все операции реальны, бизнес-логика #29 сохранена.
+
+
 **Текущий handoff — [v3](REDESIGN_V3.md), Issue #31.** Таблица H1 ниже — сохранённый исторический контракт. Текущие уточнения находятся в разделе v3; это документация, не React/API и не разрешение реализации. Функциональные права определяются PRD/Architecture/SCHEDULE, а не графикой.
 
 

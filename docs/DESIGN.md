@@ -1,5 +1,17 @@
 # Дизайн: Academic Editorial
 
+## Доводка по визуальному аудиту07.11.2026
+
+Продолжение того же Draft PR #35: [P0/P1 матрица](design/UI_REVIEW_2026-11-07.md), [сравнение до/после и реальные scroll screenshots](screenshots/issue-34/review-2026-11-07/README.md). Mobile nav больше не перекрывает scrollport; STAFF compact grid/полный контекст/auto-height title, ru date/time и разделённые действия. Концепция, palette/fonts/assets и бизнес-логика сохранены. Улучшение demo-content — [отдельное неисполненное предложение](design/DEMO_CONTENT_PROPOSAL.md), без изменения seed/пользовательских данных. Историческая initial gallery7208c2d остаётся baseline, не текущим результатом P0.
+
+
+## Реальный UI Issue #34
+
+Academic Editorial2.0 реализован для существующих STUDENT/STAFF сценариев: светлая текущая пара и agenda, день/неделя, профиль, структура, недельная сетка с inspector. [Токены](design/TOKENS.md), [локальные assets/provenance](design/ASSET_INVENTORY_V3.md), [screenshots и QA](screenshots/issue-34/README.md). Продуктовые контракты #29/авторизация/Prisma/API не меняются. Mobile STAFF — список дней и редактор, без горизонтального скролла всей страницы; desktop — семь дней и произвольные реальные интервалы, без выдуманных академических слотов.
+
+Владелец в чате разрешил собственные SVG/CSS при недоступности отдельных экспортов; три реальные PNG теперь в Git. Это уточнение снимает прежний asset blocker, не отменяет границы MVP или ручное visual review. Literata/Onest локальны с русским набором; original B/concept/styleboard сохранены. Исторические строки ниже об отсутствии PNG/конкретных tokens относятся к предыдущим handoff и разрешаются указанным inventory. Production NO-GO сохраняется.
+
+
 **Актуальный ориентир: Academic Editorial 2.0 / [Design Handoff v3](design/REDESIGN_V3.md), [Issue #31](https://github.com/bam-low/mgimo/issues/31).** Подтверждены четыре HEX и Newsreader / Plus Jakarta Sans по [полученному styleboard](design/assets/academic-editorial-styleboard-v3.png). Figma node URL известны, прямой доступ CONNECT403, exports не получены; русская типографика требует решения по font assets. В #31 меняется только документация, не приложение.
 
 Разделы ниже сохраняют историю #5/#29: прежние «числа/семейства открыты» относятся к H1, позднее уточнение для подтверждённого подмножества — v3. Числа CSS #29 и его screenshots не являются новым Figma-эталоном. Рабочее имя/направление B/правила MVP не финализируются и не меняются этим решением.
@@ -40,7 +52,7 @@ Mobile-first от **360 CSS px**; главный студенческий экр
 - [Адаптивность, доступность и будущая приёмка](design/RESPONSIVE.md)
 - [Реестр исходников, выбранных вариантов и отсутствующих эталонов](design/assets/README.md)
 
-`TBD` — отсутствующее согласованное значение, не CSS default и не разрешение придумать значение. Неутверждённые решения нельзя молча превращать в обязательные стили.
+`TBD` в историческом handoff — отсутствовавшее согласованное значение, не CSS default. Делегированные владельцем параметры #34 теперь задокументированы отдельно в TOKENS. Неутверждённые решения нельзя молча превращать в обязательные стили.
 
 ## Приёмка документационного этапа
 
@@ -63,7 +75,7 @@ Issue #29 разрешает настоящий UI в выбранном Academi
 
 ## Design Handoff v3 — применение и границы
 
-Новый ориентир — интеллектуальная редакционная типографика, мягкие светлые поверхности, ограниченные цветные/иллюстративные акценты без тяжёлого бордового полотна. Точная текущая база: primary #753A4A, secondary #25283B, tertiary #E7E0F2, surface neutral #F7F4EE; display Newsreader, body/label Plus Jakarta Sans. Все прочие значения и semantic mappings — TBD/PROPOSED, не извлекаются из повреждённого текста Figma.
+Новый ориентир — интеллектуальная редакционная типографика, мягкие светлые поверхности, ограниченные цветные/иллюстративные акценты без тяжёлого бордового полотна. Историческая база #31 (шрифты затем заменены решением перед #34): primary #753A4A, secondary #25283B, tertiary #E7E0F2, surface neutral #F7F4EE; display Newsreader, body/label Plus Jakarta Sans. На момент #31 прочие значения/semantic mappings были TBD/PROPOSED; в #34 они делегированы и реализованы в TOKENS, не извлечены из повреждённого текста Figma.
 
 [Трифреймовая матрица и MVP exclusions](design/REDESIGN_V3.md), [актуальные токены](design/TOKENS.md), [компоненты](design/COMPONENTS.md), [360/390/1280 и staff mobile proposals](design/RESPONSIVE.md), [provenance/missing exports](design/assets/README.md). Наличие элементов 1С/solver/расширенной аналитики/ресурсных справочников в графике не создаёт функциональную задачу. Отдельная broadcast лента не согласована.
 

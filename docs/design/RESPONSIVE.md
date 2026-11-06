@@ -1,5 +1,13 @@
 # Адаптивность и доступность
 
+## Проверки ревью07.11 — текущая реализация
+
+Mobile Workspace scrollport отделён от nav flex-строкой; больше нет fixed-overlay. [Матрица P0/P1](UI_REVIEW_2026-11-07.md), [реальные сравнительные кадры](../screenshots/issue-34/review-2026-11-07/README.md). Автотесты проверяют геометрию/настоящий scroll/end, длинные названия, text200% и focus при viewport420; конкретная iOS/Android клавиатура/safe-area остаются ручными gates. Full-page mobile теперь отражает весь app viewport, а не всю высоту внутреннего scrollport, поэтому нужны end/inspector shots.
+
+
+> **Реализация #34 для ревью:** [inventory/сверка](ASSET_INVENTORY_V3.md), [конкретные tokens и breakpoints](TOKENS.md), [реальные screenshots/QA](../screenshots/issue-34/README.md). Три PNG теперь локальны; missing-assets состояния ниже исторические. Утверждённая пара Literata/Onest; собственные SVG/CSS разрешены владельцем в чате. STAFF mobile — список семи дней с выбором и тем же inspector, desktop — grid; все операции реальны, бизнес-логика #29 сохранена.
+
+
 **Актуальные контрольные точки v3: 360 / 390 / 1280 CSS px, [Issue #31](https://github.com/bam-low/mgimo/issues/31).** Ниже сначала сохранена история H1. Фразы H1 о непереданном desktop или отсутствии приложения относятся к этапу Issue #5; приложение уже существует после #29, но в #31 его UI не меняется. Три Figma node URL известны, exports и независимая сверка недоступны — [REDESIGN_V3](REDESIGN_V3.md).
 
 

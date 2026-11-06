@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150" fill="none">
+<!-- Original vector illustration for Issue #34; not a Figma source export or third-party photograph. -->
+<rect width="180" height="150" rx="18" fill="#EDE5DA"/>
+<path d="M12 34h156M12 70h156" stroke="#C6B8AB" stroke-width="4"/>
+<path d="M22 15v17m12-22v22m14-16v16m17-20v20m21-18v18m19-19v19m18-17v17m22-22v22" stroke="#9D7A78" stroke-width="8"/>
+<rect x="46" y="50" width="102" height="65" rx="5" fill="#5D4550"/><rect x="52" y="56" width="90" height="52" rx="2" fill="#F7F4EE"/>
+<path d="M63 69h24m-24 9h49m-49 9h36" stroke="#B7A3AE" stroke-width="3"/>
+<path d="m36 115 122 0 12 9H27Z" fill="#8C7378"/><path d="M13 128h154" stroke="#B99C84" stroke-width="6"/>
+<path d="M18 104c15-4 24 0 29 8v16c-8-7-16-8-29-4Zm58 9c-13-10-21-7-29-1v16c11-8 19-8 29-3Z" fill="#FFFDF9" stroke="#B6A79D"/>
+</svg>
