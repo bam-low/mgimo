@@ -1,5 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
+import { LessonTitleField } from "./lesson-title-field";
+import { ScheduleField } from "./schedule-field";
 import { Icon } from "./ui-icon";
 import { useRouter } from "next/navigation";
 import {
@@ -77,14 +79,14 @@ export function LessonEditor({
     S(id);
     M("");
     requestAnimationFrame(() => {
-      if (window.matchMedia("(max-width: 900px)").matches)
+      if (window.matchMedia("(max-width: 1099px)").matches)
         inspectorRef.current?.scrollIntoView({
           block: "start",
           behavior: "auto",
         });
       formRef.current
-        ?.querySelector<HTMLInputElement>('input[name="title"]')
-        ?.focus({ preventScroll: true });
+        ?.querySelector<HTMLTextAreaElement>('textarea[name="title"]')
+        ?.focus();
     });
   }
   function cell(l: Lesson) {
@@ -101,7 +103,11 @@ export function LessonEditor({
           <Icon name="room" />
           {l.room ? `Ауд. ${l.room}` : "Аудитория не указана"}
         </span>
-        <strong>{l.title}</strong>
+        <span className="tile-time">
+          {timeLabel(new Date(l.startsAt), timezone)}–
+          {timeLabel(new Date(l.endsAt), timezone)}
+        </span>
+        <strong title={l.title}>{l.title}</strong>
         {l.teacher && <small>{l.teacher}</small>}
         {l.status === "CANCELLED" && <span className="badge">Отменено</span>}
         {selected === l.id && (
@@ -149,7 +155,21 @@ export function LessonEditor({
           </div>
         ) : (
           <>
-            <div className="timetable-desktop">
+            <p className="week-summary">
+              Занятий в списке: {lessons.length} · дней с занятиями:{" "}
+              {
+                new Set(
+                  lessons.map((l) => dayKey(new Date(l.startsAt), timezone)),
+                ).size
+              }{" "}
+              из 7. Выберите карточку для полных сведений.
+            </p>
+            <div
+              className="timetable-desktop"
+              tabIndex={0}
+              role="region"
+              aria-label="Недельная сетка; при необходимости прокрутите по горизонтали"
+            >
               <table className="timetable">
                 <caption className="sr-only">
                   Расписание на неделю {from}, время {timezone}
@@ -215,7 +235,10 @@ export function LessonEditor({
                   (l) => dayKey(new Date(l.startsAt), timezone) === d,
                 );
                 return (
-                  <section className="mobile-timetable-day" key={d}>
+                  <section
+                    className={`mobile-timetable-day ${rows.length ? "" : "is-empty-day"}`}
+                    key={d}
+                  >
                     <h3>
                       {new Intl.DateTimeFormat("ru-RU", {
                         weekday: "long",
@@ -305,55 +328,36 @@ export function LessonEditor({
             });
           }}
         >
-          <label>
-            Дисциплина
-            <input
-              name="title"
-              required
-              maxLength={160}
-              defaultValue={lesson?.title}
-            />
-          </label>
-          <label>
-            Дата занятия
-            <input
-              name="day"
-              type="date"
-              min="2000-01-01"
-              max="2100-12-31"
+          <LessonTitleField initialValue={lesson?.title} />
+          <ScheduleField
+            label="Дата занятия"
+            name="day"
+            required
+            defaultValue={
+              lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
+            }
+          />
+          <div className="time-fields">
+            <ScheduleField
+              label="Начало"
+              name="start"
+              kind="time"
               required
               defaultValue={
-                lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
+                lesson
+                  ? timeLabel(new Date(lesson.startsAt), timezone)
+                  : "09:00"
               }
             />
-          </label>
-          <div className="time-fields">
-            <label>
-              Начало
-              <input
-                type="time"
-                name="start"
-                required
-                defaultValue={
-                  lesson
-                    ? timeLabel(new Date(lesson.startsAt), timezone)
-                    : "09:00"
-                }
-              />
-            </label>
-            <label>
-              Конец
-              <input
-                type="time"
-                name="end"
-                required
-                defaultValue={
-                  lesson
-                    ? timeLabel(new Date(lesson.endsAt), timezone)
-                    : "10:30"
-                }
-              />
-            </label>
+            <ScheduleField
+              label="Конец"
+              name="end"
+              kind="time"
+              required
+              defaultValue={
+                lesson ? timeLabel(new Date(lesson.endsAt), timezone) : "10:30"
+              }
+            />
           </div>
           <label>
             Вымышленный преподаватель (необязательно)
@@ -371,18 +375,20 @@ export function LessonEditor({
               defaultValue={lesson?.room ?? ""}
             />
           </label>
-          <button disabled={busy}>
-            {busy
-              ? "Сохраняем…"
-              : lesson
-                ? "Сохранить занятие"
-                : "Создать занятие"}
-          </button>
-          {lesson && (
-            <button className="secondary" type="button" onClick={() => S("")}>
-              Отменить редактирование
+          <div className="inspector-primary-actions">
+            <button disabled={busy}>
+              {busy
+                ? "Сохраняем…"
+                : lesson
+                  ? "Сохранить занятие"
+                  : "Создать занятие"}
             </button>
-          )}
+            {lesson && (
+              <button className="secondary" type="button" onClick={() => S("")}>
+                Закрыть без сохранения
+              </button>
+            )}
+          </div>
         </form>
 
         <p
@@ -398,7 +404,11 @@ export function LessonEditor({
           {message}
         </p>
         {lesson && (
-          <div className="inspector-actions">
+          <section
+            className="inspector-actions"
+            aria-label="Действия с занятием"
+          >
+            <h3>Статус занятия</h3>
             <p className="inspector-status">
               {lesson.status === "CANCELLED"
                 ? "Занятие отменено"
@@ -427,25 +437,32 @@ export function LessonEditor({
                 ? "Восстановить"
                 : "Отменить занятие"}
             </button>
-            <button
-              className="danger"
-              disabled={busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Убрать занятие из расписания? Событие и аудит сохранятся, вернуть через интерфейс нельзя.",
+            <div className="danger-zone">
+              <h3>Удаление из расписания</h3>
+              <p>
+                Занятие исчезнет из списка. История и аудит сохранятся;
+                восстановить его через интерфейс нельзя.
+              </p>
+              <button
+                className="danger"
+                disabled={busy}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Убрать занятие из расписания? Событие и аудит сохранятся, вернуть через интерфейс нельзя.",
+                    )
                   )
-                )
-                  void mutate({
-                    action: "DELETE",
-                    id: lesson.id,
-                    version: lesson.version,
-                  });
-              }}
-            >
-              Удалить
-            </button>
-          </div>
+                    void mutate({
+                      action: "DELETE",
+                      id: lesson.id,
+                      version: lesson.version,
+                    });
+                }}
+              >
+                Удалить занятие
+              </button>
+            </div>
+          </section>
         )}
       </section>
     </div>

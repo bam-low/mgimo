@@ -1,5 +1,6 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
-import { dayKey, timeLabel } from "../../src/lib/schedule-time";
+import { displayDate } from "../../src/app/schedule-input-values";
+import { dayKey, timeLabel, addDays } from "../../src/lib/schedule-time";
 import { findPagedCard } from "./paging";
 async function visualChecks(page: Page, role: string) {
   await page.evaluate(async () => {
@@ -42,11 +43,93 @@ async function visualChecks(page: Page, role: string) {
     await page.evaluate(() => {
       (document.activeElement as HTMLElement)?.blur();
       window.scrollTo(0, 0);
+      document.querySelector(".workspace-scroll")?.scrollTo(0, 0);
     });
     await page.screenshot({
-      path: `test-results/issue34-${role}-${width}.png`,
+      path: `test-results/issue34-review-${role}-${width}-viewport.png`,
+    });
+    await page.screenshot({
+      path: `test-results/issue34-review-${role}-${width}-full.png`,
       fullPage: true,
     });
+    if (width < 1100) {
+      const region = page.locator(".workspace-scroll"),
+        nav = page.locator(".campus-nav");
+      const assertSeparated = async () => {
+        const r = await region.boundingBox(),
+          n = await nav.boundingBox();
+        expect(
+          r && n && r.y + r.height <= n.y + 1,
+          "content scrollport ends before nav",
+        ).toBe(true);
+        expect(
+          n && n.y + n.height <= page.viewportSize()!.height + 1,
+          "nav fits visual viewport",
+        ).toBe(true);
+        expect(
+          await region.evaluate((e) => e.scrollWidth <= e.clientWidth),
+          "no local content overflow",
+        ).toBe(true);
+      };
+      await assertSeparated();
+      await region.evaluate((e) => e.scrollTo(0, e.scrollHeight));
+      await expect
+        .poll(() =>
+          region.evaluate((e) => e.scrollHeight - e.clientHeight - e.scrollTop),
+        )
+        .toBeLessThan(2);
+      const last = region
+        .locator(
+          "button, a, textarea, input:not([type=hidden]):not([aria-hidden=true]), dd, p",
+        )
+        .filter({ visible: true })
+        .last();
+      const bounds = await last.boundingBox(),
+        n = await nav.boundingBox();
+      expect(
+        bounds && n && bounds.y + bounds.height <= n.y + 1,
+        "last content is reachable above nav",
+      ).toBe(true);
+      await page.screenshot({
+        path: `test-results/issue34-review-${role}-${width}-end.png`,
+      });
+      if (role === "staff") {
+        await page
+          .locator(".timetable-panel")
+          .evaluate((e) => e.scrollIntoView({ block: "start" }));
+        await page.screenshot({
+          path: `test-results/issue34-review-staff-${width}-calendar.png`,
+        });
+        await page
+          .locator(".lesson-inspector")
+          .evaluate((e) => e.scrollIntoView({ block: "start" }));
+        await page.screenshot({
+          path: `test-results/issue34-review-staff-${width}-inspector.png`,
+        });
+        const title = page.getByLabel("Дисциплина", { exact: true });
+        await title.focus();
+        await page.setViewportSize({ width, height: 420 });
+        await expect
+          .poll(async () => {
+            const f = await title.boundingBox(),
+              r = await region.boundingBox();
+            return !!(
+              f &&
+              r &&
+              f.y >= r.y - 1 &&
+              f.y + f.height <= r.y + r.height + 1
+            );
+          })
+          .toBe(true);
+        await assertSeparated();
+        await page.screenshot({
+          path: `test-results/issue34-review-staff-${width}-reduced-viewport.png`,
+        });
+        await page.setViewportSize({ width, height: 900 });
+        await title.blur();
+      }
+      await region.evaluate((e) => e.scrollTo(0, 0));
+    }
   }
   const contrasts = await page
     .locator(
@@ -104,6 +187,30 @@ async function visualChecks(page: Page, role: string) {
       ),
       `200% text reflow at ${width}`,
     ).toBe(true);
+    if (role === "staff") {
+      const clipped = await page
+        .locator(".lesson-inspector .localized-control > input[type=text]")
+        .evaluateAll(
+          (fields) =>
+            fields.filter((field) => {
+              const input = field as HTMLInputElement,
+                style = getComputedStyle(input),
+                canvas = document.createElement("canvas"),
+                ctx = canvas.getContext("2d")!;
+              ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return (
+                ctx.measureText(input.value).width >
+                input.clientWidth -
+                  parseFloat(style.paddingLeft) -
+                  parseFloat(style.paddingRight) +
+                  1
+              );
+            }).length,
+        );
+      expect(clipped, "localized date/time remain readable at text200%").toBe(
+        0,
+      );
+    }
   }
   await textScale.evaluate((e) => e.parentNode?.removeChild(e));
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -124,8 +231,12 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     const token = Date.now().toString(36),
       faculty = "Демо факультет " + token,
       program = "Демо программа " + token,
-      group = "Демо группа " + token,
-      title = "Демо проектный семинар " + token;
+      group =
+        "Демо группа междисциплинарного учебного практикума и проектных исследований " +
+        token,
+      title =
+        "Демо междисциплинарный семинар по анализу учебных исследований и обсуждению самостоятельных проектов " +
+        token;
     const zone = "Europe/Moscow",
       today = dayKey(new Date(), zone),
       minutes =
@@ -137,7 +248,9 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
       `${Math.floor(n / 60)
         .toString()
         .padStart(2, "0")}:${(n % 60).toString().padStart(2, "0")}`;
-    page.on("dialog", (d) => d.accept());
+    const acceptDialog = (dialog: import("@playwright/test").Dialog) =>
+      dialog.accept();
+    page.on("dialog", acceptDialog);
     await page.setViewportSize({ width: 1280, height: 900 });
     async function login(email: string, password: string) {
       await page.goto("/login");
@@ -214,9 +327,30 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     expect(id).toBeTruthy();
     await page.getByLabel("Учебная группа", { exact: true }).selectOption(id!);
     await page.getByRole("button", { name: "Показать", exact: true }).click();
+    await expect(page.getByTestId("group-context")).toContainText(group);
     const lesson = page.getByRole("form", { name: "Занятие", exact: true });
     await lesson.getByLabel("Дисциплина", { exact: true }).fill(title);
-    await lesson.getByLabel("Дата занятия").fill(today);
+    await lesson
+      .getByLabel("Дата занятия", { exact: true })
+      .fill(displayDate(today));
+    await lesson.getByLabel("Дата занятия", { exact: true }).fill("31.02.2026");
+    expect(
+      await lesson
+        .getByLabel("Дата занятия", { exact: true })
+        .evaluate((e) => (e as HTMLInputElement).checkValidity()),
+    ).toBe(false);
+    await lesson
+      .getByLabel("Дата занятия", { exact: true })
+      .fill(displayDate(addDays(today, 1)));
+    await lesson.locator("input[type=date]").fill(today);
+    await expect(
+      lesson.getByLabel("Дата занятия", { exact: true }),
+    ).toHaveValue(displayDate(today));
+    await lesson.getByLabel("Начало", { exact: true }).fill("12:34");
+    await lesson.locator("input[type=time]").first().fill(hm(start));
+    await expect(lesson.getByLabel("Начало", { exact: true })).toHaveValue(
+      hm(start),
+    );
     await lesson.getByLabel("Начало", { exact: true }).fill(hm(start));
     await lesson.getByLabel("Конец", { exact: true }).fill(hm(end));
     await lesson
@@ -235,7 +369,9 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     await lesson
       .getByLabel("Дисциплина", { exact: true })
       .fill("Демо конфликт с сохранением ввода");
-    await lesson.getByLabel("Дата занятия").fill(today);
+    await lesson
+      .getByLabel("Дата занятия", { exact: true })
+      .fill(displayDate(today));
     await lesson.getByLabel("Начало", { exact: true }).fill(hm(start));
     await lesson.getByLabel("Конец", { exact: true }).fill(hm(end));
     await lesson
@@ -253,6 +389,24 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
         exact: true,
       })
       .click();
+    await expect(lesson.getByLabel("Дисциплина", { exact: true })).toHaveValue(
+      title,
+    );
+    await lesson
+      .getByLabel("Дисциплина", { exact: true })
+      .fill(title + " — несохранённая правка");
+    await page
+      .getByRole("button", { name: "Закрыть без сохранения", exact: true })
+      .click();
+    const keyboardTile = page.getByRole("button", {
+      name: `Открыть занятие: ${title}, ${today} ${hm(start)}`,
+      exact: true,
+    });
+    await keyboardTile.focus();
+    await page.keyboard.press("Enter");
+    await expect(lesson.getByLabel("Дисциплина", { exact: true })).toHaveValue(
+      title,
+    );
     await visualChecks(page, "staff");
     await transfer(id!);
     const staffPage = page;
@@ -339,6 +493,15 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
       .click();
     await expect(tile(title + " обновлён")).toBeVisible();
     await tile(title + " обновлён").click();
+    page.removeListener("dialog", acceptDialog);
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page
+      .getByRole("button", { name: "Отменить занятие", exact: true })
+      .click();
+    await expect(page.locator(".inspector-status")).toContainText(
+      "Занятие запланировано",
+    );
+    page.on("dialog", acceptDialog);
     await page
       .getByRole("button", { name: "Отменить занятие", exact: true })
       .click();
@@ -351,6 +514,22 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     expect(await page.evaluate(() => "campusScheduleDocument" in window)).toBe(
       true,
     );
+    page = staffPage;
+    await tile(title + " обновлён").click();
+    await page
+      .getByRole("button", { name: "Восстановить", exact: true })
+      .click();
+    await expect(tile(title + " обновлён")).not.toContainText("Отменено");
+    const restored = await studentPage.request.get(
+      "/api/schedule?view=week&day=" + today,
+    );
+    expect(restored.status()).toBe(200);
+    expect(
+      (await restored.json()).lessons.find(
+        (l: { title: string }) => l.title === title + " обновлён",
+      )?.status,
+    ).toBe("SCHEDULED");
+    page = studentPage;
     await page.route("**/api/schedule?*", (route) =>
       route.fulfill({ status: 503, body: "Unavailable" }),
     );
@@ -386,7 +565,16 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     page = staffPage;
     await page.goto(`/staff/schedule?groupId=${id}&day=${today}`);
     await tile(title + " обновлён").click();
-    await page.getByRole("button", { name: "Удалить", exact: true }).click();
+    page.removeListener("dialog", acceptDialog);
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page
+      .getByRole("button", { name: "Удалить занятие", exact: true })
+      .click();
+    await expect(tile(title + " обновлён")).toBeVisible();
+    page.on("dialog", acceptDialog);
+    await page
+      .getByRole("button", { name: "Удалить занятие", exact: true })
+      .click();
     await expect(tile(title + " обновлён")).toHaveCount(0);
     await transfer("group-1");
     await logout();

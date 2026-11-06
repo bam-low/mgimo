@@ -1,4 +1,5 @@
 "use client";
+import { ScheduleField } from "./schedule-field";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
@@ -155,7 +156,7 @@ export function ScheduleView({
             </h1>
             <p>
               {data
-                ? `${data.groupName} · ${planned.length} занятий сегодня`
+                ? `${data.groupName} · Занятий сегодня: ${planned.length}`
                 : "Загружаем ваш университетский день"}
             </p>
           </div>
@@ -201,17 +202,14 @@ export function ScheduleView({
               Неделя
             </button>
           </div>
-          <label>
-            Дата
-            <input
-              type="date"
-              value={day || data?.today || ""}
-              onChange={(e) => {
-                S(null);
-                D(e.target.value);
-              }}
-            />
-          </label>
+          <ScheduleField
+            label="Дата"
+            value={day || data?.today || ""}
+            onValueChange={(value) => {
+              S(null);
+              D(value);
+            }}
+          />
           <div className="date-arrows">
             <button
               className="secondary"
@@ -488,7 +486,7 @@ export function ScheduleView({
                 </h2>
                 <div className="day-summary-count">
                   <strong>{planned.length}</strong>
-                  <span>занятий запланировано</span>
+                  <span>занятий в плане дня</span>
                 </div>
                 {planned.length ? (
                   <dl>

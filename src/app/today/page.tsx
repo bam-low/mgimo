@@ -1,3 +1,4 @@
+import { Workspace } from "../workspace";
 import { headers } from "next/headers";
 import { actor, studentAccess } from "@/server/security";
 import { protectedPage } from "@/server/page";
@@ -14,16 +15,18 @@ export default async function Page() {
   return (
     <main className="campus-shell">
       <AppNav role="STUDENT" active="/today" />
-      <div className="account-line">
-        <p>Добро пожаловать, {name}</p>
-        <div className="logout-control">
-          <Logout />
+      <Workspace>
+        <div className="account-line">
+          <p>Добро пожаловать, {name}</p>
+          <div className="logout-control">
+            <Logout />
+          </div>
         </div>
-      </div>
-      <div id="workspace" tabIndex={-1}>
-        <RefreshContext />
-        <ScheduleView home name={name} />
-      </div>
+        <div>
+          <RefreshContext />
+          <ScheduleView home name={name} />
+        </div>
+      </Workspace>
     </main>
   );
 }

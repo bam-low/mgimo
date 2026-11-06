@@ -1,5 +1,10 @@
 # Дизайн: Academic Editorial
 
+## Доводка по визуальному аудиту07.11.2026
+
+Продолжение того же Draft PR #35: [P0/P1 матрица](design/UI_REVIEW_2026-11-07.md), [сравнение до/после и реальные scroll screenshots](screenshots/issue-34/review-2026-11-07/README.md). Mobile nav больше не перекрывает scrollport; STAFF compact grid/полный контекст/auto-height title, ru date/time и разделённые действия. Концепция, palette/fonts/assets и бизнес-логика сохранены. Улучшение demo-content — [отдельное неисполненное предложение](design/DEMO_CONTENT_PROPOSAL.md), без изменения seed/пользовательских данных. Историческая initial gallery7208c2d остаётся baseline, не текущим результатом P0.
+
+
 ## Реальный UI Issue #34
 
 Academic Editorial2.0 реализован для существующих STUDENT/STAFF сценариев: светлая текущая пара и agenda, день/неделя, профиль, структура, недельная сетка с inspector. [Токены](design/TOKENS.md), [локальные assets/provenance](design/ASSET_INVENTORY_V3.md), [screenshots и QA](screenshots/issue-34/README.md). Продуктовые контракты #29/авторизация/Prisma/API не меняются. Mobile STAFF — список дней и редактор, без горизонтального скролла всей страницы; desktop — семь дней и произвольные реальные интервалы, без выдуманных академических слотов.
