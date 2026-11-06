@@ -1,3 +1,4 @@
+import { AppNav } from "../app-nav";
 import Link from "next/link";
 import { protectedPage } from "@/server/page";
 import { ownRequestPage } from "@/server/lists";
@@ -21,6 +22,11 @@ export default async function Page({
   const m = a.membership;
   const enrollment = m.enrollments[0];
   const last = m.requests[0];
+  const studyActive = !!(
+    enrollment?.group.active &&
+    enrollment.group.program.active &&
+    enrollment.group.program.faculty.active
+  );
   const status =
     m.status === "APPROVED" && !enrollment
       ? "Прикрепление отозвано"
@@ -28,14 +34,17 @@ export default async function Page({
         ? "Ожидает подтверждения"
         : m.status === "REJECTED"
           ? "Отклонено"
-          : m.status === "APPROVED" && enrollment?.group.active
+          : m.status === "APPROVED" && studyActive
             ? "Подтверждено"
             : "Доступ закрыт";
   const groups = await protectedPage(() =>
     db.studentGroup.findMany({
       where: {
         active: true,
-        program: { faculty: { universityId: m.universityId } },
+        program: {
+          active: true,
+          faculty: { active: true, universityId: m.universityId },
+        },
       },
       select: { id: true, name: true },
     }),
@@ -43,6 +52,11 @@ export default async function Page({
   const selected = last?.targetGroup;
   return (
     <main className="panel">
+      <AppNav
+        role="STUDENT"
+        active="/cabinet"
+        canStudy={m.status === "APPROVED" && studyActive}
+      />
       <RefreshContext />
       <header>
         <h1>Личный кабинет</h1>
@@ -61,10 +75,11 @@ export default async function Page({
       <p>
         Группа: {enrollment?.group.name ?? selected?.name ?? "Не назначена"}
       </p>
-      {m.status === "APPROVED" && enrollment?.group.active ? (
+      {m.status === "APPROVED" && studyActive ? (
         <p>
-          Прикрепление подтверждено. Расписание, оценки и учебные заявки
-          появятся на следующих этапах.
+          Прикрепление подтверждено. <Link href="/today">Открыть главную</Link>{" "}
+          или <Link href="/schedule">посмотреть расписание</Link>. Оценки и
+          учебные заявки появятся на следующих этапах.
         </p>
       ) : (
         <p>

@@ -1,3 +1,4 @@
+import { AppNav } from "../app-nav";
 import Link from "next/link";
 import { protectedPage } from "@/server/page";
 import { staffRequestPage, staffMemberPage } from "@/server/lists";
@@ -30,7 +31,10 @@ export default async function Page({
     groups: await db.studentGroup.findMany({
       where: {
         active: true,
-        program: { faculty: { universityId: a.membership.universityId } },
+        program: {
+          active: true,
+          faculty: { active: true, universityId: a.membership.universityId },
+        },
       },
       select: { id: true, name: true },
     }),
@@ -38,6 +42,7 @@ export default async function Page({
   const requests = queue.items;
   return (
     <main className="panel">
+      <AppNav role="STAFF" active="/staff" />
       <RefreshContext />
       <header>
         <h1>Очередь прикреплений</h1>
@@ -61,7 +66,9 @@ export default async function Page({
               Подача:{" "}
               {universityDate(r.createdAt, a.membership.university.timezone)}
             </p>
-            {!r.targetGroup.active && (
+            {(!r.targetGroup.active ||
+              !r.targetGroup.program.active ||
+              !r.targetGroup.program.faculty.active) && (
               <p>
                 Группа недоступна: одобрение запрещено, запрос можно отклонить.
               </p>

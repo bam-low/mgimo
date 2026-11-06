@@ -24,3 +24,7 @@ Workflow `.github/workflows/docs-ci.yml` запускает `Documentation check
 В рамках согласованной Issue самостоятельно закрывай подтверждённые блокеры и повторяй проверки до зелёного CI. Косметику и малосущественные оптимизации записывай в Deferred, не задерживая функции. Эскалация нужна при архитектурном/продуктовом противоречии, риске данных/прав или выходе за scope. Используй [audit](docs/FOUNDATION_AUDIT.md) и [feature handoff](docs/FEATURE_HANDOFF.md).
 
 GO FOR FEATURE DEVELOPMENT не является production GO. Vendor-unfixed HIGH и dev-only moderate не блокируют функциональную разработку, но pre-deploy security gate D остаётся NO-GO без отдельного review. Нельзя скрывать находки ignore-правилами. Сохраняй standalone, Functions/Neon и VPS-путь. Только один Draft PR, ручной merge владельца; без deploy, покупки, registry dispatch, облачных ресурсов, настоящих секретов и push в main. После ручного merge #27 обновляем tracker #25 и переходим к функциональным Issues.
+
+## Текущий функциональный этап
+
+Foundation #27 вручную merged владельцем в PR #28 (`c6d4e270`, 06.11.2026). Issue #29 — разрешённая первая пользовательская вертикаль структуры/расписания; [контракты и ASSUMPTION](docs/SCHEDULE.md). Не возвращаться к отдельной модернизации фундамента. Следующие учебные модули только по отдельным согласованным Issues. Сохранять auth, audit, standalone/Functions/VPS и production NO-GO.

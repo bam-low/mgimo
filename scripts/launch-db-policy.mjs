@@ -2,9 +2,10 @@
 export const runtimeRole = "campus_runtime";
 export const tablePolicy = {
   University: ["SELECT"],
-  Faculty: ["SELECT"],
-  Program: ["SELECT"],
-  StudentGroup: ["SELECT"],
+  Faculty: ["SELECT", "INSERT", "UPDATE"],
+  Program: ["SELECT", "INSERT", "UPDATE"],
+  StudentGroup: ["SELECT", "INSERT", "UPDATE"],
+  ScheduleEntry: ["SELECT", "INSERT", "UPDATE"],
   User: ["SELECT", "INSERT", "UPDATE"],
   Account: ["SELECT", "INSERT", "UPDATE"],
   Session: ["SELECT", "INSERT", "UPDATE", "DELETE"],

@@ -117,6 +117,8 @@ export function studentAccess(a: Awaited<ReturnType<typeof actor>>) {
     a.membership.status !== "APPROVED" ||
     a.membership.enrollments.length !== 1 ||
     !a.membership.enrollments[0].group.active ||
+    !a.membership.enrollments[0].group.program.active ||
+    !a.membership.enrollments[0].group.program.faculty.active ||
     a.membership.enrollments[0].group.program.faculty.universityId !==
       a.membership.universityId
   )

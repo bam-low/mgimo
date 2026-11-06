@@ -6,6 +6,7 @@ export async function validGroup(
   universityId: string,
   requireActive = true,
 ) {
+  if ("$executeRaw" in tx) await lockUniversity(tx, universityId);
   const group = await tx.studentGroup.findUnique({
     where: { id: groupId },
     include: {
@@ -14,7 +15,10 @@ export async function validGroup(
   });
   if (
     !group ||
-    (requireActive && !group.active) ||
+    (requireActive &&
+      (!group.active ||
+        !group.program.active ||
+        !group.program.faculty.active)) ||
     !group.program.faculty.university.active ||
     group.program.faculty.universityId !== universityId
   )
@@ -48,4 +52,13 @@ export async function requireStaff(
     m.status !== "APPROVED"
   )
     throw new Denied();
+}
+
+// Transaction advisory lock also works with the SELECT-only University grant.
+// Serializes structure deactivation and enrollment/schedule writes across runtimes.
+export async function lockUniversity(
+  tx: Prisma.TransactionClient,
+  universityId: string,
+) {
+  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${universityId},29))::text`;
 }

@@ -47,11 +47,16 @@ for (const file of [
   "prisma",
   "prisma.config.ts",
   "src/generated",
-])
+  "src/lib/schedule-time.ts",
+]) {
+  await mkdir(path.dirname(path.join(root, "tools/payload", file)), {
+    recursive: true,
+  });
   await cp(file, path.join(root, "tools/payload", file), {
     recursive: true,
     verbatimSymlinks: true,
   });
+}
 await mkdir(path.join(root, "tools/payload/scripts"));
 await cp(
   "scripts/launch-db-policy.mjs",

@@ -65,6 +65,8 @@ model University {
  memberships UniversityMembership[]
 }
 model Faculty {
+ active Boolean @default(true)
+ version Int @default(1)
  id String @id
  name String
  universityId String
@@ -72,6 +74,8 @@ model Faculty {
  programs Program[]
 }
 model Program {
+ active Boolean @default(true)
+ version Int @default(1)
  id String @id
  name String
  facultyId String
@@ -79,6 +83,8 @@ model Program {
  groups StudentGroup[]
 }
 model StudentGroup {
+ version Int @default(1)
+ lessons ScheduleEntry[]
  id String @id
  name String
  active Boolean @default(true)
@@ -157,4 +163,20 @@ model RateBucket {
  count Int @default(1)
  expiresAt DateTime
  @@index([expiresAt, key])
+}
+
+model ScheduleEntry {
+ id String @id @default(cuid())
+ groupId String
+ group StudentGroup @relation(fields:[groupId],references:[id])
+ title String
+ teacher String?
+ room String?
+ startsAt DateTime @db.Timestamptz(3)
+ endsAt DateTime @db.Timestamptz(3)
+ status String @default("SCHEDULED")
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([groupId,startsAt])
 }

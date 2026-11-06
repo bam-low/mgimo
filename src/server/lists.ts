@@ -54,7 +54,16 @@ export async function staffRequestPage(a: Actor, after?: string) {
         membership: {
           select: { profile: { select: { firstName: true, lastName: true } } },
         },
-        targetGroup: { select: { id: true, name: true, active: true } },
+        targetGroup: {
+          select: {
+            id: true,
+            name: true,
+            active: true,
+            program: {
+              select: { active: true, faculty: { select: { active: true } } },
+            },
+          },
+        },
       },
     }),
   );
