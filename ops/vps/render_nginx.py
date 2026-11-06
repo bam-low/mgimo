@@ -29,10 +29,11 @@ proxy = 'resolver 127.0.0.11 valid=5s; set $campus_upstream http://app:3000; pro
 text = f'''# Include at http scope. Generated CLOSED configuration; never disable auth automatically.
 limit_req_zone $binary_remote_addr zone=campus_edge:10m rate=60r/s;
 log_format campus_safe '$time_iso8601 $status $request_method';
-server {{ listen 80 default_server; listen [::]:80 default_server; server_name _; return 444; }}
-server {{ listen 443 ssl default_server; listen [::]:443 ssl default_server; ssl_reject_handshake on; }}
+server {{ listen 80 default_server; listen [::]:80 default_server; server_name _; access_log off; error_log /var/log/nginx/campus-error.log crit; return 444; }}
+server {{ listen 443 ssl default_server; listen [::]:443 ssl default_server; server_name _; access_log off; error_log /var/log/nginx/campus-error.log crit; ssl_reject_handshake on; }}
 server {{
  listen 80; listen [::]:80; server_name {domain};
+ access_log off; error_log /var/log/nginx/campus-error.log crit;
  location ^~ /.well-known/acme-challenge/ {{ root /var/lib/letsencrypt; try_files $uri =404; }}
  location / {{ return 308 https://{domain}$request_uri; }}
 }}
@@ -52,6 +53,8 @@ server {{
   {proxy}
   proxy_http_version 1.1;
   proxy_set_header Host {host};
+  proxy_set_header X-Forwarded-Host {host};
+  proxy_set_header Forwarded "";
   proxy_set_header X-Campus-Client-IP $remote_addr;
   proxy_set_header X-Forwarded-For $remote_addr;
   proxy_set_header X-Real-IP $remote_addr;

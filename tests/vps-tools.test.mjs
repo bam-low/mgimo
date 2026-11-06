@@ -31,6 +31,11 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   ]);
   const text = await readFile(out, "utf8");
   assert.match(text, /auth_basic_user_file/);
+  assert.match(
+    text,
+    /proxy_set_header X-Forwarded-Host campus\.example\.test;/,
+  );
+  assert.match(text, /proxy_set_header Forwarded "";/);
   assert.match(text, /X-Campus-Client-IP \$remote_addr/);
   assert.match(text, /ssl_reject_handshake on/);
   assert.match(text, /proxy_pass http:\/\/127.0.0.1:3000/);

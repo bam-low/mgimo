@@ -12,6 +12,7 @@ import {
 import process from "node:process";
 import console from "node:console";
 import https from "node:https";
+import http from "node:http";
 import assert from "node:assert/strict";
 import { validate } from "../ops/vps/check-release.mjs";
 const env = { ...process.env };
@@ -169,6 +170,8 @@ try {
     project + "_edge",
     "-p",
     "127.0.0.1:18443:443",
+    "-p",
+    "127.0.0.1:18080:80",
     "-v",
     root + "/nginx.conf:/etc/nginx/conf.d/default.conf:ro",
     "-v",
@@ -221,6 +224,34 @@ try {
       await new Promise((r) => setTimeout(r, 500));
     }
   }
+  const logProbe = "campus-query-canary-" + project;
+  const redirect = await new Promise((resolve, reject) => {
+    const r = http.get(
+      "http://127.0.0.1:18080/register?" + logProbe,
+      { headers: { Host: "localhost" } },
+      (res) => {
+        res.resume();
+        res.on("end", () => resolve(res.statusCode));
+      },
+    );
+    r.setTimeout(3000, () => r.destroy(Error("HTTP redirect timeout")));
+    r.on("error", reject);
+  });
+  assert.equal(redirect, 308);
+  assert.equal(await request("/login?" + logProbe), 401);
+  const edgeLog = docker([
+    "exec",
+    project + "-nginx",
+    "cat",
+    "/var/log/nginx/campus-access.log",
+  ]).toString();
+  const defaultLog = docker(["logs", project + "-nginx"]).toString();
+  assert.equal((edgeLog + defaultLog).includes(logProbe), false);
+  for (const row of edgeLog.trim().split("\n"))
+    assert.match(row, /^\S+ \d{3} [A-Z]+$/);
+  console.log(
+    "PASS HTTP canonical redirect and HTTP/TLS query/IP access-log minimization",
+  );
   for (const path of [
     "/",
     "/login",
@@ -292,6 +323,8 @@ try {
       {
         "X-Campus-Client-IP": "malformed, forged",
         "X-Forwarded-For": "192.0.2.8",
+        "X-Forwarded-Host": "attacker.example.test",
+        Forwarded: "for=192.0.2.8;host=attacker.example.test;proto=http",
       },
       false,
       JSON.stringify({

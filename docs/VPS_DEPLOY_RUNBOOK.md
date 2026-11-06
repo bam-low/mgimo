@@ -123,9 +123,10 @@ DNS A указывает на подтверждённый IPv4; AAAA тольк
 Для первого сертификата **app ещё не запущен**, Nginx не содержит upstream. В `/etc/nginx/sites-enabled/` уберите default symlink; через `sudoedit /etc/nginx/conf.d/campus-bootstrap.conf` задайте http-level конфиг:
 
 ```nginx
-server { listen 80 default_server; listen [::]:80 default_server; server_name _; return 444; }
+server { listen 80 default_server; listen [::]:80 default_server; server_name _; access_log off; return 444; }
 server {
  listen 80; listen [::]:80; server_name YOUR_DOMAIN;
+ access_log off;
  location ^~ /.well-known/acme-challenge/ { root /var/lib/letsencrypt; try_files $uri =404; }
  location / { return 444; }
 }
