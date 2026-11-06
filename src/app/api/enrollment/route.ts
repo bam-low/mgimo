@@ -1,3 +1,4 @@
+import { lockMembership } from "@/server/enrollment-guards";
 import { z } from "zod";
 import { db } from "@/server/db";
 import { validGroup } from "@/server/enrollment";
@@ -20,13 +21,24 @@ export async function POST(request: Request) {
       .strict()
       .parse(await readJSON(request));
     await db.$transaction(async (tx) => {
+      await lockMembership(tx, a.membership.id, a.membership.universityId);
       const m = await tx.universityMembership.findUniqueOrThrow({
         where: { id: a.membership.id },
-        include: { enrollments: { where: { endedAt: null, revokedAt: null } } },
+        include: {
+          user: true,
+          university: true,
+          enrollments: { where: { endedAt: null, revokedAt: null } },
+        },
       });
       if (
+        !m.user.active ||
+        !m.university.active ||
+        m.role !== "STUDENT" ||
         m.enrollments.length ||
-        !(m.status === "REJECTED" || (m.status === "APPROVED" && m.resubmissionAllowed))
+        !(
+          m.status === "REJECTED" ||
+          (m.status === "APPROVED" && m.resubmissionAllowed)
+        )
       )
         throw new Denied();
       await validGroup(tx, data.groupId, m.universityId);

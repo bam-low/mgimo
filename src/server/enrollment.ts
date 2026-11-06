@@ -1,4 +1,4 @@
-import type { Prisma } from "../generated/prisma/client";
+import { validGroup, lockMembership, requireStaff } from "./enrollment-guards";
 import { syntheticIdentity } from "./demo-identity";
 import { z } from "zod";
 import { db } from "./db";
@@ -13,27 +13,7 @@ export const registration = z
     groupId: z.enum(["group-1", "group-2"]),
   })
   .strict();
-export async function validGroup(
-  tx: Prisma.TransactionClient,
-  groupId: string,
-  universityId: string,
-  requireActive = true,
-) {
-  const group = await tx.studentGroup.findUnique({
-    where: { id: groupId },
-    include: {
-      program: { include: { faculty: { include: { university: true } } } },
-    },
-  });
-  if (
-    !group ||
-    (requireActive && !group.active) ||
-    !group.program.faculty.university.active ||
-    group.program.faculty.universityId !== universityId
-  )
-    throw new Denied();
-  return group;
-}
+export { validGroup } from "./enrollment-guards";
 export async function register(
   input: unknown,
   headers: Headers,
@@ -102,16 +82,13 @@ export async function decide(
   reason: string,
 ) {
   await db.$transaction(async (tx) => {
-    const staff = await tx.universityMembership.findUnique({
-      where: { userId_universityId: { userId: actorId, universityId } },
-      include: { user: true },
+    const hint = await tx.enrollmentRequest.findUnique({
+      where: { id: requestId },
+      select: { membershipId: true },
     });
-    if (
-      !staff?.user.active ||
-      staff.role !== "STAFF" ||
-      staff.status !== "APPROVED"
-    )
-      throw new Denied();
+    if (!hint) throw new Denied();
+    await lockMembership(tx, hint.membershipId, universityId);
+    await requireStaff(tx, actorId, universityId);
     const r = await tx.enrollmentRequest.findUnique({
       where: { id: requestId },
       include: { membership: true },

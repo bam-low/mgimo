@@ -2,11 +2,8 @@ import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "./db";
 import { auth } from "./auth";
-export class Denied extends Error {
-  constructor(public status = 403) {
-    super("Действие недоступно. Обновите страницу и попробуйте ещё раз.");
-  }
-}
+import { Denied } from "./errors";
+export { Denied, failure } from "./errors";
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (
@@ -97,7 +94,8 @@ export async function actor(headers: Headers) {
             },
           },
           requests: {
-            orderBy: { createdAt: "desc" },
+            take: 1,
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             include: { targetGroup: true },
           },
         },
@@ -125,21 +123,6 @@ export function studentAccess(a: Awaited<ReturnType<typeof actor>>) {
     throw new Denied();
   return a.membership.enrollments[0];
 }
-export function failure(e: unknown) {
-  return Response.json(
-    {
-      error:
-        e instanceof Denied
-          ? e.message
-          : "Не удалось выполнить действие. Попробуйте позже.",
-    },
-    {
-      status: e instanceof Denied ? e.status : 400,
-      headers: { "Cache-Control": "no-store" },
-    },
-  );
-}
-
 export async function readJSON(request: Request) {
   const reader = request.body?.getReader();
   if (!reader) throw new Denied(400);

@@ -1,6 +1,6 @@
 # VPS: результаты проверки образов и оставшийся NO-GO
 
-06.11.2026 (МСК), Issue #24 / Draft PR #26. Это подготовка для ревью, **не разрешение первого deploy**. [Runbook](VPS_DEPLOY_RUNBOOK.md) и [checklist](VPS_LAUNCH_CHECKLIST.md) сохраняют gates A–F. Scan — Trivy **0.76.2**, официальный archive checksum закреплён в VPS CI; vulnerability DB изменяется. Числа ниже относятся к локальному scan этой итерации, актуальный remote report находится в Actions `vps-security-report`.
+06.11.2026, Issue #24 / PR #26 merged владельцем; Issue #27 сохраняет результаты и gates. Это техническая подготовка, **не разрешение первого deploy**. [Runbook](VPS_DEPLOY_RUNBOOK.md) и [checklist](VPS_LAUNCH_CHECKLIST.md) сохраняют gates A–F. Scan — Trivy **0.76.2**, официальный archive checksum закреплён в VPS CI; vulnerability DB изменяется. Числа ниже относятся к локальному scan этой итерации, актуальный remote report находится в Actions `vps-security-report`.
 
 ## Что исправлено по результатам расширенного scan
 
@@ -19,7 +19,7 @@ Final DB scan определяет Alpine3.24.4 и выполняет OS package
 
 ## Что НЕ утверждено
 
-**NO-GO до security review D:** runtime HIGH `CVE-2026-76844` в zlib1g и 7 HIGH в OS пакетах tools. Это не автоматическое исключение для unfixed. Учитывайте реальную достижимость, условия эксплуатации, обновления vendor и lifecycle одноразового job; не записывайте «неэксплуатируемо» только из-за private network. Tools имеет миграционные полномочия и доступ к migration env; superuser bootstrap.env добавляется лишь отдельной явной bootstrap-командой, default tools не имеет его или runtime.env с auth/cron ключами, поэтому отсутствие web-порта не делает его безопасным автоматически.
+**NO-GO до security review D:** финальный remote scan PR #26 — **2 unfixed HIGH в app и 8 в tools**, включая новый `CVE-2026-85091` в zlib1g. Предыдущие локальные числа 1/7 в таблице выше — исторический снимок, не текущий baseline и не разрешение deploy. Это не автоматическое исключение для unfixed. Учитывайте реальную достижимость, условия эксплуатации, обновления vendor и lifecycle одноразового job; не записывайте «неэксплуатируемо» только из-за private network. Tools имеет миграционные полномочия и доступ к migration env; superuser bootstrap.env добавляется лишь отдельной явной bootstrap-командой, default tools не имеет его или runtime.env с auth/cron ключами, поэтому отсутствие web-порта не делает его безопасным автоматически.
 
 Группы HIGH в tools (число — package findings, один CVE может повторяться в нескольких пакетах):
 
@@ -42,3 +42,7 @@ VPS CI сканирует **все три поставляемых образа*
 PR CI создаёт и проверяет package **только на ephemeral runner**, публикует небольшие report/manifest. Большой архив с тремя image tar, config и release.json загружается **лишь через owner workflow_dispatch** с подтверждением reviewed SHA/security и доступного Actions storage/minutes budget; default=false. Это предотвращает автоматическое накопление больших archives на бесплатной квоте. Такой ручной запуск после review/merge не deploy, но Codex его не выполняет. Если бюджет/квота не подтверждены — STOP, не включать платный budget автоматически.
 
 Доставка требует пяти file checksums и owner SSHSIG с pinned signer; подпись не заменяет review отчёта. Не используйте старый четырёхфайловый archive или UID999 secrets. После A/B/C нужен отдельный D review **и отдельное разрешение** первого защищённого deploy; после real checks E отдельно F. Отсутствие новых CRITICAL не снимает оставшийся NO-GO.
+
+## Foundation Completion #27
+
+Никаких suppress/ignore/VEX-исключений для прохождения CI не добавлено. Локальные rehearsal/negative tests проверяют исполнение конфигурации, а не отсутствие OS-уязвимостей или защищённость реального хоста. Актуальный scan текущего SHA хранится в Actions `vps-security-report`; unfixed HIGH требуют отдельного pre-deploy triage D. GO FOR FEATURE DEVELOPMENT не даёт production GO. Реальные host SSH/systemd/firewall/LE/ресурсы/RF/offsite restore остаются NOT VERIFIED.

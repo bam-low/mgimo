@@ -29,6 +29,7 @@ model Session {
  userAgent String?
  userId String
  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ @@index([userId])
 }
 model Account {
  id String @id
@@ -45,6 +46,7 @@ model Account {
  password String?
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+ @@index([userId])
 }
 model Verification {
  id String @id
@@ -98,6 +100,7 @@ model UniversityMembership {
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
  @@unique([userId,universityId])
+ @@index([universityId,role,status,id])
 }
 model StudentProfile {
  id String @id @default(cuid())
@@ -117,6 +120,8 @@ model EnrollmentRequest {
  decidedAt DateTime?
  membership UniversityMembership @relation(fields:[membershipId],references:[id])
  targetGroup StudentGroup @relation(fields:[targetGroupId],references:[id])
+ @@index([membershipId,createdAt,id])
+ @@index([status,createdAt,id])
 }
 model GroupMembership {
  id String @id @default(cuid())

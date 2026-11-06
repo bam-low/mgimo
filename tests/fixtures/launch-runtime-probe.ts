@@ -7,6 +7,7 @@ import {
 } from "../../src/app/api/register/route";
 import { POST as auth } from "../../src/app/api/auth/[...all]/route";
 import { POST as decision } from "../../src/app/api/staff/decision/route";
+import { POST as membershipAction } from "../../src/app/api/staff/membership/route";
 import { POST as retry } from "../../src/app/api/enrollment/route";
 import { GET as group } from "../../src/app/api/group/route";
 const url = new URL(process.env.DATABASE_URL!);
@@ -123,6 +124,68 @@ it("full server workflow runs under limited credentials, retains audit and revok
       },
     }),
   ).toBe(4);
+  const activeEnrollment = await db.groupMembership.findFirstOrThrow({
+    where: { membershipId: member.id, endedAt: null, revokedAt: null },
+  });
+  expect(
+    (
+      await membershipAction(
+        req(
+          "/api/staff/membership",
+          {
+            action: "TRANSFER",
+            membershipId: member.id,
+            expectedEnrollmentId: activeEnrollment.id,
+            groupId: "group-2",
+            reason: "Вымышленный перевод",
+          },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (await group(req("/api/group?id=group-1", undefined, cookie))).status,
+  ).toBe(403);
+  const moved = await db.groupMembership.findFirstOrThrow({
+    where: { membershipId: member.id, endedAt: null, revokedAt: null },
+  });
+  expect(
+    (
+      await membershipAction(
+        req(
+          "/api/staff/membership",
+          {
+            action: "REVOKE",
+            membershipId: member.id,
+            expectedEnrollmentId: moved.id,
+            reason: "Вымышленный отзыв",
+          },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
+  expect((await group(req("/api/group", undefined, cookie))).status).toBe(403);
+  expect(
+    (
+      await membershipAction(
+        req(
+          "/api/staff/membership",
+          {
+            action: "ALLOW_RESUBMISSION",
+            membershipId: member.id,
+            reason: "Вымышленное разрешение",
+          },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (await retry(req("/api/enrollment", { groupId: "group-1" }, cookie)))
+      .status,
+  ).toBe(200);
   expect((await auth(req("/api/auth/sign-out", {}, cookie))).status).toBe(200);
   expect((await group(req("/api/group", undefined, cookie))).status).toBe(401);
 });

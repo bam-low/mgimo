@@ -436,19 +436,122 @@ export function Logout() {
     <>
       <button
         onClick={async () => {
-          const r = await fetch("/api/auth/sign-out", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: "{}",
-          });
-          if (r.ok) window.location.replace("/login");
-          else E("Выход не выполнен. Повторите попытку.");
+          try {
+            const r = await fetch("/api/auth/sign-out", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: "{}",
+            });
+            if (r.ok) window.location.replace("/login");
+            else E("Выход не выполнен. Повторите попытку.");
+          } catch {
+            E("Выход не выполнен. Проверьте соединение и повторите попытку.");
+          }
         }}
       >
         Выйти
       </button>
       <p role="status">{error}</p>
     </>
+  );
+}
+export function MembershipForm({
+  membershipId,
+  enrollmentId,
+  allowed,
+  groups,
+}: {
+  membershipId: string;
+  enrollmentId?: string;
+  allowed: boolean;
+  groups: Group[];
+}) {
+  const [action, A] = useState<"TRANSFER" | "REVOKE" | "ALLOW_RESUBMISSION">(
+    enrollmentId ? "TRANSFER" : "ALLOW_RESUBMISSION",
+  );
+  const [busy, B] = useState(false),
+    [message, M] = useState("");
+  const router = useRouter();
+  if (!enrollmentId && allowed)
+    return <p role="status">Повторная подача разрешена сотрудником.</p>;
+  return (
+    <form
+      className="space-y-3"
+      aria-busy={busy}
+      onSubmit={async (e) => {
+        e.preventDefault();
+        B(true);
+        M("");
+        const form = new FormData(e.currentTarget);
+        try {
+          const r = await fetch("/api/staff/membership", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              membershipId,
+              action,
+              reason: form.get("reason"),
+              ...(action !== "ALLOW_RESUBMISSION"
+                ? { expectedEnrollmentId: enrollmentId }
+                : {}),
+              ...(action === "TRANSFER"
+                ? { groupId: form.get("groupId") }
+                : {}),
+            }),
+          });
+          if (!r.ok) throw Error();
+          M("Изменения сохранены");
+          router.refresh();
+        } catch {
+          M(
+            "Действие недоступно. Обновите страницу и проверьте текущее прикрепление.",
+          );
+        } finally {
+          B(false);
+        }
+      }}
+    >
+      <label>
+        Действие
+        <select
+          aria-label="Действие"
+          value={action}
+          onChange={(e) => A(e.target.value as typeof action)}
+        >
+          {enrollmentId ? (
+            <>
+              <option value="TRANSFER">Перевести в другую группу</option>
+              <option value="REVOKE">Отозвать прикрепление</option>
+            </>
+          ) : (
+            <option value="ALLOW_RESUBMISSION">
+              Разрешить повторную подачу
+            </option>
+          )}
+        </select>
+      </label>
+      {action === "TRANSFER" && (
+        <label>
+          Целевая группа
+          <select aria-label="Целевая группа" name="groupId" required>
+            <option value="">Выберите группу</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <label>
+        Причина действия
+        <textarea name="reason" required maxLength={500} />
+      </label>
+      <button disabled={busy || (action === "TRANSFER" && !groups.length)}>
+        {busy ? "Сохранение…" : "Применить действие"}
+      </button>
+      <p role="status">{message}</p>
+    </form>
   );
 }
 export function RefreshContext() {

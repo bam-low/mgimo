@@ -452,7 +452,7 @@ try {
   await mkdir(".runtime-evidence", { recursive: true });
   await writeFile(
     ".runtime-evidence/vps-test.txt",
-    "PASS private-first HTTPS, TLS/SCRAM PG17, role negatives, seed twice, 8 HTTPS E2E, authenticated cleanup, age integrity, separate DB restore/counts/immutable trigger. Local only, not VPS/RF.\n",
+    "PASS private-first HTTPS, TLS/SCRAM PG17, role negatives, seed twice, HTTPS E2E suite, authenticated cleanup, age integrity, separate DB restore/counts/immutable trigger. Local only, not VPS/RF.\n",
   );
   console.log(
     "PASS age encryption/integrity and fresh separate database restore; local rehearsal complete",

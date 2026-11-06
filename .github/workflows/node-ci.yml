@@ -41,6 +41,7 @@ jobs:
       - run: npm audit --omit=dev
       - run: npm run db:generate
       - run: npm run db:migrate
+      - run: npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - run: npm run db:seed && npm run db:seed
       - run: npm run lint
       - run: npm run typecheck
