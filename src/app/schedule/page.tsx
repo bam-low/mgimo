@@ -16,6 +16,7 @@ export default async function Page() {
           <Logout />
         </div>
       </div>
+      <span id="workspace" tabIndex={-1} />
       <RefreshContext />
       <ScheduleView />
     </main>

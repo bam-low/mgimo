@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 210" fill="none">
+<!-- Original SVG authored for Issue #34; composition inspired by owner PNGs, no traced image or third-party artwork. -->
+<path d="M15 184c43-35 80-1 117-19 43-21 82-3 110-15 59-26 112-12 178 38Z" fill="#E7E0F2" opacity=".55"/>
+<path d="M31 184c50-24 96 10 153-5 71-18 115 3 228 8" stroke="#C8BCB2" stroke-width="2"/>
+<path d="M110 91h211v92H110z" fill="#EBE2D7"/><path d="M98 91l117-37 118 37Z" fill="#C2ACAA"/>
+<path d="M174 55c0-25 18-41 41-41s42 16 42 41" fill="#E6DAD0" stroke="#A89391" stroke-width="2"/>
+<path d="M202 15V5h26v10M195 55V30m20 25V20m20 35V30" stroke="#A89391" stroke-width="2"/>
+<path d="M164 56h103v14H164zM105 94h221v8H105z" fill="#F7F4EE" stroke="#BBA6A3"/>
+<path d="M124 105v74m32-74v74m32-74v74m54-74v74m32-74v74m32-74v74" stroke="#FBFAF7" stroke-width="12"/>
+<path d="M123 105v74m32-74v74m32-74v74m54-74v74m32-74v74m32-74v74" stroke="#BBA6A3" stroke-width="1.5"/>
+<path d="M200 181v-46c0-20 30-20 30 0v46" fill="#867879"/>
+<path d="M99 184h235m-242 6h249" stroke="#9A8584" stroke-width="3"/>
+<path d="M66 180V88m-12 40 12 16 14-24M359 180V92m-15 46 15 17 15-27" stroke="#A1A58E" stroke-width="3"/>
+<g fill="#BEC5A7" opacity=".75"><ellipse cx="64" cy="76" rx="30" ry="32"/><ellipse cx="49" cy="104" rx="27" ry="29"/><ellipse cx="80" cy="101" rx="25" ry="30"/><ellipse cx="358" cy="89" rx="33" ry="32"/><ellipse cx="340" cy="115" rx="24" ry="26"/><ellipse cx="378" cy="116" rx="24" ry="29"/></g>
+<path d="M54 180V137m315 45v-36M38 184h51m254 0h52" stroke="#A1A58E" stroke-width="2"/>
+<path d="M17 42c23-8 30-2 43-8m259-13c18-6 35 2 54-3" stroke="#DDD5C9" stroke-width="2"/>
+</svg>

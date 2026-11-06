@@ -1,6 +1,113 @@
-import { test, expect, type BrowserContext } from "@playwright/test";
+import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import { dayKey, timeLabel } from "../../src/lib/schedule-time";
 import { findPagedCard } from "./paging";
+async function visualChecks(page: Page, role: string) {
+  await page.evaluate(async () => {
+    await Promise.all(
+      ["400 16px Onest", "400 24px Literata", "italic 400 24px Literata"].map(
+        (font) => document.fonts.load(font, "Ёжик abc123"),
+      ),
+    );
+    await document.fonts.ready;
+  });
+  expect(
+    await page.evaluate(() =>
+      document.fonts.check("400 16px Onest", "Ёжик abc123"),
+    ),
+  ).toBe(true);
+  expect(
+    await page.evaluate(() =>
+      document.fonts.check("italic 400 24px Literata", "Ёжик"),
+    ),
+  ).toBe(true);
+  for (const asset of [
+    "/fonts/onest-roman.woff",
+    "/fonts/literata-roman.woff",
+    "/fonts/literata-italic.woff",
+    "/design/campus-garden.svg",
+    "/design/study-desk.svg",
+  ]) {
+    const response = await page.request.get(asset);
+    expect(response.status(), asset).toBe(200);
+    expect(response.headers()["content-type"], asset).toMatch(/font|woff|svg/);
+  }
+  for (const width of [360, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      role + width,
+    ).toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: `test-results/issue34-${role}-${width}.png`,
+      fullPage: true,
+    });
+  }
+  const contrasts = await page
+    .locator(
+      ".eyebrow, .badge, .lesson h3, .lesson-time, .day-status h2, .current-times, .timetable-lesson, .campus-nav a",
+    )
+    .evaluateAll((elements) => {
+      const rgb = (color: string) => (color.match(/[\d.]+/g) ?? []).map(Number);
+      const light = (channels: number[]) =>
+        channels
+          .slice(0, 3)
+          .map((n) => {
+            const v = n / 255;
+            return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+          })
+          .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+      return elements
+        .filter((e) => e.getClientRects().length)
+        .map((e) => {
+          let ancestor: Element | null = e,
+            background: number[] = [];
+          while (ancestor) {
+            background = rgb(getComputedStyle(ancestor).backgroundColor);
+            if (background.length === 3 || background[3] === 1) break;
+            ancestor = ancestor.parentElement;
+          }
+          const foreground = light(rgb(getComputedStyle(e).color)),
+            back = light(background);
+          return {
+            text: e.textContent?.slice(0, 40),
+            ratio:
+              (Math.max(foreground, back) + 0.05) /
+              (Math.min(foreground, back) + 0.05),
+          };
+        });
+    });
+  for (const pair of contrasts)
+    expect(pair.ratio, JSON.stringify(pair)).toBeGreaterThanOrEqual(4.5);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.keyboard.press("Tab");
+  await page.locator(".campus-nav a").first().focus();
+  expect(
+    await page
+      .locator(".campus-nav a")
+      .first()
+      .evaluate((e) => getComputedStyle(e).outlineStyle),
+  ).toBe("solid");
+  const textScale = await page.addStyleTag({
+    content: "html { font-size: 200% !important; }",
+  });
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `200% text reflow at ${width}`,
+    ).toBe(true);
+  }
+  await textScale.evaluate((e) => e.parentNode?.removeChild(e));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+}
 test.use({ timezoneId: "America/Los_Angeles", locale: "ru-RU" });
 test("STAFF structure and schedule → real student today/week → edit/cancel/delete, preserving other groups", async ({
   page: initialPage,
@@ -9,6 +116,8 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
   httpCredentials,
   ignoreHTTPSErrors,
 }) => {
+  // Real polling can take 30s; allow the six viewport captures and CRUD as well.
+  test.setTimeout(120000);
   let page = initialPage;
   const extraContexts: BrowserContext[] = [];
   try {
@@ -118,12 +227,33 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
       .getByRole("button", { name: "Создать занятие", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: title, exact: true }),
+      page.getByRole("button", {
+        name: `Открыть занятие: ${title}, ${today} ${hm(start)}`,
+        exact: true,
+      }),
     ).toBeVisible();
-    await page.screenshot({
-      path: "test-results/schedule-staff-desktop.png",
-      fullPage: true,
-    });
+    await lesson
+      .getByLabel("Дисциплина", { exact: true })
+      .fill("Демо конфликт с сохранением ввода");
+    await lesson.getByLabel("Дата занятия").fill(today);
+    await lesson.getByLabel("Начало", { exact: true }).fill(hm(start));
+    await lesson.getByLabel("Конец", { exact: true }).fill(hm(end));
+    await lesson
+      .getByRole("button", { name: "Создать занятие", exact: true })
+      .click();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Конфликт времени" }),
+    ).toBeVisible();
+    await expect(lesson.getByLabel("Дисциплина", { exact: true })).toHaveValue(
+      "Демо конфликт с сохранением ввода",
+    );
+    await page
+      .getByRole("button", {
+        name: `Открыть занятие: ${title}, ${today} ${hm(start)}`,
+        exact: true,
+      })
+      .click();
+    await visualChecks(page, "staff");
     await transfer(id!);
     const staffPage = page;
     const contextOptions = {
@@ -156,6 +286,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
         })
         .toBeGreaterThan(initial);
     }
+    await visualChecks(page, "student");
     for (const width of [360, 390]) {
       await page.setViewportSize({ width, height: 900 });
       expect(
@@ -194,24 +325,24 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     await logout();
     page = staffPage;
     await page.goto(`/staff/schedule?groupId=${id}&day=${today}`);
-    let card = page.locator(".staff-lessons>li").filter({ hasText: title });
-    await card
-      .getByRole("button", { name: "Редактировать", exact: true })
-      .click();
+    const tile = (label: string) =>
+      page.getByRole("button", {
+        name: `Открыть занятие: ${label}, ${today} ${hm(start)}`,
+        exact: true,
+      });
+    await tile(title).click();
     await lesson
       .getByLabel("Дисциплина", { exact: true })
       .fill(title + " обновлён");
     await lesson
       .getByRole("button", { name: "Сохранить занятие", exact: true })
       .click();
-    card = page
-      .locator(".staff-lessons>li")
-      .filter({ hasText: title + " обновлён" });
-    await expect(card).toBeVisible();
-    await card
+    await expect(tile(title + " обновлён")).toBeVisible();
+    await tile(title + " обновлён").click();
+    await page
       .getByRole("button", { name: "Отменить занятие", exact: true })
       .click();
-    await expect(card).toContainText("Отменено");
+    await expect(tile(title + " обновлён")).toContainText("Отменено");
     page = studentPage;
     await page.bringToFront();
     await expect(
@@ -220,16 +351,43 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     expect(await page.evaluate(() => "campusScheduleDocument" in window)).toBe(
       true,
     );
+    await page.route("**/api/schedule?*", (route) =>
+      route.fulfill({ status: 503, body: "Unavailable" }),
+    );
+    await page.goto("/today");
+    await expect(page.locator(".error-notice[role=alert]")).toContainText(
+      "Не удалось обновить расписание",
+    );
+    await page.unroute("**/api/schedule?*");
+    await page.getByRole("button", { name: "Повторить", exact: true }).click();
+    await expect(
+      page.locator(".lesson").filter({ hasText: title }),
+    ).toBeVisible();
+    let releaseRead!: () => void;
+    const heldRead = new Promise<void>((resolve) => {
+      releaseRead = resolve;
+    });
+    await page.route("**/api/schedule?*", async (route) => {
+      await heldRead;
+      await route.continue();
+    });
+    await page.goto("/today");
+    try {
+      await expect(
+        page.locator(".schedule-loading[role=status]"),
+      ).toBeVisible();
+    } finally {
+      releaseRead();
+    }
+    await expect(
+      page.locator(".lesson").filter({ hasText: title }),
+    ).toBeVisible();
+    await page.unroute("**/api/schedule?*");
     page = staffPage;
     await page.goto(`/staff/schedule?groupId=${id}&day=${today}`);
-    await page
-      .locator(".staff-lessons>li")
-      .filter({ hasText: title })
-      .getByRole("button", { name: "Удалить", exact: true })
-      .click();
-    await expect(
-      page.getByRole("heading", { name: title + " обновлён", exact: true }),
-    ).toHaveCount(0);
+    await tile(title + " обновлён").click();
+    await page.getByRole("button", { name: "Удалить", exact: true }).click();
+    await expect(tile(title + " обновлён")).toHaveCount(0);
     await transfer("group-1");
     await logout();
   } finally {

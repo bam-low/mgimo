@@ -21,7 +21,7 @@ export default async function Page() {
           <Logout />
         </div>
       </div>
-      <RefreshContext />
+      <span id="workspace" tabIndex={-1} /><RefreshContext />
       <header className="editorial-heading">
         <p className="eyebrow">Деканат / 01</p>
         <h1>Учебная структура</h1>

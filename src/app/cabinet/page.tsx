@@ -51,12 +51,13 @@ export default async function Page({
   );
   const selected = last?.targetGroup;
   return (
-    <main className="panel">
+    <main className="panel campus-shell">
       <AppNav
         role="STUDENT"
         active="/cabinet"
         canStudy={m.status === "APPROVED" && studyActive}
       />
+      <span id="workspace" tabIndex={-1} />
       <RefreshContext />
       <header>
         <h1>Личный кабинет</h1>

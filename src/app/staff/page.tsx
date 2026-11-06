@@ -41,8 +41,9 @@ export default async function Page({
   }));
   const requests = queue.items;
   return (
-    <main className="panel">
+    <main className="panel campus-shell">
       <AppNav role="STAFF" active="/staff" />
+      <span id="workspace" tabIndex={-1} />
       <RefreshContext />
       <header>
         <h1>Очередь прикреплений</h1>

@@ -1,5 +1,27 @@
 # Дизайн-токены
 
+## Реализация Issue #34 — актуальные значения для ревью
+
+Источник CSS — [globals.css](../../src/app/globals.css), основание — [утверждение v3](APPROVED_V3_IMPLEMENTATION.md), ассеты — [inventory](ASSET_INVENTORY_V3.md). Исторические H1/H3 таблицы ниже сохраняют предыдущие состояния; их TBD не отменяют эту делегированную реализацию. APPROVED: четыре HEX, Literata/Onest, minimum360 и QA390/1280. Остальные числа — **IMPLEMENTED / delegated**, не извлечённые Figma variables и не новые owner-approved product rules.
+
+| Роль | Значение реализации |
+| --- | --- |
+| Brand / основной текст / lavender / canvas | #753A4A / #25283B / #E7E0F2 / #F7F4EE — утверждено |
+| Card / muted text / divider | #FFFFFF / #6F6268 / #E7E0DE |
+| Control border / rose / soft surface | #95828A / #FBE4E9 / #F4F1ED |
+| Error / success | #A1263F / #1C6951, всегда также текст/иконка |
+| Display / body+label | Literata variable200–900, настоящий italic; Onest variable100–900 normal; font-synthesis:none |
+| Основной текст / input | .875rem/1.55; input1rem, minimum44px height |
+| Display scale | h1≈1.7–2.2rem, карточки1.1–1.6rem; реальные selectors — CSS; rem поддерживает text resize |
+| Spacing / radius | Основные gaps8/12/16/20/24px; карточки14px, controls7–8px, pills999px |
+| Focus / touch | Outline3px brand с offset4px; button/input min44px; ссылки nav min44px |
+| Сетка | Sidebar216px от1100px; STAFF inspector286px от900px,310px от1450px |
+| Media thresholds | 700px: дополнительные колонки;900px: STAFF table/inspector;1100px:sidebar;1450px:широкая настройка.360/390/1280 — QA viewports, не media queries |
+| Motion | Нет обязательной анимации; при prefers-reduced-motion scroll:auto и transition/animation подавлены |
+
+Контраст считается WCAG sRGB без округления перед сравнением, body threshold4.5:1. E2E измеряет **computed** foreground/background видимых eyebrow/badge/lesson/current/timetable/nav после загрузки шрифтов; это smoke, не полный аудит WCAG. Контрольные пары: brand/white≈8.53, ink/paper≈13.24, brand/paper≈7.77; точные значения второстепенных пар и результаты — [UI QA](../screenshots/issue-34/README.md). Светлый divider декоративный, не единственная граница input; controls используют отдельный более тёмный border. Статусы дополнены «Сейчас», «Завершено», «Отменено», «Выбрано», не только цветом. Темизация/dark mode не добавлялись.
+
+
 > **Обновление решения владельца 06.11.2026:** целевые шрифты для UI теперь **Literata** (display) и **Onest** (body/label), вместо исторических Newsreader / Plus Jakarta Sans. Палитра остаётся без изменений. Codex уполномочен определить недостающие второстепенные токены с проверкой доступности; см. [APPROVED_V3_IMPLEMENTATION](APPROVED_V3_IMPLEMENTATION.md). Любые более ранние строки v3 о «целевых Newsreader / Plus Jakarta Sans» имеют исторический статус.
 
 **Актуальная база — Design Handoff v3 / [Issue #31](https://github.com/bam-low/mgimo/issues/31), см. раздел v3 ниже и [REDESIGN_V3](REDESIGN_V3.md).** Следующая таблица H1 сохраняет историю на 04.11.2026: её TBD не отменяют позднее утверждённые четыре HEX и семейства. Значения H1 не являются второй параллельной темой. Числа CSS реализации #29 не утверждены как tokens v3.

@@ -68,13 +68,25 @@ const middlewarePort = workers.get(
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, process.env.BETTER_AUTH_URL);
-    if (url.pathname.startsWith("/_next/static/")) {
+    if (
+      ["/_next/static/", "/fonts/", "/design/"].some((prefix) =>
+        url.pathname.startsWith(prefix),
+      )
+    ) {
       const file = await realpath(path.join(root, "static", url.pathname));
       if (!file.startsWith(path.join(root, "static") + path.sep))
         throw Error("Static escape");
       res.setHeader(
         "content-type",
-        file.endsWith(".css") ? "text/css" : "application/javascript",
+        file.endsWith(".css")
+          ? "text/css"
+          : file.endsWith(".woff")
+            ? "font/woff"
+            : file.endsWith(".svg")
+              ? "image/svg+xml"
+              : file.endsWith(".txt")
+                ? "text/plain"
+                : "application/javascript",
       );
       createReadStream(file).pipe(res);
       return;

@@ -13,9 +13,6 @@ export default async function Page() {
   });
   return (
     <main className="campus-shell">
-      <a className="skip-link" href="#day">
-        К расписанию
-      </a>
       <AppNav role="STUDENT" active="/today" />
       <div className="account-line">
         <p>Добро пожаловать, {name}</p>
@@ -23,9 +20,9 @@ export default async function Page() {
           <Logout />
         </div>
       </div>
-      <div id="day">
+      <div id="workspace" tabIndex={-1}>
         <RefreshContext />
-        <ScheduleView home />
+        <ScheduleView home name={name} />
       </div>
     </main>
   );

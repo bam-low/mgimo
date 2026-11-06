@@ -1,5 +1,10 @@
 # Реестр дизайн-артефактов
 
+## Актуальный inventory Issue #34
+
+Три реальные PNG-фрейма теперь сохранены рядом с этим файлом; прежние ASSET_NOT_PROVIDED/«не помещены» ниже — история #31/#33. [Полный inventory](../ASSET_INVENTORY_V3.md) содержит размеры/hashes/источник owner attachment, локальные Literata/Onest/OFL, проверку кириллицы и provenance собственных SVG/иконок. Владелец в чате разрешил собственные SVG/CSS и снял blocker отсутствия отдельных exports; whole-screen PNG не используются в интерфейсе. Исторические B/concept/styleboard байты не менялись.
+
+
 > **Обновление владельца 06.11.2026:** использование сгенерированных владельцем иллюстраций/иконок Figma в MVP разрешено; актуальная пара шрифтов **Literata + Onest**, старый styleboard сохранён как исходный референс. Три Figma-фрейма просмотрены через connector, но их бинарные PNG exports **ещё не помещены в репозиторий** из-за лимита Figma MCP Starter. Постоянные node URL, фактические размеры и имена файлов для последующего экспорта — [APPROVED_V3_IMPLEMENTATION](../APPROVED_V3_IMPLEMENTATION.md). Не выдавать ссылки за локальные ассеты.
 
 **Текущая передача v3 — раздел ниже, [Issue #31](https://github.com/bam-low/mgimo/issues/31).** Исходные B/концепция №1 сохраняются как история без изменения hashes. Наличие node URL не равно наличию binary export. Screenshots работающего приложения #29 — отдельные implementation evidence, не Figma exports.

@@ -47,10 +47,11 @@ export default async function Page({
           <Logout />
         </div>
       </div>
+      <span id="workspace" tabIndex={-1} />
       <RefreshContext />
       <header className="editorial-heading">
-        <p className="eyebrow">Деканат / 02</p>
-        <h1>Групповое расписание</h1>
+        <p className="eyebrow">Деканат / Расписание группы</p>
+        <h1>Управление расписанием занятий</h1>
         <p>
           Одна группа, одна неделя. Изменения сразу доступны на новых запросах
           студентов.
@@ -116,6 +117,8 @@ export default async function Page({
             </p>
           )}
           <LessonEditor
+            from={data.from}
+            today={data.today}
             key={groupId + data.from}
             lessons={data.lessons}
             groupId={groupId!}
