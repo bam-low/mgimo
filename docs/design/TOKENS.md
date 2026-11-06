@@ -1,5 +1,8 @@
 # Дизайн-токены
 
+**Актуальная база — Design Handoff v3 / [Issue #31](https://github.com/bam-low/mgimo/issues/31), см. раздел v3 ниже и [REDESIGN_V3](REDESIGN_V3.md).** Следующая таблица H1 сохраняет историю на 04.11.2026: её TBD не отменяют позднее утверждённые четыре HEX и семейства. Значения H1 не являются второй параллельной темой. Числа CSS реализации #29 не утверждены как tokens v3.
+
+
 Источник H1 — [Issue #5, Design Handoff v1 от 04.11.2026](https://github.com/bam-low/mgimo/issues/5), разделы 3–4 и 6. Это документационная схема, не CSS/JSON и не готовая тема. Общий контекст — [DESIGN](../DESIGN.md).
 
 Статусы: «утверждено» — явное решение владельца; «предложено» — схема/имя ещё не обязательны; «открытый вопрос» — роль задана handoff, значение не утверждено. TBD в значении или единице не является default. Все числовые параметры стилей, кроме 360/390, остаются TBD. Поведенческий прогресс 0–100% описан в компонентах и не задаёт размеры стилей.
@@ -88,3 +91,42 @@
 | `breakpoint.desktop` | Переход к широкому layout | TBD | TBD | предложено | H1 | Имя дополнительной роли — предложение; значение не утверждено. |
 
 Семантические роли обязательны: активность пары не кодируется одним бордовым цветом. Отдельно требуется утвердить цветовые пары/контрастность/прозрачность, набор состояний интерактивных элементов, единицы и шкалы. Имена не подразумевают готовый Tailwind preset. Таблица не утверждает семейства или лицензии шрифтов; неподтверждённые значения не извлекаются из растра.
+
+## Design Handoff v3 — актуальная база
+
+H3 — [Issue #31](https://github.com/bam-low/mgimo/issues/31); SB3 — [оригинальный styleboard](assets/academic-editorial-styleboard-v3.png), [передача владельцем](https://github.com/bam-low/mgimo/issues/31#issuecomment-6692839582). Это Markdown-спецификация, не реализация CSS/JSON/темы. Смена базы не изменяет приложение.
+
+| Canonical path | Значение | Единица | Статус | Источник / граница |
+| --- | --- | --- | --- | --- |
+| `color.brand.primary` | `#753A4A` | HEX sRGB | APPROVED | H3 + подписанный Primary SB3; ограниченный акцент, не сплошной бордовый canvas |
+| `color.brand.secondary` | `#25283B` | HEX sRGB | APPROVED | H3 + Secondary SB3; роль text.primary отдельно не утверждена |
+| `color.brand.tertiary` | `#E7E0F2` | HEX sRGB | APPROVED | H3 + Tertiary SB3; нельзя считать готовым цветом читабельного текста |
+| `color.surface.neutral` | `#F7F4EE` | HEX sRGB | APPROVED | H3 + Neutral SB3 |
+| `typography.display.family` | Newsreader | font-family name | APPROVED намерение | H3 + Headline SB3; конкретный кириллический font asset/fallback OPEN |
+| `typography.body.family` | Plus Jakarta Sans | font-family name | APPROVED намерение | H3 + Body SB3; glyph coverage исследованных файлов недостаточно |
+| `typography.label.family` | Plus Jakarta Sans | font-family name | APPROVED намерение | H3 + Label SB3; это не утверждение веса/размера |
+| `viewport.mobileMinimum` | 360 | CSS px | APPROVED | H1/H3, минимальная контрольная ширина |
+| `viewport.studentReference` | 390 | CSS px | APPROVED | H1/H3, student mobile node 1:689; pixel geometry текста не проверена |
+| `viewport.desktopReference` | 1280 | CSS px | APPROVED | H3, student/staff desktop nodes 1:910 / 1:2 |
+
+Различать `viewport.*` и `breakpoint.*`: ширина фрейма не утверждает media query. Имена H1 `typography.family.display/body` — исторические; переход к canonical `typography.display/body.family` — схема документа v3, не требование дублировать значения в коде. Новый нейтральный цвет не автоматически задаёт все surface/canvas/card роли.
+
+| Семантические пути v3 | Значения / единицы | Статус | Ограничение / источник |
+| --- | --- | --- | --- |
+| `color.text.primary`, `.secondary`, `.muted`, `.inverse` | TBD | OPEN значения; PROPOSED детализация ролей | В SB3 нет утверждённой матрицы text/background; brand secondary → text primary только предложение для ревью |
+| `color.surface.canvas`, `.base`, `.raised`, `.inverse`, `.selected` | TBD | OPEN | Alias canvas → neutral PROPOSED; белый/новые оттенки не брать пипеткой |
+| `color.border.default`, `.strong`, `.selected` | TBD | OPEN / PROPOSED роли | Семантические пары и толщина линии отдельно не утверждены |
+| `color.state.active`, `.upcoming`, `.completed`, `.cancelled`, `.empty`, `.error`, `.success`, `.warning` | TBD | OPEN / PROPOSED роли | Статусы занятия/формы не являются HEX; Current ≠ выбранная ячейка inspector |
+| `color.focus.ring`, `color.action.*` | TBD | OPEN | Focus/hover/pressed/disabled нужны; конкретная палитра/контрастные пары не переданы |
+| `typography.display/body/label.size`, `.weight`, `.lineHeight`, `.letterSpacing` | TBD | OPEN | Размеры/веса/метрики слетевшего Figma-текста не эталон |
+| `typography.display/body/label.asset`, `.fallback`, `typography.display.opticalSize` | TBD | OPEN, gate перед UI | [Проверка font assets и кириллицы](REDESIGN_V3.md); доступные variable axes не утверждают значения UI |
+| `spacing.pageGutter`, `.sectionGap`, `.controlGap`, `.gridGap`, `.inlineGap` | TBD | PROPOSED семантическая схема / OPEN значения | Шкала и единицы не извлекаются из растра |
+| `radius.control`, `.card`, `.panel`, `.pill` | TBD | PROPOSED роли / OPEN значения | SB3 показывает мягкие формы, но не подтверждает numeric radius |
+| `shadow.card`, `.overlay`, `.inspector` | TBD | PROPOSED роли / OPEN значения | Не назначать тень всем поверхностям по одному референсу |
+| `motion.duration.*`, `.easing.*`, `.reduced` | TBD | PROPOSED роли / OPEN значения | Reduced motion обязателен; визуальная анимация не меняет реальный clock/progress |
+| `breakpoint.compact`, `.wide`, `.staffInspector` | TBD | PROPOSED роли / OPEN значения | Переходы между 360/390/1280 требуют ревью; это не готовая сетка |
+| `layout.*`, `icon.size.*`, `icon.strokeWidth`, `icon.assetSet` | TBD | OPEN | Число колонок/точные размеры/библиотека/лицензии не подтверждены |
+
+### Измеренный контраст — не утверждение назначения цветов
+
+Расчёт WCAG relative luminance по четырём известным sRGB HEX (06.11.2026): primary/neutral **7.77:1**, secondary/neutral **13.24:1**, primary/tertiary **6.64:1**, tertiary/neutral **1.17:1**. Это арифметическая проверка пар, не валидация готового интерфейса/opacity/hover/focus и не утверждение semantic mapping. Последнюю пару нельзя выдавать за читабельный текст без проверки. PROPOSED — принять WCAG 2.2 AA как цель будущей реализации; стандарт/пороги и конкретные text/control пары требуют решения владельца. Все неизвестные значения остаются TBD.

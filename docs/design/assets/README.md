@@ -1,5 +1,8 @@
 # Реестр дизайн-артефактов
 
+**Текущая передача v3 — раздел ниже, [Issue #31](https://github.com/bam-low/mgimo/issues/31).** Исходные B/концепция №1 сохраняются как история без изменения hashes. Наличие node URL не равно наличию binary export. Screenshots работающего приложения #29 — отдельные implementation evidence, не Figma exports.
+
+
 Источники решений: [Issue #5 / Design Handoff v1](https://github.com/bam-low/mgimo/issues/5), [уточнение владельца в ревью PR #6](https://github.com/bam-low/mgimo/pull/6#pullrequestreview-5773727086) и запрос владельца в текущем чате. Оригинальные PNG переданы владельцем коммитом [385fd38](https://github.com/bam-low/mgimo/commit/385fd38) 2026-11-04; сохранены в ветке PR под исходными именами, без изменения байтов, перекодирования или вырезок. Это сравнительные доски, не самостоятельные финальные ассеты.
 
 ## Переданные исходники и точный выбор
@@ -40,3 +43,33 @@ SHA-256 исходных файлов:
 | Отдельная ранняя доска монограммы/портала/индекса, упомянутая в handoff | ASSET_NOT_PROVIDED; не нужна для переопределения выбранного B |
 
 При новых передачах сохранять оригиналы, записывать фактические пути/ссылки, дату получения и отдельно генерации, автора/оператора/ИИ, формат/размеры, источник/лицензию, связь с решением, статус reference / selected-direction / approved-final и доступность редактируемого исходника. Не генерировать отсутствующий финальный вектор или макеты по тексту. TBD снимать только после явного подтверждения владельцем; пиксельную точность пока не заявлять.
+
+## Design Handoff v3 — полученный styleboard
+
+| Свойство | Значение |
+| --- | --- |
+| Локальный файл | [academic-editorial-styleboard-v3.png](academic-editorial-styleboard-v3.png) |
+| Постоянный источник | [Комментарий владельца Issue #31](https://github.com/bam-low/mgimo/issues/31#issuecomment-6692839582), 06.11.2026; подпись «Палитра цветов, иконки и шрифты» |
+| Получение / проверка | Авторизованный GitHub body_html предоставил временную ссылку на изображение; файл получен 06.11.2026, PNG открыт/визуально просмотрен; временная ссылка не хранится в Git |
+| Формат / размер / bytes | PNG, 1493 × 885 raster px, 164337 bytes; не UI CSS размеры |
+| SHA-256 | `8a2b99b2104e851787b949e9e2d39dffc6932e83aca9077d0573d06922c5f88c` |
+| Целостность | Оригинальные bytes без перекодирования/ретуши/вырезок; исходные B и concept PNG не изменены |
+| Автор / генерация / source | Передан владельцем из дизайн-чата; точные автор/оператор/модель/дата генерации/редактируемый source TBD |
+| Лицензия | TBD; передача для handoff не доказывает право переиспользования каждой иллюстрации/иконки/гарнитуры |
+| Статус | `approved-base` для явно подтверждённых Issue #31 четырёх HEX и display/body/label family; `reference` для остальных образцов/форм/иконок/оттенков, не `approved-final` |
+
+На PNG действительно подписаны #753A4A / #25283B / #E7E0F2 / #F7F4EE, Newsreader Headline, Plus Jakarta Sans Body/Label. Остальные оттенки полос, пиксельные размеры и icon library не утверждаются автоматически. Синяя рамка/редакторская подложка не являются дополнительной палитрой продукта.
+
+## Figma и необходимые exports v3
+
+| Источник / предлагаемый локальный путь | Статус и требуемый вход |
+| --- | --- |
+| [1:689 student mobile](https://www.figma.com/design/yfSmztHHqEm0kKagjmuSXD/Untitled?node-id=1-689), `figma-student-mobile-390.png` | `ASSET_NOT_PROVIDED`: direct CONNECT403, binary/source не получены; нужен оригинальный экспорт с revision/date |
+| [1:910 student desktop](https://www.figma.com/design/yfSmztHHqEm0kKagjmuSXD/Untitled?node-id=1-910), `figma-student-desktop-1280.png` | `ASSET_NOT_PROVIDED`, те же границы |
+| [1:2 staff timetable](https://www.figma.com/design/yfSmztHHqEm0kKagjmuSXD/Untitled?node-id=1-2), `figma-staff-timetable-1280.png` | `ASSET_NOT_PROVIDED`, те же границы |
+| Прочие Figma frames / variables / component sets | `FRAME_INVENTORY_NOT_VERIFIED`; список неизвестен, нужен owner export/разрешённый source доступ |
+| Мобильный STAFF source | `ASSET_NOT_PROVIDED`; в Issue #31 он не представлен, responsive варианты лишь PROPOSED |
+| Финальный logo B SVG и варианты, иллюстрации кампуса/иконки | `ASSET_NOT_PROVIDED` для legal delivery exports; нужен источник, лицензия и отдельное утверждение final logo |
+| Newsreader / Plus Jakarta Sans product font assets с кириллицей | `ASSET_NOT_PROVIDED` для согласованной кириллической поставки; официальные TTF доступны только как исследованные upstream candidates, не установлены/не добавлены в assets; [проверка hashes/OFL/cmap](../REDESIGN_V3.md) |
+
+Пути в code span — запрос будущего экспорта, таких файлов здесь нет. Не создавать пустые PNG/SVG, не подменять Figma screenshots приложением #29, не сохранять expiring image URLs и не выдавать перерисовку за исходник. Официальная OFL-лицензия исследованных font candidates не распространяется автоматически на styleboard/иконки/иллюстрации.
