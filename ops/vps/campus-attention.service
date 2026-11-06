@@ -1,0 +1,7 @@
+[Unit]
+Description=Campus local attention marker (not an offsite alert)
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/install -d -m 0700 /var/lib/campus
+ExecStart=/usr/bin/touch /var/lib/campus/ATTENTION
+ExecStart=/usr/bin/logger -p daemon.err CAMPUS-ATTENTION-owner-check-required

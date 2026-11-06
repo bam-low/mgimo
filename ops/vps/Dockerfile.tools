@@ -1,0 +1,13 @@
+# Separate, owner-only migration image. NEVER use as the app image.
+FROM node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
+LABEL io.campus.role="tools"
+# The base already supplies tracked libssl3t64. No borrowed/untracked OS libraries.
+# Only Node/Prisma owner operations run here: remove package manager and unused
+# login/mount/system utilities, with dpkg metadata kept accurate. Essential-removal
+# flag is confined to this disposable image build, NEVER a host instruction.
+RUN apt-get purge --yes --allow-remove-essential apt libapt-pkg7.0 bsdutils util-linux mount login libblkid1 liblastlog2-2 libmount1 libsmartcols1 libuuid1 libsqlite3-0 libudev1 && rm -rf /var/lib/apt/lists /var/cache/apt /usr/local/lib/node_modules /opt/yarn* /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn* /usr/local/bin/corepack
+WORKDIR /tools
+COPY --chown=1000:1000 payload/ /tools/
+ENV NODE_ENV=production PRISMA_SCHEMA_ENGINE_BINARY=/tools/node_modules/@prisma/engines/schema-engine-debian-openssl-3.0.x NEXT_TELEMETRY_DISABLED=1
+USER 1000:1000
+CMD ["node", "ops/vps/admin.mjs"]

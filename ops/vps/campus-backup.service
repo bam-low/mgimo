@@ -1,0 +1,11 @@
+[Unit]
+Description=Campus encrypted backup (offsite transfer separate)
+After=docker.service
+Requires=docker.service
+OnFailure=campus-attention.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/campus/current
+ExecStart=/bin/bash /opt/campus/current/ops/vps/backup.sh
+TimeoutStartSec=15min
+UMask=0077

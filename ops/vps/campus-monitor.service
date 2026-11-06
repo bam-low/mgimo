@@ -1,0 +1,9 @@
+[Unit]
+Description=Campus local resource and health checks
+After=docker.service nginx.service
+OnFailure=campus-attention.service
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/campus/current/ops/vps/monitor.sh
+TimeoutStartSec=60
+UMask=0077

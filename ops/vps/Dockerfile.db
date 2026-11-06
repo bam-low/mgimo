@@ -1,0 +1,7 @@
+# Same PostgreSQL 17 protocol/schema. Never reuse a differently owned old volume.
+FROM postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+# Non-root entrypoint does not call gosu. Remove its vulnerable Go TLS binary,
+# rather than suppressing its CVEs. Root override intentionally cannot bootstrap.
+RUN rm /usr/local/bin/gosu
+LABEL io.campus.role="database" io.campus.postgres="17-alpine-no-gosu"
+USER 70:70
