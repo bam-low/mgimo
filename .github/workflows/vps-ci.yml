@@ -4,6 +4,12 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      store_release_artifact:
+        type: boolean
+        default: false
+        description: "Owner reviewed SHA/security and approved available Actions storage budget"
 permissions:
   contents: read
 jobs:
@@ -34,6 +40,9 @@ jobs:
           docker pull gcr.io/distroless/cc-debian13:nonroot@sha256:08476c244888bfb425bae1ae4dd7c17f093e972aab8426883d97f3c6f280f7c1
           docker build --network=none -t campus24-runtime "$context/runtime"
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+          docker pull node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
+          docker pull postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+          docker build --network=none -t campus24-db -f ops/vps/Dockerfile.db ops/vps
           docker build --network=none -t campus24-tools "$context/tools"
       - name: Local rehearsal prerequisites
         run: |
@@ -43,22 +52,36 @@ jobs:
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
           docker pull nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609
       - run: node scripts/test-vps.mjs
-      - name: Scan minimal runtime (full report and fixable HIGH/CRITICAL gate)
+      - name: Scan all delivered images (full reports, all CRITICAL and fixable HIGH gate)
         run: |
           curl --fail --location --silent --show-error https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o /tmp/trivy.tar.gz
           echo 'bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  /tmp/trivy.tar.gz' | sha256sum -c -
           tar -xf /tmp/trivy.tar.gz -C /tmp trivy
-          /tmp/trivy image --image-src docker --scanners vuln --format json --output /tmp/vps-vulnerabilities.json campus24-runtime
-          /tmp/trivy image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 campus24-runtime
+          mkdir -p /tmp/vps-security
+          scan_failed=0
+          for image in campus24-runtime campus24-tools campus24-db; do
+            /tmp/trivy image --image-src docker --scanners vuln --format json --output "/tmp/vps-security/$image.json" "$image"
+            /tmp/trivy image --image-src docker --scanners vuln --severity CRITICAL --exit-code 1 "$image" || scan_failed=1
+            /tmp/trivy image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH --exit-code 1 "$image" || scan_failed=1
+          done
+          test "$scan_failed" = 0
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: vps-security-report
-          path: /tmp/vps-vulnerabilities.json
+          path: /tmp/vps-security/*.json
           retention-days: 7
       - name: Package only verified release files, no secrets
         run: bash scripts/package-vps-release.sh /tmp/campus-vps-release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vps-release-manifest
+          path: |
+            /tmp/campus-vps-release/SHA256SUMS
+            /tmp/campus-vps-release/release.json
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: github.event_name == 'workflow_dispatch' && inputs.store_release_artifact
         with:
           name: campus-vps-unsigned-${{ github.event.pull_request.head.sha || github.sha }}
           path: /tmp/campus-vps-release/*

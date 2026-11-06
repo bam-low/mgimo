@@ -62,6 +62,7 @@ test("delivery needs independently pinned signer and rejects tampered payload/ma
   for (const name of [
     "runtime.tar.gz",
     "tools.tar.gz",
+    "database.tar.gz",
     "config.tar",
     "release.json",
   ]) {

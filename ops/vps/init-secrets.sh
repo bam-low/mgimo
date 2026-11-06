@@ -24,7 +24,7 @@ suffix='?sslmode=verify-full&sslrootcert=/run/secrets/db-ca.pem'
 printf 'ADMIN_DATABASE_URL=postgresql://campus_admin:%s@db:5432/campus%s\nMIGRATOR_PASSWORD=%s\nRUNTIME_PASSWORD=%s\n' "$admin" "$suffix" "$migrator" "$runtime" > "$out/bootstrap.env"
 printf 'DATABASE_URL=postgresql://campus_migrator:%s@db:5432/campus%s\nDIRECT_DATABASE_URL=postgresql://campus_migrator:%s@db:5432/campus%s\nALLOW_DEMO_SEED=yes\nDEMO_STAFF_PASSWORD=%s\nDEMO_STUDENT1_PASSWORD=%s\nDEMO_STUDENT2_PASSWORD=%s\n' "$migrator" "$suffix" "$migrator" "$suffix" "$staff" "$student1" "$student2" > "$out/migration.env"
 printf 'DATABASE_URL=postgresql://campus_runtime:%s@db:5432/campus%s\nBETTER_AUTH_SECRET=%s\nCRON_SECRET=%s\nBETTER_AUTH_URL=%s\nAUTH_TRUSTED_IP_HEADER=x-campus-client-ip\n' "$runtime" "$suffix" "$auth" "$cron" "$origin" > "$out/runtime.env"
-chown root:999 "$out/pg-admin-pw" "$out/db-server.key"
+chown root:70 "$out/pg-admin-pw" "$out/db-server.key"
 chmod 640 "$out/pg-admin-pw" "$out/db-server.key"
 chown root:1000 "$out/bootstrap.env" "$out/migration.env" "$out/runtime.env" "$out/cron"
 chmod 640 "$out/bootstrap.env" "$out/migration.env" "$out/runtime.env" "$out/cron"

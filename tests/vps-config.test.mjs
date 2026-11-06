@@ -2,10 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { validate } from "../ops/vps/check-release.mjs";
 const app = "sha256:" + "a".repeat(64),
-  tools = "sha256:" + "b".repeat(64);
+  tools = "sha256:" + "b".repeat(64),
+  db = "sha256:" + "c".repeat(64);
 function fixture() {
   const restricted = (image) => ({
     image,
+    user: "1000:1000",
     read_only: true,
     cap_drop: ["ALL"],
     security_opt: ["no-new-privileges:true"],
@@ -14,11 +16,7 @@ function fixture() {
   });
   return {
     services: {
-      db: {
-        networks: { private: {} },
-        image:
-          "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
-      },
+      db: { ...restricted(db), user: "70:70", networks: { private: {} } },
       app: {
         ...restricted(app),
         ports: [{ host_ip: "127.0.0.1", target: 3000 }],
@@ -31,6 +29,11 @@ function fixture() {
   };
 }
 const images = {
+  [db]: {
+    Architecture: "amd64",
+    Os: "linux",
+    Config: { User: "70:70", Labels: { "io.campus.role": "database" } },
+  },
   [app]: {
     Architecture: "amd64",
     Os: "linux",
@@ -45,6 +48,18 @@ const images = {
 test("accepts constrained immutable release", () =>
   validate(fixture(), images));
 for (const [label, change] of [
+  [
+    "root DB override",
+    (c) => {
+      c.services.db.user = "0:0";
+    },
+  ],
+  [
+    "root app override",
+    (c) => {
+      c.services.app.user = "0:0";
+    },
+  ],
   [
     "public app",
     (c) => {

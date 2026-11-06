@@ -101,9 +101,9 @@ sudo systemctl enable --now systemd-timesyncd
 
 ## D0. Доверенная доставка и проверка ДО разрешения deploy
 
-На компьютере владельца в GitHub откройте **конкретный reviewed commit** → Actions → Node CI, Documentation checks, VPS CI. Все должны быть success на этом SHA. В VPS CI скачайте `campus-vps-unsigned-SHA` и `vps-security-report`. Артефакты хранятся 7 дней; при истечении повторите CI на том же reviewed SHA, не берите случайный tar из чата. Не создавайте Git auto-deploy.
+На компьютере владельца в GitHub откройте **конкретный reviewed commit** → Actions → Node CI, Documentation checks, VPS CI. Все должны быть success на этом SHA. В VPS CI сначала скачайте small `vps-release-manifest` и `vps-security-report`. После ручного review/merge и проверки доступного Actions storage/minutes (без включения платного budget), в Actions → VPS CI → Run workflow выберите проверенный ref, включите `store_release_artifact` только после review/security/budget attestation. Дождитесь полного success на том же SHA и скачайте `campus-vps-unsigned-SHA`; default PR/push не сохраняет большие image archives. Codex dispatch не выполняет. Если workflow ещё не в main или quota не подтверждена — STOP. Артефакты хранятся 7 дней; при истечении повторите CI на том же reviewed SHA, не берите случайный tar из чата. Не создавайте Git auto-deploy.
 
-Распакуйте GitHub ZIP в отдельную локальную папку. Сверьте `release.json.sourceCommit` с reviewed SHA, image architecture linux/amd64, полный Trivy report. **Неразобранная HIGH/CRITICAL — NO-GO**: текущий HIGH zlib без fix не получил автоматического исключения, требуется security review/обновление. Доверие начинается с GitHub account/MFA, reviewed source и CI, не с самоподписанного checksum.
+Распакуйте GitHub ZIP в отдельную локальную папку. Сверьте `release.json.sourceCommit` с reviewed SHA, image architecture linux/amd64, полный Trivy report. **Неразобранная HIGH/CRITICAL — NO-GO**: текущий HIGH zlib в runtime и7unfixed HIGH в tools ([полный review](VPS_SECURITY_REVIEW.md)) не получил автоматического исключения, требуется security review/обновление. Доверие начинается с GitHub account/MFA, reviewed source и CI, не с самоподписанного checksum.
 
 Отдельный release signing key создаётся **на компьютере**, не VPS/CI:
 
@@ -112,9 +112,9 @@ ssh-keygen -t ed25519 -a 64 -f ~/.ssh/campus_release
 ssh-keygen -Y sign -f ~/.ssh/campus_release -n campus-vps-release SHA256SUMS
 ```
 
-`SHA256SUMS.sig` подписывает четыре фиксированных файла. Публичный `campus_release.pub` заранее через доверенный канал добавьте в `/etc/campus/allowed_signers` одной строкой `campus-release-owner ssh-ed25519 PUBLIC_KEY`, root:root/0644; сравните fingerprint с компьютером. Не принимайте signer из того же неподтверждённого ZIP. Перенесите release+signature на VPS через key-only SCP; **ключ не переносить**.
+`SHA256SUMS.sig` подписывает пять фиксированных файлов. Публичный `campus_release.pub` заранее через доверенный канал добавьте в `/etc/campus/allowed_signers` одной строкой `campus-release-owner ssh-ed25519 PUBLIC_KEY`, root:root/0644; сравните fingerprint с компьютером. Не принимайте signer из того же неподтверждённого ZIP. Перенесите release+signature на VPS через key-only SCP; **ключ не переносить**.
 
-На VPS: `bash ops/vps/verify-delivery.sh /etc/campus/allowed_signers /PATH/TO/RELEASE`. Ожидается valid owner signature и 4 OK. Скрипт не загружает образы/не запускает контейнеры. Несовпадение — удалить неподтверждённую доставку, расследовать, STOP. Сравнение private GHCR и artifact delivery — [архитектура](VPS_ARCHITECTURE.md).
+На VPS: `bash ops/vps/verify-delivery.sh /etc/campus/allowed_signers /PATH/TO/RELEASE`. Ожидается valid owner signature и 5 OK. Скрипт не загружает образы/не запускает контейнеры. Несовпадение — удалить неподтверждённую доставку, расследовать, STOP. Сравнение private GHCR и artifact delivery — [архитектура](VPS_ARCHITECTURE.md).
 
 ## D1. DNS, TLS и закрытый proxy ДО первого app
 
@@ -141,7 +141,7 @@ sudo systemctl list-timers certbot.timer
 
 Укажите свой контакт интерактивно, не коммитьте. Нужны открытые 80/443 и правильный A/AAAA. Ошибка DNS/renewal — STOP; не использовать `-k`, self-signed для пользователей или отключение TLS. В `/etc/letsencrypt/renewal-hooks/deploy/campus-nginx` установите root-owned executable с `#!/bin/sh` и `nginx -t && systemctl reload nginx`; повторите dry-run с `--run-deploy-hooks`. HSTS пока отсутствует.
 
-Секреты создаёт владелец **на hardened host**, не чат. Приватная DB CA действительна 3 года, server cert 1 год — календарное напоминание за 30 дней обязательно.
+Секреты создаёт владелец **на hardened host**, не чат. DB image использует UID/GID70; не переиспользовать старые UID999 secrets/volumes и архив `7cdc499`. Речь о новом пустом запуске, не автоматической конвертации БД. Приватная DB CA действительна 3 года, server cert 1 год — календарное напоминание за 30 дней обязательно.
 
 ```sh
 sudo bash ops/vps/init-secrets.sh --owner-approved-init /etc/campus/secrets https://YOUR_DOMAIN
@@ -169,9 +169,10 @@ tar --no-same-owner --no-same-permissions -xf /PATH/TO/VERIFIED/config.tar
 chmod 644 ops/vps/pg_hba.conf
 docker load -i /PATH/TO/VERIFIED/runtime.tar.gz
 docker load -i /PATH/TO/VERIFIED/tools.tar.gz
+docker load -i /PATH/TO/VERIFIED/database.tar.gz
 ```
 
-Создайте `/etc/campus/release.env` root:root/0600: только `CAMPUS_APP_IMAGE=sha256:…` и `CAMPUS_TOOLS_IMAGE=sha256:…` **из проверенного release.json**, `CAMPUS_SECRETS_DIR=/etc/campus/secrets`, `CAMPUS_APP_PORT=3000`. Это config references, не DB credentials. Symlink `/opt/campus/current` указывает на этот release. Never `latest`; не меняйте image роли. Выполните host preflight без установки Node: `python3 ops/vps/preflight.py /etc/campus/release.env` из нового release directory. Ожидается PASS; helper только читает config/image metadata и ничего не запускает. Docker socket в tools/app не монтировать. При ошибке STOP.
+Создайте `/etc/campus/release.env` root:root/0600: только `CAMPUS_APP_IMAGE=sha256:…` , `CAMPUS_TOOLS_IMAGE=sha256:…` и `CAMPUS_DB_IMAGE=sha256:…` **из проверенного release.json**, `CAMPUS_SECRETS_DIR=/etc/campus/secrets`, `CAMPUS_APP_PORT=3000`. Это config references, не DB credentials. Symlink `/opt/campus/current` указывает на этот release. Never `latest`; не меняйте image роли. Выполните host preflight без установки Node: `python3 ops/vps/preflight.py /etc/campus/release.env` из нового release directory. Ожидается PASS; helper только читает config/image metadata и ничего не запускает. Docker socket в tools/app не монтировать. При ошибке STOP.
 
 ```sh
 cd /opt/campus/current
@@ -243,7 +244,7 @@ Monitor: `journalctl -u campus-backup -u campus-cleanup -u campus-monitor`, `/va
 
 Россия без VPN: два независимых оператора (домашний + мобильный), лучше два региона; IPv4 и при наличии AAAA IPv6, DNS/TLS/401, затем с gate полный login/approve/logout/360. Записать только оператор/регион/время/результат без IP/секретов. Проверить холодный старт/reboot, не только warm HTML. Недоступность — STOP F; резерв без нового платного сервиса — локальная демонстрация/запись на вымышленных данных и существующий [Vercel/Neon plan](DEPLOYMENT.md) только после его собственных gates, не немедленный публичный deploy.
 
-Security updates: еженедельно и перед конкурсом сверять advisories/полный scanner, обновлять подписанные OS packages по новому reviewed exact lock; reboot в закрытом окне, затем E smoke. Пары app/tools обновлять только через новую подпись и immutable IDs. До миграции offsite snapshot/restore и review backward compatibility. Откат app image на прежний ID — только при совместимой schema. Иначе остановить app, restore в новый volume, проверить и отдельно переключить; не пытаться автоматический downgrade/drop.
+Security updates: еженедельно и перед конкурсом сверять advisories/полный scanner, обновлять подписанные OS packages по новому reviewed exact lock; reboot в закрытом окне, затем E smoke. Набор app/tools/database обновлять только через новую подпись и immutable IDs. До миграции offsite snapshot/restore и review backward compatibility. Откат app image на прежний ID — только при совместимой schema. DB image/OS/major downgrade не выполнять автоматически; нужны отдельное review и fresh-volume restore rehearsal. Иначе остановить app, restore в новый volume, проверить и отдельно переключить; не пытаться автоматический downgrade/drop.
 
 Инцидент: `docker compose … stop app`, оставить DB/volume, закрытый proxy, сохранить private logs, отозвать сессии доверенным серверным действием/owner SQL после review, сменить скомпрометированные DB/session/cron/gate/SSH credentials и применить их согласованно. Не rerun init-secrets поверх действующей БД: он намеренно отказывает. Не сбрасывать seed для восстановления прав. Provider rescue — для lockout; provider «restore» не заменяет собственную проверенную backup.
 

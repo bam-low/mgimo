@@ -9,8 +9,8 @@ python3 - <<'PY'
 import re
 from pathlib import Path
 rows=Path('SHA256SUMS').read_text().splitlines()
-expected={'runtime.tar.gz','tools.tar.gz','config.tar','release.json'}
-if len(rows)!=4 or any(not re.fullmatch(r'[a-f0-9]{64}  [a-z.]+',x) for x in rows) or {x[66:] for x in rows}!=expected:
+expected={'runtime.tar.gz','tools.tar.gz','database.tar.gz','config.tar','release.json'}
+if len(rows)!=5 or any(not re.fullmatch(r'[a-f0-9]{64}  [a-z.]+',x) for x in rows) or {x[66:] for x in rows}!=expected:
     raise SystemExit('STOP unexpected manifest')
 PY
 sha256sum --check --strict SHA256SUMS

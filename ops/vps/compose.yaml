@@ -3,13 +3,17 @@ x-log: &logs
   driver: local
   options: {max-size: "10m", max-file: "3"}
 x-security: &security
+  user: "1000:1000"
   read_only: true
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]
   logging: *logs
 services:
   db:
-    image: postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+    <<: *security
+    image: ${CAMPUS_DB_IMAGE:?verified non-root PostgreSQL image required}
+    pull_policy: never
+    user: "70:70"
     restart: unless-stopped
     environment:
       POSTGRES_USER: campus_admin
@@ -21,6 +25,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./pg_hba.conf:/etc/postgresql/campus-hba.conf:ro
+    tmpfs: ["/tmp:size=64m,uid=70,gid=70,mode=1700", "/var/run/postgresql:size=8m,uid=70,gid=70,mode=3775"]
     secrets: [pg-admin-pw, db-server.crt, db-server.key]
     networks: [private]
     mem_limit: 1g

@@ -2,7 +2,13 @@ import { Buffer } from "node:buffer";
 import { setTimeout } from "node:timers";
 // Disposable local-only rehearsal. Never SSH, deploy, push or use owner secrets.
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtemp, writeFile, mkdir } from "node:fs/promises";
+import {
+  mkdtemp,
+  writeFile,
+  mkdir,
+  readFile,
+  copyFile,
+} from "node:fs/promises";
 import process from "node:process";
 import console from "node:console";
 import https from "node:https";
@@ -31,7 +37,8 @@ const nginx =
 const root = await mkdtemp("/tmp/campus-vps-test-"),
   project = "campus24-test-" + process.pid;
 const runtime = JSON.parse(docker(["image", "inspect", "campus24-runtime"]))[0],
-  tools = JSON.parse(docker(["image", "inspect", "campus24-tools"]))[0];
+  tools = JSON.parse(docker(["image", "inspect", "campus24-tools"]))[0],
+  database = JSON.parse(docker(["image", "inspect", "campus24-db"]))[0];
 const compose = [
   "compose",
   "--project-name",
@@ -66,7 +73,7 @@ let stage = "init";
 try {
   await writeFile(
     root + "/release.env",
-    `CAMPUS_APP_IMAGE=${runtime.Id}\nCAMPUS_TOOLS_IMAGE=${tools.Id}\nCAMPUS_APP_PORT=18300\nCAMPUS_SECRETS_DIR=${root}/secrets\n`,
+    `CAMPUS_DB_IMAGE=${database.Id}\nCAMPUS_APP_IMAGE=${runtime.Id}\nCAMPUS_TOOLS_IMAGE=${tools.Id}\nCAMPUS_APP_PORT=18300\nCAMPUS_SECRETS_DIR=${root}/secrets\n`,
     { mode: 0o600 },
   );
   fixture(
@@ -86,7 +93,11 @@ try {
   );
   const gate = secret("gateway-password");
   const config = JSON.parse(dc(["config", "--format", "json"]));
-  validate(config, { [runtime.Id]: runtime, [tools.Id]: tools });
+  validate(config, {
+    [runtime.Id]: runtime,
+    [tools.Id]: tools,
+    [database.Id]: database,
+  });
   assert.equal(
     runtime.Config.Env.some((x) =>
       /^DEMO_|^DATABASE_URL=|^CRON_SECRET=|^BETTER_AUTH_SECRET=/.test(x),
@@ -113,8 +124,27 @@ try {
     env,
     stdio: "pipe",
   });
+  // A valid image must not permit a root override, even with Python assertions disabled.
+  await mkdir(root + "/negative-preflight");
+  await copyFile(
+    "ops/vps/preflight.py",
+    root + "/negative-preflight/preflight.py",
+  );
+  await writeFile(
+    root + "/negative-preflight/compose.yaml",
+    (await readFile("ops/vps/compose.yaml", "utf8")).replace(
+      'user: "1000:1000"',
+      'user: "0:0"',
+    ),
+  );
+  const denied = spawnSync(
+    "python3",
+    ["-O", root + "/negative-preflight/preflight.py", root + "/release.env"],
+    { env, stdio: "pipe" },
+  );
+  assert.notEqual(denied.status, 0);
   console.log(
-    "PASS release constraints, host preflight and final image file check",
+    "PASS release constraints, host preflight including optimized-mode root rejection and final image file check",
   );
   fixture(
     'openssl req -new -newkey rsa:2048 -nodes -subj /CN=localhost -keyout /test/test.key -out /test/test.csr >/dev/null 2>&1; printf "subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth\n" > /test/test.ext; openssl x509 -req -sha256 -days 2 -in /test/test.csr -CA /test/secrets/db-ca.pem -CAkey /test/secrets/db-ca.key -CAcreateserial -extfile /test/test.ext -out /test/test.crt >/dev/null 2>&1; cp /test/secrets/htpasswd /test/htpasswd; chmod 644 /test/htpasswd /test/test.crt; chmod 600 /test/test.key; chmod 755 /test',

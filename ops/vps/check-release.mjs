@@ -13,17 +13,12 @@ export function validate(config, images) {
     Object.hasOwn(s.db.networks, "edge")
   )
     throw Error("Private DB network required");
-  if (
-    s.db.ports?.length ||
-    !s.db.image.endsWith(
-      "@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
-    )
-  )
+  if (s.db.ports?.length || s.db.user !== "70:70")
     throw Error("Private pinned PG17 required");
   const p = s.app.ports;
   if (p?.length !== 1 || p[0].host_ip !== "127.0.0.1" || p[0].target !== 3000)
     throw Error("Loopback app only");
-  for (const name of ["app", "tools", "cleanup"]) {
+  for (const name of ["app", "tools", "cleanup", "db"]) {
     const v = s[name],
       i = images[v.image];
     if (!/^(sha256:[a-f0-9]{64}|[^\s]+@sha256:[a-f0-9]{64})$/.test(v.image))
@@ -32,9 +27,10 @@ export function validate(config, images) {
       !i ||
       i.Architecture !== "amd64" ||
       i.Os !== "linux" ||
-      i.Config.User !== "1000:1000" ||
+      i.Config.User !== (name === "db" ? "70:70" : "1000:1000") ||
+      v.user !== i.Config.User ||
       i.Config.Labels?.["io.campus.role"] !==
-        (name === "tools" ? "tools" : "runtime")
+        (name === "db" ? "database" : name === "tools" ? "tools" : "runtime")
     )
       throw Error("Wrong image role/user");
     if (
@@ -73,7 +69,7 @@ if (process.argv[1]?.endsWith("/check-release.mjs")) {
       "json",
     ]);
     const images = {};
-    for (const name of ["app", "tools"]) {
+    for (const name of ["app", "tools", "db"]) {
       const id = c.services[name].image;
       images[id] = docker(["image", "inspect", id])[0];
     }
