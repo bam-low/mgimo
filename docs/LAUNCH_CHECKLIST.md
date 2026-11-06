@@ -25,7 +25,7 @@
 | CLOUD-DB-1 | Новая synthetic-only Neon PostgreSQL17 Frankfurt; direct verified TLS, migrations up to date | NOT VERIFIED | TBD |
 | CLOUD-DB-2 | Двойной seed PASS, 2 APPROVED STUDENT/разные группы + STAFF, три разных private passwords | NOT VERIFIED | TBD |
 | CLOUD-DB-3 | SQL-created campus_runtime, не Neon UI/API admin role; LOGIN/NOINHERIT/нет ownership/memberships/super/DDL/TEMP | NOT VERIFIED | TBD |
-| CLOUD-DB-4 | Grant дважды, check реальной limited pooled connection PASS; структура read-only, audit append-only, миграции недоступны | NOT VERIFIED | TBD |
+| CLOUD-DB-4 | Grant дважды, check реальной limited pooled connection PASS; актуальная feature SQL policy структуры/расписания без DELETE, audit append-only, миграции недоступны | NOT VERIFIED | TBD |
 | PRE-1 | Пустой Vercel проект создан **без** gitRepository/deploy; All scope был в запросе создания | NOT VERIFIED | TBD |
 | PRE-2 | Vercel Authentication ON / **All Deployments**, Hobby без оплаты; Standard/Preview не используются | NOT VERIFIED | TBD |
 | PRE-3 | UI access только владельцу; нет Shareable Links/Exceptions/automation bypass/внешних Trusted Sources/same-repo CI bypass; встроенный self-access не объявлен выключенным | NOT VERIFIED | TBD |

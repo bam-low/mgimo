@@ -1,3 +1,7 @@
+import { randomUUID } from "node:crypto";
+import { POST as structureWrite } from "../../src/app/api/staff/structure/route";
+import { POST as scheduleWrite } from "../../src/app/api/staff/schedule/route";
+import { GET as scheduleRead } from "../../src/app/api/schedule/route";
 // Spawned only against an authenticated limited role on a dedicated *_test DB.
 import { it, expect, afterAll } from "vitest";
 import { db } from "../../src/server/db";
@@ -188,4 +192,89 @@ it("full server workflow runs under limited credentials, retains audit and revok
   ).toBe(200);
   expect((await auth(req("/api/auth/sign-out", {}, cookie))).status).toBe(200);
   expect((await group(req("/api/group", undefined, cookie))).status).toBe(401);
+  // New feature writes and reads must also work with the exact limited SQL policy.
+  const createdGroup = await structureWrite(
+    req(
+      "/api/staff/structure",
+      {
+        kind: "group",
+        operationId: randomUUID(),
+        parentId: "program-1",
+        name: "Демо limited группа",
+        active: true,
+      },
+      staff,
+    ),
+  );
+  expect(createdGroup.status).toBe(200);
+  const newGroup = (await createdGroup.json()).id;
+  const lesson = await scheduleWrite(
+    req(
+      "/api/staff/schedule",
+      {
+        action: "CREATE",
+        groupId: "group-1",
+        title: "Демо limited занятие",
+        teacher: "",
+        room: "",
+        day: "2030-06-03",
+        start: "09:00",
+        end: "10:30",
+      },
+      staff,
+    ),
+  );
+  expect(lesson.status).toBe(200);
+  const lessonId = (await lesson.json()).id;
+  const seedCookie = await login(
+    "student1@example.test",
+    process.env.DEMO_STUDENT1_PASSWORD!,
+  );
+  const read = await scheduleRead(
+    req("/api/schedule?day=2030-06-03", undefined, seedCookie),
+  );
+  expect(read.status).toBe(200);
+  expect(
+    (await read.json()).lessons.some((l: { id: string }) => l.id === lessonId),
+  ).toBe(true);
+  expect(
+    (
+      await scheduleWrite(
+        req(
+          "/api/staff/schedule",
+          { action: "DELETE", id: lessonId, version: 1 },
+          seedCookie,
+        ),
+      )
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await scheduleRead(
+        req("/api/schedule?groupId=" + newGroup, undefined, seedCookie),
+      )
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await scheduleWrite(
+        req(
+          "/api/staff/schedule",
+          { action: "CANCEL", id: lessonId, version: 1 },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await scheduleWrite(
+        req(
+          "/api/staff/schedule",
+          { action: "DELETE", id: lessonId, version: 2 },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
 });

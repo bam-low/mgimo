@@ -35,3 +35,9 @@ AuditLog immutable, partial unique indexes запрещают второй PENDI
 Runtime — только проверенный standalone либо условно разрешённые проверенные Functions; без Prisma CLI/Studio/девяти Studio alpha/build tooling/секретов. CLI/alpha допускаются в изолированном migration/tools job по A36. Production npm audit0 не заменяет OS scan и runtime imports. Scripts/checkers не ослаблять и не исключать неудобные findings.
 
 Production **NO-GO** остаётся: unfixed HIGH требуют gate D; реальные VPS host/ingress/РФ/backup и альтернативные Vercel/Neon свойства NOT VERIFIED. Функциональную работу это не блокирует. Не покупать, не публиковать, не создавать ресурсы, не dispatch registry workflows и не merge/auto-merge. Только владелец после ревью вручную merge и обновляет tracker #25; дальнейший scope — функциональная Issue.
+
+## Актуализация после Feature 1 #29
+
+Foundation #27 вручную merged в #28. Физическая схема теперь включает ScheduleEntry: 16 моделей + _prisma_migrations (17 таблиц); Faculty/Program active+version и StudentGroup version. Утверждённая текущей функциональной Issue SQL policy разрешает SELECT/INSERT/UPDATE структуры/занятий, без DELETE/DDL. Прежние числа/ограничения выше описывают baseline #27. Реализованные schedule/time/structure contracts и ASSUMPTION — [SCHEDULE](SCHEDULE.md); их следует переиспользовать в следующих вертикалях, не строить ещё один фундамент.
+
+Регистрационный roster теперь динамический внутри одного demo-university: только активная цепочка, изменяемая доверенным STAFF. Synthetic identity и запрет STAFF signup не ослаблены. Следующие вертикали — успеваемость, заявки/справки, уведомления; production NO-GO не снят.

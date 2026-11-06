@@ -8,9 +8,9 @@ export const registration = z
   .object({
     ticket: z.string().max(200),
     universityId: z.literal("demo-university"),
-    facultyId: z.enum(["faculty-1", "faculty-2"]),
-    programId: z.enum(["program-1", "program-2"]),
-    groupId: z.enum(["group-1", "group-2"]),
+    facultyId: z.string().min(1).max(100),
+    programId: z.string().min(1).max(100),
+    groupId: z.string().min(1).max(100),
   })
   .strict();
 export { validGroup } from "./enrollment-guards";

@@ -1,3 +1,9 @@
+import {
+  dayKey,
+  monday,
+  addDays,
+  localInstant,
+} from "../src/lib/schedule-time.ts";
 import process from "node:process";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -141,6 +147,8 @@ try {
       const n = group.id === "group-1" ? 1 : 2;
       return (
         !group.active ||
+        !group.program.active ||
+        !group.program.faculty.active ||
         group.name !== "Демо-группа " + n ||
         group.programId !== "program-" + n ||
         group.program.name !== "Демо-направление " + n ||
@@ -212,6 +220,57 @@ try {
       });
     });
   }
+  // First-preparation dated fixtures. Repeats never reopen edited/cancelled/deleted
+  // lessons or roll them to a new week. Owner can edit dates through the real UI.
+  const anchor = monday(dayKey(new Date(), "Europe/Moscow"));
+  for (let group = 1; group <= 2; group++)
+    for (const offset of [0, 1, 2, 3, 4])
+      for (let slot = 0; slot < 3; slot++) {
+        const id = `demo-lesson-${group}-${offset}-${slot}`;
+        if (await db.scheduleEntry.findUnique({ where: { id } })) continue;
+        const hour = 8 + slot * 3 + (group - 1),
+          day = addDays(anchor, offset);
+        await db.$transaction(async (tx) => {
+          await tx.scheduleEntry.create({
+            data: {
+              id,
+              groupId: "group-" + group,
+              title: (group === 1
+                ? [
+                    "Теория вымышленных систем",
+                    "Мастерская цифрового кампуса",
+                    "Практикум проектирования",
+                  ]
+                : [
+                    "История воображаемых городов",
+                    "Лаборатория коммуникаций",
+                    "Семинар исследователей",
+                  ])[slot],
+              teacher: "Демо-преподаватель " + group,
+              room: `Демо ${group}0${slot + 1}`,
+              startsAt: localInstant(
+                day,
+                `${hour.toString().padStart(2, "0")}:30`,
+                "Europe/Moscow",
+              ),
+              endsAt: localInstant(
+                day,
+                `${(hour + 1).toString().padStart(2, "0")}:50`,
+                "Europe/Moscow",
+              ),
+            },
+          });
+          await tx.auditLog.create({
+            data: {
+              actorId: "demo-seed",
+              universityId: "demo-university",
+              targetId: id,
+              action: "LESSON_DEMO_PREPARED",
+              newGroupId: "group-" + group,
+            },
+          });
+        });
+      }
   console.log(
     "Fictional demo structure prepared; credentials were not printed.",
   );

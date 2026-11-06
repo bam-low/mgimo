@@ -89,11 +89,13 @@ it("grant is idempotent, authenticated runtime audit passes, pre-existing audit 
     .rows;
   expect(JSON.stringify(before) === JSON.stringify(after)).toBe(true);
 });
-it("limited role cannot change structure/history, read migrations, DDL, escalate or disable audit", async () => {
+it("limited role cannot delete structure/history, read migrations, DDL, escalate or disable audit", async () => {
   const owner =
     '"' + decodeURIComponent(url.username).replaceAll('"', '""') + '"';
   const statements = [
-    'UPDATE "StudentGroup" SET name=name',
+    'DELETE FROM "StudentGroup"',
+    'DELETE FROM "ScheduleEntry"',
+    'UPDATE "University" SET name=name',
     'DELETE FROM "EnrollmentRequest"',
     'UPDATE "AuditLog" SET action=action',
     'DELETE FROM "AuditLog"',
