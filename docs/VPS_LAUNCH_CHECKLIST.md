@@ -9,7 +9,7 @@
 | C access | Console fingerprint, rootkey, отдельный sudo admin, второй/третий вход с sudo до no-root/key-only, rescue tested | SSH lockout/пароли/нет console — STOP |
 | C host | Signed repositories, exact package lock, Docker≥28/Composev2, UFW IPv4/IPv6, fail2ban sshd jail, NTP, unattended updates, logrotate/journal caps, отсутствие docker group у обычных аккаунтов | Реальный host NOT VERIFIED |
 | D provenance | Успешные CI на reviewed SHA, GitHub artifact, owner SSHSIG, pinned public signer вне artifact, 5 checksum OK, sourceCommit/architecture/image IDs | Неверная подпись/источник/изменённый tar — STOP |
-| D security | Полный актуальный npm audit и Trivy report; triage всех HIGH/CRITICAL, patch/обоснованное review | Runtime1HIGH и tools7HIGH unfixed остаются NO-GO до разбора ([review](VPS_SECURITY_REVIEW.md)); не автоматическое исключение |
+| D security | Полный актуальный npm audit и Trivy report; triage всех HIGH/CRITICAL, patch/обоснованное review | Remote PR #26: app2HIGH и tools8HIGH unfixed остаются NO-GO до разбора ([review](VPS_SECURITY_REVIEW.md)); не автоматическое исключение |
 | D DNS/TLS | Контроль FQDN, A/AAAA без старых aliases, доверенный TLS, wrong CA reject, ACME renewal+reload hook, нет HSTS до проверки | Нет контролируемого домена/renewal — STOP |
 | D private-first | **App выключен**: анонимные root/login/register/API/auth/static/cleanup →401, wrong gate→401, raw IP/alternateHost→не app; IPv4/IPv6 снаружи | Ни секунды публичного app; 502 вместо anonymous401 не PASS |
 | D permission | Pre-deploy review + отдельное явное разрешение первого защищённого deploy | Без обоих разрешений не load/start из D2 |

@@ -1,3 +1,4 @@
+import { findPagedCard } from "./paging";
 import { test, expect } from "@playwright/test";
 for (const width of [360, 1280])
   test(`student → staff → approved at ${width}px`, async ({ page }, info) => {
@@ -96,7 +97,8 @@ for (const width of [360, 1280])
     if (!process.env.DEMO_STAFF_PASSWORD)
       throw Error("DEMO_STAFF_PASSWORD required");
     await login("staff@example.test", process.env.DEMO_STAFF_PASSWORD);
-    const card = page.locator(".request").filter({ hasText: name });
+    const card = page.getByTestId("pending-request").filter({ hasText: name });
+    await findPagedCard(page, card, "Страницы очереди", "Следующие обращения");
     await expect(card).toBeVisible();
     await card
       .getByLabel("Причина / комментарий")

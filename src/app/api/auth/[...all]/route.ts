@@ -9,9 +9,13 @@ import {
   Denied,
 } from "@/server/security";
 export async function GET(request: Request) {
-  const r = await auth.handler(request);
-  r.headers.set("Cache-Control", "no-store");
-  return r;
+  try {
+    const r = await auth.handler(request);
+    r.headers.set("Cache-Control", "no-store");
+    return r;
+  } catch (e) {
+    return failure(e);
+  }
 }
 export async function POST(request: Request) {
   try {
