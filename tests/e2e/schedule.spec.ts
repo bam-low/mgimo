@@ -334,11 +334,28 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
       .getByLabel("Дата занятия", { exact: true })
       .fill(displayDate(today));
     await lesson.getByLabel("Дата занятия", { exact: true }).fill("31.02.2026");
-    expect(
-      await lesson
-        .getByLabel("Дата занятия", { exact: true })
-        .evaluate((e) => (e as HTMLInputElement).checkValidity()),
-    ).toBe(false);
+    // Observe the product contract: invalid text cannot submit any mutation.
+    let invalidWrites = 0;
+    const observeInvalid = (request: import("@playwright/test").Request) => {
+      if (
+        request.method() === "POST" &&
+        new URL(request.url()).pathname === "/api/staff/schedule"
+      )
+        invalidWrites++;
+    };
+    page.on("request", observeInvalid);
+    await lesson
+      .getByRole("button", { name: "Создать занятие", exact: true })
+      .click();
+    await expect
+      .poll(() =>
+        lesson
+          .getByLabel("Дата занятия", { exact: true })
+          .evaluate((e) => (e as HTMLInputElement).validationMessage),
+      )
+      .not.toBe("");
+    expect(invalidWrites).toBe(0);
+    page.off("request", observeInvalid);
     await lesson
       .getByLabel("Дата занятия", { exact: true })
       .fill(displayDate(addDays(today, 1)));

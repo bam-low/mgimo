@@ -1,5 +1,5 @@
 "use client";
-import { useId, useRef, useState, useEffect } from "react";
+import { useId, useRef, useState, useEffect, useLayoutEffect } from "react";
 import { Icon } from "./ui-icon";
 import { displayDate, parseDate, parseTime } from "./schedule-input-values";
 
@@ -35,7 +35,7 @@ export function ScheduleField({
   useEffect(() => {
     P(typeof native.current?.showPicker === "function");
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     visible.current?.setCustomValidity(
       text && !canonical
         ? kind === "date"
@@ -45,9 +45,17 @@ export function ScheduleField({
     );
   }, [text, canonical, kind]);
   function change(raw: string) {
-    T(raw);
     const parsed = kind === "date" ? parseDate(raw) : parseTime(raw);
-    if (parsed || !raw) onValueChange?.(parsed);
+    // Validate in the input event, before a submit or automation can read the DOM.
+    visible.current?.setCustomValidity(
+      raw && !parsed
+        ? kind === "date"
+          ? "Введите существующую дату ДД.ММ.ГГГГ (2000–2100)."
+          : "Введите время ЧЧ:ММ от 00:00 до 23:59."
+        : "",
+    );
+    T(raw);
+    onValueChange?.(parsed);
   }
   return (
     <div className="localized-field">

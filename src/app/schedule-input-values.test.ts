@@ -7,6 +7,7 @@ describe("Russian schedule field presentation keeps the ISO API contract", () =>
     expect(parseDate("29.02.2028")).toBe("2028-02-29");
     for (const bad of [
       "29.02.2026",
+      "31.02.2026",
       "31.04.2026",
       "11/06/2026",
       "2026-11-06",
