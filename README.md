@@ -44,7 +44,7 @@
 
 ## Локальный запуск
 
-**Требования:** Node.js 24 (см. `.nvmrc`), npm 11, PostgreSQL 17. Для воспроизводимости используйте lockfile и локальную **пустую** БД, не production. Пример ниже предназначен для macOS/Linux с Docker и shell, поддерживающим `read -rs`. Не вставляйте настоящие пароли в Issues, логи или скриншоты.
+**Требования:** Node.js 24 (см. `.nvmrc`), npm 11, PostgreSQL 17. Для воспроизводимости используйте lockfile и локальную **пустую** БД, не production. Пример ниже предназначен для macOS/Linux с Docker и Bash. Не вставляйте настоящие пароли в Issues, логи или скриншоты.
 
 1. Установите зависимости:
 
@@ -54,7 +54,7 @@
 
 2. Создайте локальную БД PostgreSQL 17. Пароль вводится без отображения и передаётся Docker как переменная окружения; вместо пароля нельзя использовать буквальный текст `POSTGRES_PASSWORD`:
 
-   ` ``sh
+   ```sh
    read -rs -p "Локальный пароль PostgreSQL: " POSTGRES_PASSWORD
    echo
    export POSTGRES_PASSWORD
@@ -64,7 +64,7 @@
      -e POSTGRES_PASSWORD \
      -p 127.0.0.1:5432:5432 \
      postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
-   ` ``
+   ```
 
 3. Скопируйте `.env.example` в `.env.local`. Заполните `DATABASE_URL` для созданной локальной БД, `BETTER_AUTH_URL=http://localhost:3000` и случайный `BETTER_AUTH_SECRET` (не менее 32 случайных байт, например с помощью `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Если пароль БД содержит специальные символы, корректно URL-кодируйте их в строке подключения. `.env.local` не коммитьте.
 
