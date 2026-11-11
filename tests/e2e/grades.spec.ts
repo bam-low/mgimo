@@ -1,3 +1,4 @@
+import { rememberSession } from "./session-cache";
 import { test, expect, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 async function login(page: Page, email: string, password: string) {
@@ -8,6 +9,7 @@ async function login(page: Page, email: string, password: string) {
     .fill(password);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+  await rememberSession(page, email);
 }
 test("STAFF selects student and subject, records marks and credit; personal student history and audited corrections", async ({
   page,

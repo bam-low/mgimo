@@ -1,3 +1,4 @@
+import { reuseSession } from "./session-cache";
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import { displayDate } from "../../src/app/schedule-input-values";
 import { dayKey, timeLabel, addDays } from "../../src/lib/schedule-time";
@@ -253,6 +254,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     page.on("dialog", acceptDialog);
     await page.setViewportSize({ width: 1280, height: 900 });
     async function login(email: string, password: string) {
+      if (await reuseSession(page, email)) return;
       await page.goto("/login");
       await page
         .getByLabel("Демонстрационный логин", { exact: true })
