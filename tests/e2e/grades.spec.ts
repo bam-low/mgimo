@@ -58,22 +58,24 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     .getByLabel("Дисциплина", { exact: true })
     .selectOption({ label: title });
   await form().getByLabel("Результат", { exact: true }).selectOption("5");
-  const markResponse = page.waitForResponse(
-    (r) =>
-      new URL(r.url()).pathname === "/api/staff/grades" &&
-      r.request().method() === "POST",
-  );
   await form()
     .getByRole("button", { name: "Выставить результат", exact: true })
     .click();
-  const createdMark = await markResponse;
-  expect(createdMark.status()).toBe(200);
-  const gradeId: string = (await createdMark.json()).id;
   const rows = () =>
     page
       .getByTestId("grade-row")
       .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
   await expect(rows()).toHaveCount(1);
+  const savedResponse = await page.request.get(
+    "/api/grades?membershipId=" + membershipId,
+  );
+  expect(savedResponse.status()).toBe(200);
+  const savedMarks = (await savedResponse.json()).rows.filter(
+    (r: { subject: { name: string }; kind: string }) =>
+      r.subject.name === title && r.kind === "MARK",
+  );
+  expect(savedMarks).toHaveLength(1);
+  const gradeId: string = savedMarks[0].id;
   await form()
     .getByLabel("Дисциплина", { exact: true })
     .selectOption({ label: title });
