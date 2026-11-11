@@ -29,7 +29,7 @@ export async function rememberSession(page: Page, email: string) {
   const cookies = (await page.context().cookies()).filter((c) =>
     c.name.endsWith("session_token"),
   );
-  expect(cookies).toHaveLength(1);
+  expect(cookies.length).toBe(1); // Never include cookie values in assertion diagnostics.
   await writeFile(file(email), JSON.stringify(cookies), { mode: 0o600 });
 }
 export async function reuseSession(page: Page, email: string) {
