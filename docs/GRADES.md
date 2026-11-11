@@ -44,3 +44,7 @@ Migration `20261107120000_grades` additive: Subject/Grade, необходимы�
 Тесты: `npm run lint`, `npm run typecheck`, `npm test -- --run`, `npm run test:integration`, schema diff, standalone build/runtime/E2E, Functions build/runtime/E2E/cold start и VPS rehearsal. `tests/grades.test.ts` проверяет реальные handlers/SQL/транзакции; limited-role probe и negative grants охватывают новые таблицы; общий `tests/e2e/grades.spec.ts` входит во все три runtime-пути и сохраняет реальные screenshots в test-results. Документация — `python3 scripts/check_docs.py` после git add. Не считать незапущенные/непрошедшие проверки успешными.
 
 Реальные host/TLS/ingress/РФ/offsite restore, vendor-unfixed HIGH, мобильные устройства и полный WCAG остаются отдельными gates. После ручного merge следующие вертикали: заявки/справки → уведомления; без автоматического deploy/merge.
+
+## Повторные проверки runtime
+
+Standalone и Functions suites используют общую тестовую БД; одинаковый текст причины допустим у разных результатов. E2E проверяет аудит по targetId созданной оценки, ровно три уникальных события CREATE/EDIT/VOID, прежнее/новое значение и версии. Это сохраняет проверку дублей при повторных прогонах без очистки истории ради PASS. Требования настраиваемого семестрового расписания находятся в будущей [Issue #41](https://github.com/bam-low/mgimo/issues/41); фиксированные даты текущего #39 не заменяют её постановку. Реализация #41 только после ручного merge #40 и отдельного GO.

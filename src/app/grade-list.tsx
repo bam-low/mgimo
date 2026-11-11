@@ -48,7 +48,13 @@ export function GradeList({
                 ? `${displayDate(v.issuedOn)} · ${resultLabel(v)}${v.voided ? " · аннулировано" : ""}`
                 : "—";
             return (
-              <p className="request" key={e.id}>
+              <p
+                className="request"
+                key={e.id}
+                data-testid="grade-audit-event"
+                data-grade-id={e.targetId}
+                data-audit-action={e.action}
+              >
                 {e.createdAt} · {e.action} · Автор: {e.actorId}
                 <br />
                 {show(detail.before)} → {show(detail.after)}

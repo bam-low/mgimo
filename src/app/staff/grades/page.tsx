@@ -115,7 +115,7 @@ export default async function Page({
           <button disabled={!roster.rows.length}>Открыть результаты</button>
           {!roster.rows.length && <p>В выбранной группе студентов нет.</p>}
         </form>
-        <nav aria-label="Страницы студентов">
+        <nav className="grades-pages" aria-label="Страницы студентов">
           <Link
             href={{ pathname: "/staff/grades", query: { groupId: q.groupId } }}
           >
@@ -166,7 +166,7 @@ export default async function Page({
               subjectList={subjectList}
               today={today}
             />
-            <nav aria-label="Страницы аудита">
+            <nav className="grades-pages" aria-label="Страницы аудита">
               <Link
                 href={{
                   pathname: "/staff/grades",
@@ -186,7 +186,7 @@ export default async function Page({
                 </Link>
               )}
             </nav>
-            <nav aria-label="Страницы результатов">
+            <nav className="grades-pages" aria-label="Страницы результатов">
               <Link
                 href={{
                   pathname: "/staff/grades",

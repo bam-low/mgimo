@@ -440,3 +440,57 @@ it("paginates stable personal results and scoped staff audit without duplicates"
     readGrades(sa, { membershipId: mid, auditCursor: randomUUID() }),
   ).rejects.toMatchObject({ status: 404 });
 });
+it("subject directory supports rename, deactivate, restore and stale-version denial through real API", async () => {
+  const { POST: writeSubject } = await import(
+    "../src/app/api/staff/subjects/route"
+  );
+  const d = {
+    action: "CREATE",
+    operationId: randomUUID(),
+    name: "Демо отдельная дисциплина",
+  };
+  const created = await writeSubject(req(sh, d));
+  expect(created.status).toBe(200);
+  const sid = (await created.json()).id;
+  try {
+    expect(
+      (await writeSubject(req(uh, { ...d, operationId: randomUUID() }))).status,
+    ).toBe(403);
+    expect((await writeSubject(req(sh, d))).status).toBe(409);
+    const edit = {
+      action: "EDIT",
+      id: sid,
+      version: 1,
+      name: "Демо переименованная дисциплина",
+      active: true,
+    };
+    expect((await writeSubject(req(sh, edit))).status).toBe(200);
+    expect((await writeSubject(req(sh, edit))).status).toBe(409);
+    expect(await db.subject.findUnique({ where: { id: sid } })).toMatchObject({
+      name: edit.name,
+      active: true,
+      version: 2,
+    });
+    expect(
+      (await writeSubject(req(sh, { ...edit, version: 2, active: false })))
+        .status,
+    ).toBe(200);
+    expect(
+      (await writeSubject(req(sh, { ...input(), subjectId: sid }))).status,
+    ).toBe(400);
+    expect((await POST(req(sh, { ...input(), subjectId: sid }))).status).toBe(
+      403,
+    );
+    expect(
+      (await writeSubject(req(sh, { ...edit, version: 3, active: true })))
+        .status,
+    ).toBe(200);
+    expect(await db.subject.findUnique({ where: { id: sid } })).toMatchObject({
+      active: true,
+      version: 4,
+    });
+    expect(await db.auditLog.count({ where: { targetId: sid } })).toBe(4);
+  } finally {
+    await db.subject.delete({ where: { id: sid } });
+  }
+});

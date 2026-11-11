@@ -34,7 +34,7 @@ export default async function Page({
           </p>
         </header>
         <GradeList data={data} />
-        <nav aria-label="Страницы результатов">
+        <nav className="grades-pages" aria-label="Страницы результатов">
           <Link href="/grades">К началу</Link>
           {data.next && (
             <Link href={{ pathname: "/grades", query: { cursor: data.next } }}>

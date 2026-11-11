@@ -18,7 +18,9 @@ test("STAFF selects student and subject, records marks and credit; personal stud
   await login(page, "staff@example.test", process.env.DEMO_STAFF_PASSWORD!);
   await page.goto("/staff/grades");
   await page.getByText("Справочник дисциплин", { exact: true }).click();
-  const title = "Демо дисциплина " + randomUUID();
+  const title =
+    "Демо исследовательский практикум по академическому письму " +
+    randomUUID().slice(0, 8);
   const subject = page.getByRole("form", {
     name: "Новая дисциплина",
     exact: true,
@@ -56,9 +58,17 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     .getByLabel("Дисциплина", { exact: true })
     .selectOption({ label: title });
   await form().getByLabel("Результат", { exact: true }).selectOption("5");
+  const markResponse = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === "/api/staff/grades" &&
+      r.request().method() === "POST",
+  );
   await form()
     .getByRole("button", { name: "Выставить результат", exact: true })
     .click();
+  const createdMark = await markResponse;
+  expect(createdMark.status()).toBe(200);
+  const gradeId: string = (await createdMark.json()).id;
   const rows = () =>
     page
       .getByTestId("grade-row")
@@ -117,6 +127,13 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     });
     await edit.getByLabel("Результат", { exact: true }).selectOption("4");
     await edit.getByLabel("Причина исправления").fill("Демо проверка работы");
+    page.removeAllListeners("dialog");
+    page.once("dialog", (d) => d.dismiss());
+    await edit
+      .getByRole("button", { name: "Сохранить исправление", exact: true })
+      .click();
+    await expect(rows().filter({ hasText: "Оценка: 5" })).toHaveCount(1);
+    page.on("dialog", (d) => d.accept());
     await edit
       .getByRole("button", { name: "Сохранить исправление", exact: true })
       .click();
@@ -154,13 +171,56 @@ test("STAFF selects student and subject, records marks and credit; personal stud
           path: `test-results/issue39-${role}-${width}.png`,
           fullPage: true,
         });
+        await p
+          .getByTestId("grade-row")
+          .filter({ has: p.getByRole("heading", { name: title, exact: true }) })
+          .first()
+          .scrollIntoViewIfNeeded();
+        await p.screenshot({
+          path: `test-results/issue39-${role}-${width}-results.png`,
+          fullPage: true,
+        });
         await p.keyboard.press("Tab");
       }
     }
     await page
       .getByText("Аудит изменений результатов", { exact: true })
       .click();
-    await expect(page.getByText(/Причина: Демо проверка работы/)).toBeVisible();
+    // Standalone and Functions run on the same DB. Reasons are deliberately
+    // reusable; audit identity is the grade, not the text of a previous run.
+    const auditResponse = await page.request.get(
+      "/api/grades?membershipId=" + membershipId,
+    );
+    expect(auditResponse.status()).toBe(200);
+    const events = (await auditResponse.json()).events.filter(
+      (e: { targetId: string }) => e.targetId === gradeId,
+    );
+    expect(events).toHaveLength(3);
+    expect(new Set(events.map((e: { id: string }) => e.id)).size).toBe(3);
+    expect(events.map((e: { action: string }) => e.action).sort()).toEqual([
+      "GRADE_CREATE",
+      "GRADE_EDIT",
+      "GRADE_VOID",
+    ]);
+    const edited = JSON.parse(
+      events.find((e: { action: string }) => e.action === "GRADE_EDIT").reason,
+    );
+    expect(edited).toMatchObject({
+      membershipId,
+      reason: "Демо проверка работы",
+      before: { mark: 5, version: 1 },
+      after: { mark: 4, version: 2 },
+    });
+    const audit = page
+      .getByTestId("grade-audit-event")
+      .and(page.locator(`[data-grade-id="${gradeId}"]`));
+    await expect(audit).toHaveCount(3);
+    const editEvent = audit.and(
+      page.locator('[data-audit-action="GRADE_EDIT"]'),
+    );
+    await expect(editEvent).toHaveCount(1);
+    await expect(editEvent).toBeVisible();
+    await expect(editEvent).toContainText("Причина: Демо проверка работы");
   } finally {
     await studentContext.close();
   }
