@@ -1,10 +1,11 @@
 // No image publication or deployment. Build using only verified local inputs.
 import { mkdtemp, cp, readFile, writeFile, mkdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHash } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import console from "node:console";
+if (process.arch !== "x64") throw Error("VPS security inputs require amd64");
 const env = {
   ...process.env,
   NEXT_TELEMETRY_DISABLED: "1",
@@ -32,6 +33,78 @@ for (const [command, args] of [
 const root = await mkdtemp("/tmp/campus-vps-context-");
 await mkdir(path.join(root, "runtime"));
 await mkdir(path.join(root, "tools/payload"), { recursive: true });
+// Debian trixie-security zlib1g 1:1.3.dfsg+really1.3.1-1+deb13u1 amd64.
+// Hash independently verified using apt's signed security index and download.
+// Final Docker builds remain --network=none; never bypass TLS or checksums.
+await mkdir(path.join(root, "tools/security"));
+const zlibPackage = path.join(root, "tools/security/zlib1g.deb");
+const download = spawnSync(
+  "curl",
+  [
+    "--fail",
+    "--location",
+    "--silent",
+    "--show-error",
+    "--proto",
+    "=https",
+    "https://deb.debian.org/debian-security/pool/updates/main/z/zlib/zlib1g_1.3.dfsg+really1.3.1-1+deb13u1_amd64.deb",
+    "-o",
+    zlibPackage,
+  ],
+  { stdio: "inherit" },
+);
+if (
+  download.status !== 0 ||
+  createHash("sha256")
+    .update(await readFile(zlibPackage))
+    .digest("hex") !==
+    "8c27c342230503b73dfde629642c3b352e87b554e06d60cf58772f236a305ceb"
+)
+  throw Error(
+    "Verified Debian security package unavailable or checksum mismatch",
+  );
+
+await mkdir(path.join(root, "database/security"), { recursive: true });
+await cp("ops/vps/Dockerfile.db", path.join(root, "database/Dockerfile"));
+// Official Alpine v3.24 packages. Signatures are also checked by apk at install.
+for (const [name, version, checksum] of [
+  [
+    "krb5-libs",
+    "1.22.3-r0",
+    "fad5b46a953e6a37a1bb61a84538fa08ecb6a07816f439eb06f2735aebfcbfbf",
+  ],
+  [
+    "libxslt",
+    "1.1.43-r4",
+    "40e6cc7d09ce1e69421c2b37e1da4e9afef486843f21c3a79339cd6d93c1c617",
+  ],
+]) {
+  const destination = path.join(root, `database/security/${name}.apk`);
+  const fetched = spawnSync(
+    "curl",
+    [
+      "--fail",
+      "--location",
+      "--silent",
+      "--show-error",
+      "--proto",
+      "=https",
+      `https://dl-cdn.alpinelinux.org/alpine/v3.24/main/x86_64/${name}-${version}.apk`,
+      "-o",
+      destination,
+    ],
+    { stdio: "inherit" },
+  );
+  if (
+    fetched.status !== 0 ||
+    createHash("sha256")
+      .update(await readFile(destination))
+      .digest("hex") !== checksum
+  )
+    throw Error(
+      "Verified Alpine security package unavailable or checksum mismatch",
+    );
+}
 await cp(
   (await readFile(".runtime-evidence/runtime-root.txt", "utf8")).trim(),
   path.join(root, "runtime/app"),

@@ -37,12 +37,12 @@ jobs:
         run: |
           context=$(cat .runtime-evidence/vps-context.txt)
           docker pull node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c
-          docker pull gcr.io/distroless/cc-debian13:nonroot@sha256:08476c244888bfb425bae1ae4dd7c17f093e972aab8426883d97f3c6f280f7c1
+          docker pull gcr.io/distroless/cc-debian13:nonroot@sha256:cc66d222f0a7ec996b78a99fe76a969bc80b539a5016ad866c14d1949bc6d0ab
           docker build --network=none -t campus24-runtime "$context/runtime"
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
           docker pull node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
           docker pull postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
-          docker build --network=none -t campus24-db -f ops/vps/Dockerfile.db ops/vps
+          docker build --network=none -t campus24-db "$context/database"
           docker build --network=none -t campus24-tools "$context/tools"
       - name: Local rehearsal prerequisites
         run: |

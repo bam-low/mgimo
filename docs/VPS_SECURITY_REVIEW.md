@@ -46,3 +46,13 @@ PR CI создаёт и проверяет package **только на ephemeral
 ## Foundation Completion #27
 
 Никаких suppress/ignore/VEX-исключений для прохождения CI не добавлено. Локальные rehearsal/negative tests проверяют исполнение конфигурации, а не отсутствие OS-уязвимостей или защищённость реального хоста. Актуальный scan текущего SHA хранится в Actions `vps-security-report`; unfixed HIGH требуют отдельного pre-deploy triage D. GO FOR FEATURE DEVELOPMENT не даёт production GO. Реальные host SSH/systemd/firewall/LE/ресурсы/RF/offsite restore остаются NOT VERIFIED.
+
+## Обновление security inputs — 11.11.2026, Issue #39 / PR #40
+
+После успешной закрытой репетиции на `007703f` Trivy остановил CI: ранее unfixed `CVE-2026-76844`/`CVE-2026-85091` в zlib1g получили исправление, а в Alpine выявлены исправимые HIGH krb5-libs/libxslt. Прежний зелёный скан 07.11 не является доказательством для новой vulnerability DB. Порог CRITICAL/fixable HIGH и полные отчёты сохраняются, suppress/ignore/VEX нет.
+
+- Runtime distroless Debian13 обновлён до официального digest `cc66d222f0a7ec996b78a99fe76a969bc80b539a5016ad866c14d1949bc6d0ab`: проверенный status.d содержит zlib1g `1:1.3.dfsg+really1.3.1-1+deb13u1`.
+- Tools сохраняет прежний Node24.22.1/Trixie input. Официальный Debian security deb zlib1g той же версии устанавливается через dpkg с корректным учётом файлов и metadata, SHA256 `8c27c342230503b73dfde629642c3b352e87b554e06d60cf58772f236a305ceb`. Hash независимо сверён через apt download и подписанный trixie-security index. Не копируются отдельные непроверенные shared libraries и не редактируются версии ради сканера.
+- DB сохраняет PostgreSQL17.11/Alpine и UID70. Официальные APK: krb5-libs `1.22.3-r0` (SHA256 `fad5b46a953e6a37a1bb61a84538fa08ecb6a07816f439eb06f2735aebfcbfbf`), libxslt `1.1.43-r4` (`40e6cc7d09ce1e69421c2b37e1da4e9afef486843f21c3a79339cd6d93c1c617`). `apk add --no-network` проверяет vendor signatures штатными ключами исходного образа; allow-untrusted не используется.
+
+prepare-vps-context загружает точные security inputs по HTTPS и проверяет закреплённые SHA256. Создаются отдельные runtime/tools/database contexts вне checkout; все финальные docker builds остаются `--network=none`. Подписи пакетов, TLS и checksum verification не ослаблены; исходники/lockfile npm, пароли, роли, схема БД и алгоритм расписания не изменяются этим maintenance. Итоговые сборки/rehearsal/скан и точный SHA фиксируются в PR. Production NO-GO и реальные host/TLS/РФ/WCAG gates остаются независимо от зелёного CI.

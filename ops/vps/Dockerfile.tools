@@ -1,6 +1,10 @@
 # Separate, owner-only migration image. NEVER use as the app image.
 FROM node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
 LABEL io.campus.role="tools"
+# Verified Debian security package supplied by prepare-vps-context. Install with
+# dpkg so payload, package ownership and vulnerability metadata stay consistent.
+COPY security/zlib1g.deb /tmp/campus-zlib1g.deb
+RUN dpkg -i /tmp/campus-zlib1g.deb && rm /tmp/campus-zlib1g.deb
 # The base already supplies tracked libssl3t64. No borrowed/untracked OS libraries.
 # Only Node/Prisma owner operations run here: remove package manager and unused
 # login/mount/system utilities, with dpkg metadata kept accurate. Essential-removal
