@@ -2214,3 +2214,23 @@ progress::-moz-progress-bar {
     min-height: min(108px, 25dvh);
   }
 }
+
+/* Keep the fourth real section readable in the existing mobile navigation row. */
+.nav-label-short {
+  display: none;
+}
+@media (max-width: 1099px) {
+  .nav-grades-label .nav-label-full {
+    display: none;
+  }
+  .nav-grades-label .nav-label-short {
+    display: inline;
+  }
+}
+
+.grades-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 16px 0;
+}

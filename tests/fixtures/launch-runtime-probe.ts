@@ -1,3 +1,6 @@
+import { POST as gradeWrite } from "../../src/app/api/staff/grades/route";
+import { POST as subjectWrite } from "../../src/app/api/staff/subjects/route";
+import { GET as gradeRead } from "../../src/app/api/grades/route";
 import { randomUUID } from "node:crypto";
 import { POST as structureWrite } from "../../src/app/api/staff/structure/route";
 import { POST as scheduleWrite } from "../../src/app/api/staff/schedule/route";
@@ -230,6 +233,67 @@ it("full server workflow runs under limited credentials, retains audit and revok
     "student1@example.test",
     process.env.DEMO_STUDENT1_PASSWORD!,
   );
+  const gs = await subjectWrite(
+    req(
+      "/api/staff/subjects",
+      {
+        action: "CREATE",
+        operationId: randomUUID(),
+        name: "Демо limited дисциплина",
+      },
+      staff,
+    ),
+  );
+  expect(gs.status).toBe(200);
+  const subjectId = (await gs.json()).id;
+  const seedMember = await db.universityMembership.findFirstOrThrow({
+    where: { user: { email: "student1@example.test" } },
+  });
+  const gd = {
+    action: "CREATE",
+    operationId: randomUUID(),
+    membershipId: seedMember.id,
+    subjectId,
+    issuedOn: "2026-11-07",
+    result: { kind: "MARK", mark: 5 },
+  };
+  expect(
+    (await gradeWrite(req("/api/staff/grades", gd, seedCookie))).status,
+  ).toBe(403);
+  expect((await gradeWrite(req("/api/staff/grades", gd, staff))).status).toBe(
+    200,
+  );
+  expect((await gradeWrite(req("/api/staff/grades", gd, staff))).status).toBe(
+    409,
+  );
+  const gr = await gradeRead(req("/api/grades", undefined, seedCookie));
+  expect(gr.status).toBe(200);
+  expect(
+    (await gr.json()).rows.some((r: { id: string }) => r.id === gd.operationId),
+  ).toBe(true);
+  expect(
+    (
+      await gradeRead(
+        req("/api/grades?membershipId=" + member.id, undefined, seedCookie),
+      )
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await gradeWrite(
+        req(
+          "/api/staff/grades",
+          {
+            action: "VOID",
+            id: gd.operationId,
+            version: 1,
+            reason: "Демо аннулирование",
+          },
+          staff,
+        ),
+      )
+    ).status,
+  ).toBe(200);
   const read = await scheduleRead(
     req("/api/schedule?day=2030-06-03", undefined, seedCookie),
   );

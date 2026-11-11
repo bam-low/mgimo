@@ -1,5 +1,6 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
+  globalSetup: "./tests/e2e/session-cache.ts",
   testDir: "tests/e2e",
   fullyParallel: false,
   workers: 1,

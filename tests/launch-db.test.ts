@@ -95,6 +95,8 @@ it("limited role cannot delete structure/history, read migrations, DDL, escalate
   const statements = [
     'DELETE FROM "StudentGroup"',
     'DELETE FROM "ScheduleEntry"',
+    'DELETE FROM "Subject"',
+    'DELETE FROM "Grade"',
     'UPDATE "University" SET name=name',
     'DELETE FROM "EnrollmentRequest"',
     'UPDATE "AuditLog" SET action=action',

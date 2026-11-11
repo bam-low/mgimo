@@ -5,6 +5,8 @@ export const tablePolicy = {
   Faculty: ["SELECT", "INSERT", "UPDATE"],
   Program: ["SELECT", "INSERT", "UPDATE"],
   StudentGroup: ["SELECT", "INSERT", "UPDATE"],
+  Subject: ["SELECT", "INSERT", "UPDATE"],
+  Grade: ["SELECT", "INSERT", "UPDATE"],
   ScheduleEntry: ["SELECT", "INSERT", "UPDATE"],
   User: ["SELECT", "INSERT", "UPDATE"],
   Account: ["SELECT", "INSERT", "UPDATE"],

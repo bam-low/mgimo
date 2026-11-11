@@ -41,3 +41,7 @@ Production **NO-GO** остаётся: unfixed HIGH требуют gate D; ре�
 Foundation #27 вручную merged в #28. Физическая схема теперь включает ScheduleEntry: 16 моделей + _prisma_migrations (17 таблиц); Faculty/Program active+version и StudentGroup version. Утверждённая текущей функциональной Issue SQL policy разрешает SELECT/INSERT/UPDATE структуры/занятий, без DELETE/DDL. Прежние числа/ограничения выше описывают baseline #27. Реализованные schedule/time/structure contracts и ASSUMPTION — [SCHEDULE](SCHEDULE.md); их следует переиспользовать в следующих вертикалях, не строить ещё один фундамент.
 
 Регистрационный roster теперь динамический внутри одного demo-university: только активная цепочка, изменяемая доверенным STAFF. Synthetic identity и запрет STAFF signup не ослаблены. Следующие вертикали — успеваемость, заявки/справки, уведомления; production NO-GO не снят.
+
+## Вертикаль успеваемости — Issue #39
+
+Реализация в отдельной ветке: [модель, DTO, права, аудит и приёмка](GRADES.md). STUDENT read-only; STAFF управляет оценками/зачётами своего вуза. Subject/Grade добавляются без изменений прежних данных, SQL policy расширяется только SELECT/INSERT/UPDATE этих таблиц; составные FK удерживают university scope. Результаты принадлежат membership, перевод их не удаляет. Периоды/GPA/заявки/уведомления не вводятся. До ручного merge не считать принятой main. Production NO-GO сохраняется.

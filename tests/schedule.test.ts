@@ -265,7 +265,7 @@ it("serializes overlapping/double submissions, permits adjacent intervals and re
   expect(
     (
       await schedule(
-        req("/api/staff/schedule", staffHeaders, { ...d, day: "2027-02-30" }),
+        req("/api/staff/schedule", staffHeaders, { ...d, day: "2026-02-31" }),
       )
     ).status,
   ).toBe(400);
