@@ -46,8 +46,27 @@ export async function reuseSession(page: Page, email: string) {
   } catch {
     throw Error("Cannot restore private session fixture");
   }
-  await page.goto("/cabinet");
-  // The real server must still accept the stored session and current membership.
-  await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+  // A URL alone can briefly remain /cabinet during a streamed redirect. Verify
+  // the actual protected API before accepting a cached, genuine session.
+  const response = await page.request.get(
+    email === "staff@example.test"
+      ? "/api/staff/schedule/builder"
+      : "/api/group",
+  );
+  if (response.status() === 401) {
+    // Previous tests deliberately log sessions out. Obtain a fresh session only
+    // through normal UI sign-in; never reset limits or create auth rows.
+    await page.context().clearCookies();
+    return false;
+  }
+  expect(response.status()).toBe(200);
+  // STAFF /cabinet streams a redirect to /staff. Navigate directly to the
+  // seeded role's destination so a deferred redirect cannot abort the next goto.
+  const destination = email === "staff@example.test" ? "/staff" : "/cabinet";
+  await page.goto(destination);
+  await expect(page).toHaveURL(new RegExp(destination + "$"));
+  await expect(
+    page.getByRole("navigation", { name: "Разделы платформы", exact: true }),
+  ).toBeVisible();
   return true;
 }

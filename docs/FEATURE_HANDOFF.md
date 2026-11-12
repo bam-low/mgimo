@@ -45,3 +45,9 @@ Foundation #27 вручную merged в #28. Физическая схема т�
 ## Вертикаль успеваемости — Issue #39
 
 Реализация в отдельной ветке: [модель, DTO, права, аудит и приёмка](GRADES.md). STUDENT read-only; STAFF управляет оценками/зачётами своего вуза. Subject/Grade добавляются без изменений прежних данных, SQL policy расширяется только SELECT/INSERT/UPDATE этих таблиц; составные FK удерживают university scope. Результаты принадлежат membership, перевод их не удаляет. Периоды/GPA/заявки/уведомления не вводятся. До ручного merge не считать принятой main. Production NO-GO сохраняется.
+
+## Продолжение после принятия #39 — Issue #41
+
+PR #40 вручную merged в main `b784fb09`, #39 закрыта. Новая feature-ветка от актуальной main реализует [семестры и конструктор](SEMESTERS.md), переиспользует Subject и ScheduleEntry. Все future-generation изменения сохраняют ручные слоты/отмены и прошлое; правила имеют периоды действия. Нельзя регенерировать активное ручное занятие за пределами нового календаря: подтверждённый владельцем безопасный отказ. Новые таблицы одновременно включены в точную SQL policy, negative grants и restore counts. Точные CI/скриншоты — в Draft PR после фактических проверок. Исторические разделы выше остаются baseline прежних Issues; production NO-GO не снят.
+
+Локальная приёмка #41: 15 unit / 62 PostgreSQL integration / 14 standalone E2E / 15 Functions E2E и cold-start/restart / 14 HTTPS VPS E2E + encrypted fresh restore. [Галерея 360/390/1280](screenshots/issue-41/README.md). 0 CRITICAL/fixable HIGH, 6 unfixed HIGH tools сохраняют production NO-GO. Актуальные CI/SHA — [Draft PR #42](https://github.com/bam-low/mgimo/pull/42), ручное принятие ещё требуется. Следующий scope — заявки/вымышленные справки, затем утверждённый владельцем локальный визуальный/UX-аудит 6.5, затем уведомления; не начинать автоматически.

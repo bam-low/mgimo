@@ -60,6 +60,14 @@ export default async function Page({
           <h1>Расписание занятий</h1>
           <p>Выберите группу и неделю. Изменения доступны студентам.</p>
         </header>
+        <nav className="semester-links" aria-label="Управление расписанием">
+          <Link href="/staff/schedule/semesters">Учебные семестры</Link>
+          <Link href="/staff/schedule/builder">Конструктор расписания</Link>
+          <Link href="/staff/schedule/resources">
+            Преподаватели и аудитории
+          </Link>
+          <Link href="/staff/structure">Управлять группами</Link>
+        </nav>
         {!data ? (
           <p className="notice">
             Сначала <Link href="/staff/structure">создайте учебную группу</Link>
@@ -74,6 +82,7 @@ export default async function Page({
                 key={groupId}
               />
               <ScheduleField
+                broad
                 label="Неделя, содержащая дату"
                 name="day"
                 defaultValue={query.day ?? data.today}

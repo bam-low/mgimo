@@ -7,7 +7,7 @@ export function dayKey(instant: Date, zone: string) {
     day: "2-digit",
   }).formatToParts(instant);
   const get = (type: string) => parts.find((p) => p.type === type)!.value;
-  return `${get("year")}-${get("month")}-${get("day")}`;
+  return `${get("year").padStart(4, "0")}-${get("month")}-${get("day")}`;
 }
 export function validDay(day: string) {
   return (
@@ -37,7 +37,15 @@ export function timeLabel(instant: Date, zone: string) {
 // Find possible instants from actual IANA offsets. Reject nonexistent/ambiguous
 // wall times instead of guessing during a DST change. No process-TZ dependency.
 export function localInstant(day: string, time: string, zone: string) {
-  if (!validDay(day) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time))
+  if (
+    !(
+      /^\d{4}-\d{2}-\d{2}$/.test(day) &&
+      day.slice(0, 4) !== "0000" &&
+      !Number.isNaN(Date.parse(day)) &&
+      new Date(day).toISOString().slice(0, 10) === day
+    ) ||
+    !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+  )
     throw Error("Invalid local time");
   const naive = Date.parse(`${day}T${time}:00Z`),
     offsets = new Set<number>();
@@ -66,6 +74,7 @@ export type Lesson = {
   endsAt: string;
   status: string;
   version: number;
+  semesterId?: string | null;
 };
 export function currentLesson(lessons: Lesson[], now: number) {
   const active = lessons

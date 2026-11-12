@@ -2234,3 +2234,195 @@ progress::-moz-progress-bar {
   gap: 12px 20px;
   margin: 16px 0;
 }
+
+/* Semester builder: mobile is a day list, desktop compares existing groups. */
+.semester-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 20px 0;
+}
+.semester-links a {
+  text-underline-offset: 4px;
+}
+.semester-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  overflow-wrap: anywhere;
+}
+.semester-edit-grid {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+.builder-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+.builder-form fieldset fieldset {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.builder-form > button {
+  margin: 16px 0;
+}
+.builder-form .check-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.builder-form .check-line input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+.builder-preview {
+  padding: 20px;
+  border: 1px solid var(--brand);
+  border-radius: 16px;
+  background: var(--paper);
+  margin: 16px 0;
+}
+.preview-dates {
+  max-height: 280px;
+  overflow: auto;
+  padding-left: 20px;
+}
+.builder-filters {
+  display: grid;
+  gap: 16px;
+  align-items: end;
+}
+.builder-filters > *,
+.semester-edit-grid > *,
+.builder-form label,
+.builder-form select {
+  min-width: 0;
+  max-width: 100%;
+}
+.builder-form select,
+.builder-filters select,
+.program-mobile select {
+  width: 100%;
+  text-overflow: ellipsis;
+}
+.semester-calendar {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  min-width: 0;
+}
+.calendar-week {
+  margin-top: 16px;
+  padding: 10px 0;
+  border-top: 3px solid var(--brand);
+}
+.calendar-week.week-b {
+  border-color: var(--muted);
+}
+.calendar-week p {
+  font-size: 0.85rem;
+}
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+.calendar-days > div {
+  display: grid;
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 6px;
+  background: var(--paper);
+  font-size: 0.8rem;
+}
+.calendar-days span {
+  font-size: 0.7rem;
+}
+.calendar-days .outside {
+  opacity: 0.42;
+}
+.calendar-days .excluded {
+  background: var(--lavender);
+  text-decoration: line-through;
+}
+.program-desktop {
+  display: none;
+}
+.program-mobile {
+  display: grid;
+  gap: 16px;
+}
+.program-mobile .timetable-lesson {
+  width: 100%;
+  margin: 8px 0;
+}
+#builder-inspector {
+  scroll-margin-top: 24px;
+  margin-top: 24px;
+}
+.occurrence-status {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.occurrence-status > section {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+@media (min-width: 900px) {
+  .semester-edit-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .builder-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .program-mobile {
+    display: none;
+  }
+  .program-desktop {
+    display: block;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .program-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .program-table td,
+  .program-table th {
+    border: 1px solid var(--line);
+    padding: 12px;
+    min-width: 180px;
+    vertical-align: top;
+  }
+  .program-table th:first-child {
+    min-width: 130px;
+  }
+  .program-table .timetable-lesson {
+    width: 100%;
+    margin: 6px 0;
+  }
+  .program-table caption {
+    text-align: left;
+    padding: 16px 0;
+  }
+}
+.program-mobile .tile-time {
+  display: block;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useRef } from "react";
 import { LessonTitleField } from "./lesson-title-field";
 import { ScheduleField } from "./schedule-field";
@@ -308,161 +309,180 @@ export function LessonEditor({
         <p className="footnote">
           Только вымышленные данные. Время: {timezone}.
         </p>
-        <form
-          ref={formRef}
-          key={lesson ? `${lesson.id}-${lesson.version}` : "new"}
-          aria-label="Занятие"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const f = new FormData(e.currentTarget);
-            await mutate({
-              action: lesson ? "EDIT" : "CREATE",
-              ...(lesson ? { id: lesson.id, version: lesson.version } : {}),
-              groupId,
-              title: f.get("title"),
-              day: f.get("day"),
-              start: f.get("start"),
-              end: f.get("end"),
-              teacher: f.get("teacher"),
-              room: f.get("room"),
-            });
-          }}
-        >
-          <LessonTitleField initialValue={lesson?.title} />
-          <ScheduleField
-            label="Дата занятия"
-            name="day"
-            required
-            defaultValue={
-              lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
-            }
-          />
-          <div className="time-fields">
-            <ScheduleField
-              label="Начало"
-              name="start"
-              kind="time"
-              required
-              defaultValue={
-                lesson
-                  ? timeLabel(new Date(lesson.startsAt), timezone)
-                  : "09:00"
-              }
-            />
-            <ScheduleField
-              label="Конец"
-              name="end"
-              kind="time"
-              required
-              defaultValue={
-                lesson ? timeLabel(new Date(lesson.endsAt), timezone) : "10:30"
-              }
-            />
-          </div>
-          <label>
-            Вымышленный преподаватель (необязательно)
-            <input
-              name="teacher"
-              maxLength={120}
-              defaultValue={lesson?.teacher ?? ""}
-            />
-          </label>
-          <label>
-            Аудитория (необязательно)
-            <input
-              name="room"
-              maxLength={80}
-              defaultValue={lesson?.room ?? ""}
-            />
-          </label>
-          <div className="inspector-primary-actions">
-            <button disabled={busy}>
-              {busy
-                ? "Сохраняем…"
-                : lesson
-                  ? "Сохранить занятие"
-                  : "Создать занятие"}
-            </button>
-            {lesson && (
-              <button className="secondary" type="button" onClick={() => S("")}>
-                Закрыть без сохранения
-              </button>
-            )}
-          </div>
-        </form>
-
-        <p
-          role="status"
-          className={
-            message.startsWith("Конфликт") ||
-            message.startsWith("Не ") ||
-            message.startsWith("Нет ")
-              ? "form-message is-error"
-              : "form-message"
-          }
-        >
-          {message}
-        </p>
-        {lesson && (
-          <section
-            className="inspector-actions"
-            aria-label="Действия с занятием"
-          >
-            <h3>Статус занятия</h3>
-            <p className="inspector-status">
-              {lesson.status === "CANCELLED"
-                ? "Занятие отменено"
-                : "Занятие запланировано"}
-            </p>
-            <button
-              className="secondary"
-              disabled={busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    lesson.status === "CANCELLED"
-                      ? "Восстановить занятие? Время будет проверено на пересечения."
-                      : "Отменить занятие? Студенты увидят отметку об отмене.",
-                  )
-                )
-                  void mutate({
-                    action:
-                      lesson.status === "CANCELLED" ? "RESTORE" : "CANCEL",
-                    id: lesson.id,
-                    version: lesson.version,
-                  });
+        {lesson?.semesterId ? (
+          <p className="notice">
+            Занятие семестра.{" "}
+            <Link
+              href={`/staff/schedule/builder?semesterId=${lesson.semesterId}`}
+            >
+              Открыть в конструкторе
+            </Link>
+          </p>
+        ) : (
+          <>
+            <form
+              ref={formRef}
+              key={lesson ? `${lesson.id}-${lesson.version}` : "new"}
+              aria-label="Занятие"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                await mutate({
+                  action: lesson ? "EDIT" : "CREATE",
+                  ...(lesson ? { id: lesson.id, version: lesson.version } : {}),
+                  groupId,
+                  title: f.get("title"),
+                  day: f.get("day"),
+                  start: f.get("start"),
+                  end: f.get("end"),
+                  teacher: f.get("teacher"),
+                  room: f.get("room"),
+                });
               }}
             >
-              {lesson.status === "CANCELLED"
-                ? "Восстановить"
-                : "Отменить занятие"}
-            </button>
-            <div className="danger-zone">
-              <h3>Удаление из расписания</h3>
-              <p>
-                Занятие исчезнет из списка. История и аудит сохранятся;
-                восстановить его через интерфейс нельзя.
-              </p>
-              <button
-                className="danger"
-                disabled={busy}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Убрать занятие из расписания? Событие и аудит сохранятся, вернуть через интерфейс нельзя.",
-                    )
-                  )
-                    void mutate({
-                      action: "DELETE",
-                      id: lesson.id,
-                      version: lesson.version,
-                    });
-                }}
+              <LessonTitleField initialValue={lesson?.title} />
+              <ScheduleField
+                label="Дата занятия"
+                name="day"
+                required
+                defaultValue={
+                  lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
+                }
+              />
+              <div className="time-fields">
+                <ScheduleField
+                  label="Начало"
+                  name="start"
+                  kind="time"
+                  required
+                  defaultValue={
+                    lesson
+                      ? timeLabel(new Date(lesson.startsAt), timezone)
+                      : "09:00"
+                  }
+                />
+                <ScheduleField
+                  label="Конец"
+                  name="end"
+                  kind="time"
+                  required
+                  defaultValue={
+                    lesson
+                      ? timeLabel(new Date(lesson.endsAt), timezone)
+                      : "10:30"
+                  }
+                />
+              </div>
+              <label>
+                Вымышленный преподаватель (необязательно)
+                <input
+                  name="teacher"
+                  maxLength={120}
+                  defaultValue={lesson?.teacher ?? ""}
+                />
+              </label>
+              <label>
+                Аудитория (необязательно)
+                <input
+                  name="room"
+                  maxLength={80}
+                  defaultValue={lesson?.room ?? ""}
+                />
+              </label>
+              <div className="inspector-primary-actions">
+                <button disabled={busy}>
+                  {busy
+                    ? "Сохраняем…"
+                    : lesson
+                      ? "Сохранить занятие"
+                      : "Создать занятие"}
+                </button>
+                {lesson && (
+                  <button
+                    className="secondary"
+                    type="button"
+                    onClick={() => S("")}
+                  >
+                    Закрыть без сохранения
+                  </button>
+                )}
+              </div>
+            </form>
+
+            <p
+              role="status"
+              className={
+                message.startsWith("Конфликт") ||
+                message.startsWith("Не ") ||
+                message.startsWith("Нет ")
+                  ? "form-message is-error"
+                  : "form-message"
+              }
+            >
+              {message}
+            </p>
+            {lesson && (
+              <section
+                className="inspector-actions"
+                aria-label="Действия с занятием"
               >
-                Удалить занятие
-              </button>
-            </div>
-          </section>
+                <h3>Статус занятия</h3>
+                <p className="inspector-status">
+                  {lesson.status === "CANCELLED"
+                    ? "Занятие отменено"
+                    : "Занятие запланировано"}
+                </p>
+                <button
+                  className="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        lesson.status === "CANCELLED"
+                          ? "Восстановить занятие? Время будет проверено на пересечения."
+                          : "Отменить занятие? Студенты увидят отметку об отмене.",
+                      )
+                    )
+                      void mutate({
+                        action:
+                          lesson.status === "CANCELLED" ? "RESTORE" : "CANCEL",
+                        id: lesson.id,
+                        version: lesson.version,
+                      });
+                  }}
+                >
+                  {lesson.status === "CANCELLED"
+                    ? "Восстановить"
+                    : "Отменить занятие"}
+                </button>
+                <div className="danger-zone">
+                  <h3>Удаление из расписания</h3>
+                  <p>
+                    Занятие исчезнет из списка. История и аудит сохранятся;
+                    восстановить его через интерфейс нельзя.
+                  </p>
+                  <button
+                    className="danger"
+                    disabled={busy}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Убрать занятие из расписания? Событие и аудит сохранятся, вернуть через интерфейс нельзя.",
+                        )
+                      )
+                        void mutate({
+                          action: "DELETE",
+                          id: lesson.id,
+                          version: lesson.version,
+                        });
+                    }}
+                  >
+                    Удалить занятие
+                  </button>
+                </div>
+              </section>
+            )}
+          </>
         )}
       </section>
     </div>
