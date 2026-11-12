@@ -60,7 +60,13 @@ export async function reuseSession(page: Page, email: string) {
     return false;
   }
   expect(response.status()).toBe(200);
-  await page.goto("/cabinet");
-  await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+  // STAFF /cabinet streams a redirect to /staff. Navigate directly to the
+  // seeded role's destination so a deferred redirect cannot abort the next goto.
+  const destination = email === "staff@example.test" ? "/staff" : "/cabinet";
+  await page.goto(destination);
+  await expect(page).toHaveURL(new RegExp(destination + "$"));
+  await expect(
+    page.getByRole("navigation", { name: "Разделы платформы", exact: true }),
+  ).toBeVisible();
   return true;
 }

@@ -25,6 +25,7 @@ type Preview = {
   dates: { day: string; groupCount: number; status: string }[];
   affected: { id: string; day: string }[];
   skipped: string[];
+  skippedCount: number;
   warnings: string[];
 };
 function Field({
@@ -142,8 +143,8 @@ export function BuilderMutation({
           <h3>Предпросмотр перед сохранением</h3>
           <p>
             Новых / изменяемых занятий: {preview.dates.length}. Прежних
-            затронуто: {preview.affected.length}. Пропусков:{" "}
-            {preview.skipped.length}.
+            затронуто: {preview.affected.length}. Исключённых занятий:{" "}
+            {preview.skippedCount}.
           </p>
           {preview.warnings.map((w) => (
             <p className="notice" key={w}>
@@ -753,6 +754,11 @@ export function ScheduleBuilder({
 }) {
   const [semesterId, S] = useState(initialSemester),
     [programId, P] = useState(initialProgram),
+    [facultyId, F] = useState(
+      catalog.faculties.find((f) =>
+        f.programs.some((p) => p.id === initialProgram),
+      )?.id ?? "",
+    ),
     [mode, M] = useState("ALL"),
     [groupId, G] = useState(""),
     [mobileGroup, MG] = useState(""),
@@ -766,6 +772,7 @@ export function ScheduleBuilder({
     programs = catalog.faculties.flatMap((f) =>
       f.programs.map((p) => ({
         ...p,
+        facultyId: f.id,
         label: `${f.name} / ${p.name}`,
         available: f.active && p.active,
       })),
@@ -898,9 +905,32 @@ export function ScheduleBuilder({
           </select>
         </label>
         <label>
+          Факультет
+          <select
+            required
+            value={facultyId}
+            onChange={(e) => {
+              F(e.target.value);
+              P("");
+              G("");
+              MG("");
+              invalidate();
+            }}
+          >
+            <option value="">Выберите факультет</option>
+            {catalog.faculties.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+                {!f.active ? " (неактивен)" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           Направление
           <select
             required
+            disabled={!facultyId}
             value={programId}
             onChange={(e) => {
               P(e.target.value);
@@ -910,12 +940,14 @@ export function ScheduleBuilder({
             }}
           >
             <option value="">Выберите направление</option>
-            {programs.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-                {!p.available ? " (неактивно)" : ""}
-              </option>
-            ))}
+            {programs
+              .filter((p) => p.facultyId === facultyId)
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                  {!p.available ? " (неактивно)" : ""}
+                </option>
+              ))}
           </select>
         </label>
         <label>

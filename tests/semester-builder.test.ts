@@ -674,6 +674,63 @@ it("resource lifecycle, strict university references, stale versions and student
         subjectIds: [subj],
       }),
     ).rejects.toMatchObject({ status: 403 });
+    const cancelledTemplate = await commit(
+      create({ recurrence: "ONCE", once: "2034-02-21" }),
+    );
+    const cancelled = await db.scheduleEntry.findFirstOrThrow({
+      where: { templateId: cancelledTemplate.id },
+    });
+    await commit({ action: "OCCURRENCE_CANCEL", id: cancelled.id, version: 1 });
+    const cancelledEdit = {
+      action: "OCCURRENCE_EDIT" as const,
+      id: cancelled.id,
+      version: 2,
+      day: "2034-02-21",
+      startTime: "09:00",
+      endTime: "10:30",
+      subjectId,
+      teacherId: teachers[0],
+      roomId: rooms[0],
+    };
+    for (const patch of [
+      { subjectId: subj },
+      { teacherId: teacher },
+      { roomId: room },
+    ]) {
+      expect(
+        (
+          await POST(
+            req(sh, { command: { ...cancelledEdit, ...patch }, preview: true }),
+          )
+        ).status,
+      ).toBe(400);
+    }
+    expect(
+      await db.scheduleEntry.findUniqueOrThrow({ where: { id: cancelled.id } }),
+    ).toMatchObject({
+      version: 2,
+      status: "CANCELLED",
+      subjectId,
+      teacherId: teachers[0],
+      roomId: rooms[0],
+    });
+    await commit({
+      ...cancelledEdit,
+      teacherId: teachers[1],
+      roomId: rooms[1],
+    });
+    const namedTeacher = await db.teacher.findUniqueOrThrow({
+      where: { id: teachers[1] },
+    });
+    expect(
+      await db.scheduleEntry.findUniqueOrThrow({ where: { id: cancelled.id } }),
+    ).toMatchObject({
+      version: 3,
+      status: "CANCELLED",
+      teacher: namedTeacher.name,
+      teacherId: teachers[1],
+      roomId: rooms[1],
+    });
     const t = await db.teacher.findUniqueOrThrow({
       where: { id: teachers[0] },
     });
@@ -747,4 +804,19 @@ it("resource lifecycle, strict university references, stale versions and student
     await db.subject.delete({ where: { id: subj } });
     await db.university.delete({ where: { id: foreign } });
   }
+});
+
+it("counts excluded occurrences from different templates separately while deduplicating the excluded date list", async () => {
+  const p = await preview({
+    action: "SEMESTER_EDIT",
+    id: semesterId,
+    version: 1,
+    calendar: {
+      ...calendar,
+      end: "2034-04-07",
+      exclusions: [...calendar.exclusions, ...calendar.exclusions],
+    },
+  });
+  expect(p.skipped).toEqual(["2034-02-13"]);
+  expect(p.skippedCount).toBe(3);
 });

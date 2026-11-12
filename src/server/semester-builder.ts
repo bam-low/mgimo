@@ -201,9 +201,14 @@ async function references(
   subjectId: string,
   teacherId: string | null,
   roomId: string | null,
+  requireActive = true,
 ) {
   const subject = await tx.subject.findFirst({
-    where: { id: subjectId, universityId, active: true },
+    where: {
+      id: subjectId,
+      universityId,
+      active: requireActive ? true : undefined,
+    },
   });
   if (!subject) reject("Выберите действующую дисциплину своего вуза.", 400);
   const teacher = teacherId
@@ -211,8 +216,10 @@ async function references(
         where: {
           id: teacherId,
           universityId,
-          active: true,
-          subjects: { some: { subjectId, active: true } },
+          active: requireActive ? true : undefined,
+          subjects: requireActive
+            ? { some: { subjectId, active: true } }
+            : undefined,
         },
       })
     : null;
@@ -220,7 +227,11 @@ async function references(
     reject("Преподаватель недоступен или не связан с дисциплиной.", 400);
   const room = roomId
     ? await tx.room.findFirst({
-        where: { id: roomId, universityId, active: true },
+        where: {
+          id: roomId,
+          universityId,
+          active: requireActive ? true : undefined,
+        },
       })
     : null;
   if (roomId && !room) reject("Аудитория недоступна.", 400);
@@ -855,6 +866,17 @@ export async function changeBuilder(
           );
           for (const groupId of c.groupIds)
             await validGroup(tx, groupId, universityId);
+        } else if (d.action === "OCCURRENCE_EDIT") {
+          // Cancelled history may refer to inactive resources, but never foreign
+          // identities. Preview must enforce ownership before offering a token.
+          await references(
+            tx,
+            universityId,
+            c.subjectId,
+            c.teacherId,
+            c.roomId,
+            false,
+          );
         }
         changes.push(c);
         retire.push(old);
@@ -892,6 +914,7 @@ export async function changeBuilder(
           id: e.id,
           day: dayKey(e.startsAt, zone),
         })),
+        skippedCount: skipped.length,
         skipped: [...new Set(skipped)].sort(),
         warnings,
       };
@@ -914,13 +937,14 @@ export async function changeBuilder(
       }
       for (const c of changes) {
         const display =
-          c.status === "SCHEDULED"
+          c.status === "SCHEDULED" || d.action === "OCCURRENCE_EDIT"
             ? await references(
                 tx,
                 universityId,
                 c.subjectId,
                 c.teacherId,
                 c.roomId,
+                c.status === "SCHEDULED",
               )
             : {};
         const { id: entryId, groupIds, ...fields } = c;

@@ -184,6 +184,14 @@ test("semester calendar and real shared timetable work at 360, 390 and 1280; for
   await page.goto(
     `/staff/schedule/builder?semesterId=${semester.id}&programId=${program.id}&day=2038-02-01`,
   );
+  await expect(
+    page.getByRole("combobox", { name: "Факультет", exact: true }),
+  ).toHaveValue(faculty.id);
+  await expect(
+    page
+      .getByRole("combobox", { name: "Направление", exact: true })
+      .locator("option"),
+  ).toHaveCount(faculty.programs.length + 2);
   await page
     .getByRole("button", { name: "Показать расписание", exact: true })
     .click();
@@ -395,6 +403,24 @@ test("mobile resource forms support multiple subjects, subsequent creation, rena
       exact: true,
     }),
   ).toBeVisible();
+  const roomCard = page
+    .getByRole("article")
+    .filter({
+      has: page.getByRole("heading", {
+        name: `Демо исследовательский корпус ${suffix} · 205`,
+        exact: true,
+      }),
+    });
+  await panel
+    .getByRole("checkbox", { name: "Действующая запись", exact: true })
+    .uncheck();
+  await save(form, page);
+  await expect(roomCard.getByText("Неактивен", { exact: true })).toBeVisible();
+  await panel
+    .getByRole("checkbox", { name: "Действующая запись", exact: true })
+    .check();
+  await save(form, page);
+  await expect(roomCard.getByText("Действует", { exact: true })).toBeVisible();
   await panel
     .getByRole("button", { name: "Добавить новую запись", exact: true })
     .click();
