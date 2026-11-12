@@ -11,7 +11,9 @@ import { PrismaClient } from "../src/generated/prisma/client.ts";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 if (process.env.ALLOW_DEMO_SEED !== "yes")
-  throw Error("Set ALLOW_DEMO_SEED=yes explicitly on a dedicated demo/test DB");
+  throw Error(
+    "Явно задайте ALLOW_DEMO_SEED=yes для отдельной демонстрационной или тестовой БД",
+  );
 const passwordKeys = [
   "DEMO_STAFF_PASSWORD",
   "DEMO_STUDENT1_PASSWORD",
@@ -24,11 +26,11 @@ for (const key of passwordKeys)
     process.env[key].length > 128
   )
     throw Error(
-      "Provide three strong independent seed passwords through environment",
+      "Задайте три разных надёжных демонстрационных пароля через окружение",
     );
 if (new Set(passwordKeys.map((k) => process.env[k])).size !== 3)
   throw Error(
-    "Seed passwords must be different; no existing passwords were changed",
+    "Демонстрационные пароли должны различаться; существующие пароли не изменены",
   );
 const fixtures = [
   ["staff@example.test", "Демо Сотрудник", "STAFF", 0, "DEMO_STAFF_PASSWORD"],
@@ -94,7 +96,7 @@ try {
           !membership.enrollments[0].group.active))
     )
       throw Error(
-        "Existing seed fixtures are not ready or supplied credentials differ; no credentials or permissions reset. Use the original private credentials or an explicitly approved fresh demo DB.",
+        "Демонстрационные записи или реквизиты не соответствуют конфигурации. Пароли и права не сбрасывались. Используйте исходные приватные реквизиты либо отдельно разрешённую чистую демо-БД.",
       );
   }
   await db.university.upsert({
@@ -162,7 +164,7 @@ try {
     })
   )
     throw Error(
-      "Synthetic seed structure is not ready; no existing labels or history were overwritten",
+      "Демонстрационная учебная структура не готова; существующие названия и история не перезаписаны",
     );
   for (const [email, name, role, n, key] of fixtures) {
     // Never reset passwords or reopen revoked memberships on a repeated seed.
@@ -271,12 +273,71 @@ try {
           });
         });
       }
+  // Initial applications are immutable fictional examples, never reset on seed.
+  for (const [suffix, kind] of [
+    ["001", "GENERAL_REQUEST"],
+    ["002", "STUDY_CERTIFICATE"],
+  ]) {
+    const id = `00000000-0000-4000-8000-000000043${suffix}`;
+    if (await db.application.findUnique({ where: { id } })) continue;
+    const applicant = await db.user.findUniqueOrThrow({
+      where: { email: "student1@example.test" },
+      include: { memberships: true },
+    });
+    const membershipId = applicant.memberships[0].id;
+    await db.$transaction(async (tx) => {
+      await tx.application.create({
+        data: {
+          id,
+          universityId: "demo-university",
+          membershipId,
+          submittedGroupId: "group-1",
+          submittedGroupName:
+            "Демо-факультет 1 / Демо-направление 1 / Демо-группа 1",
+          kind,
+          subject:
+            kind === "GENERAL_REQUEST"
+              ? "Демо вопрос об учебном практикуме"
+              : "Демонстрационная справка об обучении",
+          description:
+            "Вымышленный пример обращения для локального знакомства с приложением.",
+          ...(kind === "STUDY_CERTIFICATE"
+            ? { purpose: "Вымышленный студенческий клуб" }
+            : {}),
+        },
+      });
+      await tx.applicationEvent.create({
+        data: {
+          id: randomUUID(),
+          applicationId: id,
+          universityId: "demo-university",
+          actorId: applicant.id,
+          eventType: "APPLICATION_SUBMITTED",
+          toStatus: "SUBMITTED",
+          applicationVersion: 1,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: applicant.id,
+          universityId: "demo-university",
+          targetId: id,
+          action: "APPLICATION_SUBMITTED",
+          reason: JSON.stringify({
+            source: "fictional-demo-seed",
+            membershipId,
+            kind,
+          }),
+        },
+      });
+    });
+  }
   console.log(
-    "Fictional demo structure prepared; credentials were not printed.",
+    "Вымышленная демонстрационная структура подготовлена; реквизиты не выводились.",
   );
 } catch {
   console.error(
-    "Demo seed verification/preparation failed; no passwords or permissions were reset. Check the private seed configuration and dedicated demo DB.",
+    "Не удалось проверить или подготовить демо-данные; пароли и права не сбрасывались. Проверьте приватную конфигурацию seed и отдельную демо-БД.",
   );
   process.exitCode = 1;
 } finally {

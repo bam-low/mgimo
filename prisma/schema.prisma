@@ -15,6 +15,10 @@ model User {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  active Boolean @default(true)
+ applicationTaken Application[] @relation("ApplicationTaken")
+ applicationResolved Application[] @relation("ApplicationResolved")
+ applicationEvents ApplicationEvent[]
+ applicationDocuments ApplicationDocument[]
  authoredGrades Grade[]
  memberships UniversityMembership[]
  sessions Session[]
@@ -90,6 +94,7 @@ model Program {
 }
 model StudentGroup {
  version Int @default(1)
+ submittedApplications Application[]
  lessonLinks ScheduleGroup[]
  templateLinks TemplateGroup[]
  lessons ScheduleEntry[]
@@ -110,6 +115,7 @@ model UniversityMembership {
  resubmissionAllowed Boolean @default(false)
  university University @relation(fields:[universityId],references:[id])
  user User @relation(fields:[userId],references:[id])
+ applications Application[]
  profile StudentProfile?
  grades Grade[]
  requests EnrollmentRequest[]
@@ -337,4 +343,78 @@ model ScheduleGroup {
  active Boolean @default(true)
  @@id([entryId,groupId])
  @@index([groupId,active])
+}
+
+model Application {
+ id String @id
+ universityId String
+ membershipId String
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Restrict)
+ submittedGroupId String
+ submittedGroup StudentGroup @relation(fields:[submittedGroupId],references:[id],onDelete:Restrict)
+ submittedGroupName String
+ kind String
+ status String @default("SUBMITTED")
+ subject String
+ description String?
+ purpose String?
+ responseText String?
+ takenById String?
+ takenBy User? @relation("ApplicationTaken",fields:[takenById],references:[id],onDelete:Restrict)
+ takenAt DateTime? @db.Timestamptz(3)
+ resolvedById String?
+ resolvedBy User? @relation("ApplicationResolved",fields:[resolvedById],references:[id],onDelete:Restrict)
+ resolvedAt DateTime? @db.Timestamptz(3)
+ currentDocumentId String? @unique
+ currentDocument ApplicationDocument? @relation("CurrentDocument",fields:[currentDocumentId,id,universityId],references:[id,applicationId,universityId],onDelete:Restrict)
+ documents ApplicationDocument[] @relation("ApplicationDocuments")
+ events ApplicationEvent[]
+ version Int @default(1)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ updatedAt DateTime @updatedAt @db.Timestamptz(3)
+ @@unique([id,universityId])
+ @@unique([currentDocumentId,id,universityId])
+ @@index([universityId,status,kind,createdAt,id])
+ @@index([membershipId,createdAt,id])
+}
+model ApplicationDocument {
+ id String @id
+ applicationId String
+ universityId String
+ application Application @relation("ApplicationDocuments",fields:[applicationId,universityId],references:[id,universityId],onDelete:Restrict)
+ currentFor Application? @relation("CurrentDocument")
+ revision Int
+ mediaType String
+ byteSize Int
+ sha256 String
+ content Bytes
+ uploadedById String
+ uploadedBy User @relation(fields:[uploadedById],references:[id],onDelete:Restrict)
+ replacesDocumentId String? @unique
+ replaces ApplicationDocument? @relation("DocumentReplacement",fields:[replacesDocumentId,applicationId,universityId],references:[id,applicationId,universityId],onDelete:Restrict)
+ replacedBy ApplicationDocument? @relation("DocumentReplacement")
+ replacementReason String?
+ demoConfirmed Boolean
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ @@unique([id,applicationId,universityId])
+ @@unique([applicationId,revision])
+ @@unique([replacesDocumentId,applicationId,universityId])
+ @@index([universityId,applicationId])
+}
+model ApplicationEvent {
+ id String @id
+ applicationId String
+ universityId String
+ application Application @relation(fields:[applicationId,universityId],references:[id,universityId],onDelete:Restrict)
+ actorId String
+ actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+ eventType String
+ schemaVersion Int @default(1)
+ fromStatus String?
+ toStatus String?
+ publicText String?
+ documentId String?
+ applicationVersion Int
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ @@index([applicationId,createdAt,id])
 }

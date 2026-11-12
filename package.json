@@ -24,7 +24,7 @@
     "build:vercel": "node scripts/build-vercel.mjs",
     "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",
     "test:vercel-checker": "node tests/vercel-artifact.test.mjs",
-    "test:launch-tools": "node --test tests/launch-tools.test.mjs",
+    "test:launch-tools": "node --test tests/launch-tools.test.mjs tests/local-demo.test.mjs",
     "test:vercel-e2e": "playwright test --config playwright.vercel.config.ts && node scripts/test-vercel-cold-start.mjs && node scripts/verify-vercel-loads.mjs",
     "build:vercel-app": "next build --webpack && node scripts/prepare-runtime.mjs"
   },
@@ -32,10 +32,13 @@
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
     "better-auth": "1.7.17",
+    "busboy": "1.6.0",
     "next": "16.4.5",
+    "pdf-lib": "1.17.1",
     "pg": "8.23.1",
     "react": "19.2.9",
     "react-dom": "19.2.9",
+    "sharp": "0.35.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -43,6 +46,7 @@
     "@next/eslint-plugin-next": "16.4.5",
     "@playwright/test": "1.58.2",
     "@tailwindcss/postcss": "4.3.4",
+    "@types/busboy": "1.5.4",
     "@types/node": "24.19.2",
     "@types/pg": "8.15.6",
     "@types/react": "19.3.0",

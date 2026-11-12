@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
 import { platformMetadata } from "@/lib/platform";
 import "./globals.css";
+import { RussianValidation } from "./russian-validation";
 
 export const metadata: Metadata = platformMetadata;
 export const viewport: Viewport = {
@@ -16,7 +17,10 @@ export default async function RootLayout({
   await headers(); // Per-request CSP nonce must never be statically cached.
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body>
+        <RussianValidation />
+        {children}
+      </body>
     </html>
   );
 }

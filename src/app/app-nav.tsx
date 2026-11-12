@@ -20,11 +20,13 @@ export function AppNav({
           { href: "/staff/schedule", label: "Расписание", icon: "calendar" },
           { href: "/staff/grades", label: "Успеваемость", icon: "structure" },
           { href: "/staff", label: "Прикрепления", icon: "people" },
+          { href: "/staff/applications", label: "Заявки", icon: "people" },
         ]
       : [
           { href: "/today", label: "Главная", icon: "home" },
           { href: "/schedule", label: "Расписание", icon: "calendar" },
           { href: "/grades", label: "Успеваемость", icon: "structure" },
+          { href: "/applications", label: "Заявки", icon: "people" },
           { href: "/cabinet", label: "Профиль", icon: "user" },
         ];
   return (
@@ -68,14 +70,26 @@ export function AppNav({
               <Icon name={l.icon} />
               <span
                 className={
-                  l.href.endsWith("/grades") ? "nav-grades-label" : undefined
+                  l.href.endsWith("/grades") ||
+                  l.href.endsWith("/schedule") ||
+                  ["/staff", "/staff/structure"].includes(l.href)
+                    ? "nav-grades-label"
+                    : undefined
                 }
               >
-                {l.href.endsWith("/grades") ? (
+                {l.href.endsWith("/grades") ||
+                l.href.endsWith("/schedule") ||
+                ["/staff", "/staff/structure"].includes(l.href) ? (
                   <>
                     <span className="nav-label-full">{l.label}</span>
                     <span className="nav-label-short" aria-hidden="true">
-                      Оценки
+                      {l.href === "/staff"
+                        ? "Студенты"
+                        : l.href === "/staff/structure"
+                          ? "Структура"
+                          : l.href.endsWith("/schedule")
+                            ? "Пары"
+                            : "Оценки"}
                     </span>
                   </>
                 ) : (

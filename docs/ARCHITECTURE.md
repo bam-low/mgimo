@@ -202,3 +202,13 @@ Effective active проверяется по всей иерархии и в stu
 ## Реализация семестрового расписания — Issue #41
 
 PR #40/#39 принят вручную в main (`b784fb09`). В новой ветке #41 additive Semester/Teacher/Room/TeacherSubject/ScheduleTemplate/TemplateGroup/ScheduleGroup расширяют ScheduleEntry, сохраняя dated student API и старую историю. Shared occurrence — один объект с несколькими группами. Эффективные периоды правил, ручные исключения и поколения сохраняются; транзакционный university lock защищает глобальные конфликты ресурсов и commit после preview. Подробные FK/DTO/grants/границы — [SEMESTERS](SEMESTERS.md). Это не периоды Grade, не новые группы и не роль преподавателя. Production NO-GO сохраняется.
+
+## Этап 6 / Issue #43 — приложения и защищённые документы
+
+Утверждение Q1–Q8 владельцем от 12.11.2026 заменяет исторические OPEN для типов заявок и выдачи демонстрационных справок. Контракт: [APPLICATIONS.md](APPLICATIONS.md). Application принадлежит UniversityMembership; EnrollmentRequest остаётся отдельной моделью прикрепления. ApplicationDocument хранит неизменяемые BYTEA версии; ApplicationEvent — неизменяемую историю будущих публичных событий без реализации уведомлений.
+
+Аддитивная миграция сохраняет прежние учебные данные. Composite FK/CHECK и существующая immutable trigger function защищают связи/историю; новые runtime grants не разрешают DELETE заявок и UPDATE/DELETE документов/событий. Авторизация каждого чтения/скачивания ограничивает университет, роль, membership и текущий учебный доступ. Изменения дополнительно проверяют действующую Session внутри транзакции; membership/university/application locks сериализуют отзыв, optimistic version и квоты всех версий. Байты и аудит сохраняются атомарно, без публичного storage или PDF inline на origin.
+
+PDF parser (pdf-lib 1.17.1, MIT), multipart parser (busboy 1.6.0, MIT) и image decoder (sharp 0.35.5, Apache-2.0, уже использовался Next) — точные версии в lockfile. Worker изолирует парсинг, ограничивает heap/время, не получает env-секреты; нативная память sharp ограничивается также pixel/input/process limits. Внешний антивирус/OCR не заявляются. Работу Worker и зависимостей требуется доказать в каждом поддерживаемом runtime; tracing includes не отменяет artifact gates.
+
+Локальный handoff этапа 6.5: [LOCAL_DEMO.md](LOCAL_DEMO.md). Этап 7 уведомлений, полный редизайн, настоящий документ/подпись и production rollout не входят в #43.

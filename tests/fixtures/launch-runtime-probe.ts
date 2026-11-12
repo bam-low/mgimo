@@ -2,6 +2,8 @@ import { POST as gradeWrite } from "../../src/app/api/staff/grades/route";
 import { POST as subjectWrite } from "../../src/app/api/staff/subjects/route";
 import { GET as gradeRead } from "../../src/app/api/grades/route";
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { applicationHTTP } from "../../src/server/application-http";
 import { POST as structureWrite } from "../../src/app/api/staff/structure/route";
 import { POST as scheduleWrite } from "../../src/app/api/staff/schedule/route";
 import { GET as scheduleRead } from "../../src/app/api/schedule/route";
@@ -233,6 +235,96 @@ it("full server workflow runs under limited credentials, retains audit and revok
     "student1@example.test",
     process.env.DEMO_STUDENT1_PASSWORD!,
   );
+  const applicationId = randomUUID();
+  expect(
+    (
+      await applicationHTTP(
+        req(
+          "/api/applications",
+          {
+            kind: "STUDY_CERTIFICATE",
+            operationId: applicationId,
+            purpose: "Демо limited справка",
+            description: "",
+          },
+          seedCookie,
+        ),
+        "create",
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await applicationHTTP(
+        req(
+          `/api/staff/applications/${applicationId}/actions`,
+          { action: "TAKE", operationId: randomUUID(), expectedVersion: 1 },
+          staff,
+        ),
+        "action",
+        applicationId,
+        true,
+      )
+    ).status,
+  ).toBe(200);
+  const sample = await readFile("demo/documents/demo-certificate.pdf"),
+    multipart = new FormData();
+  multipart.append(
+    "metadata",
+    JSON.stringify({
+      operationId: randomUUID(),
+      expectedVersion: 2,
+      expectedCurrentDocumentId: null,
+      demoConfirmed: true,
+    }),
+  );
+  multipart.append(
+    "file",
+    new File([sample], "demo.pdf", { type: "application/pdf" }),
+  );
+  expect(
+    (
+      await applicationHTTP(
+        new Request(
+          origin + `/api/staff/applications/${applicationId}/documents`,
+          {
+            method: "POST",
+            headers: { origin, cookie: staff },
+            body: multipart,
+          },
+        ),
+        "upload",
+        applicationId,
+        true,
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await applicationHTTP(
+        req(
+          `/api/staff/applications/${applicationId}/actions`,
+          {
+            action: "COMPLETE",
+            operationId: randomUUID(),
+            expectedVersion: 3,
+            text: "Демо справка готова",
+          },
+          staff,
+        ),
+        "action",
+        applicationId,
+        true,
+      )
+    ).status,
+  ).toBe(200);
+  const delivered = await applicationHTTP(
+    req(`/api/applications/${applicationId}/document`, undefined, seedCookie),
+    "download",
+    applicationId,
+  );
+  expect(delivered.status).toBe(200);
+  expect(Buffer.from(await delivered.arrayBuffer()).equals(sample)).toBe(true);
   const gs = await subjectWrite(
     req(
       "/api/staff/subjects",

@@ -2426,3 +2426,142 @@ progress::-moz-progress-bar {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* Applications preserve the editorial palette and use real, bounded controls. */
+.application-filters {
+  display: grid;
+  gap: 14px;
+  margin: 24px 0;
+  align-items: end;
+}
+.application-card {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.application-card h2,
+.application-card h3 {
+  margin: 12px 0;
+}
+.application-card .eyebrow {
+  margin-top: 14px;
+}
+.application-list {
+  display: grid;
+  gap: 12px;
+}
+.application-list .application-card {
+  margin: 0;
+}
+.application-compose {
+  margin-top: 28px;
+}
+.application-compose fieldset,
+.application-work fieldset {
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+.application-work {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+.application-work > * {
+  min-width: 0;
+}
+.application-upload input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 12px 8px;
+}
+.application-upload .check-line {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.application-upload .check-line input {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+}
+.application-upload progress {
+  width: 100%;
+  margin-top: 16px;
+  accent-color: var(--brand);
+}
+.application-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.application-events {
+  padding-left: 24px;
+}
+.application-events li,
+.document-version {
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+}
+.application-download {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 10px 16px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+}
+@media (min-width: 900px) {
+  .application-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .application-list,
+  .application-work {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1099px) {
+  .campus-nav {
+    gap: 2px;
+    padding-inline: 4px;
+  }
+  .campus-nav > a {
+    font-size: 0.7rem;
+    padding-inline: 2px;
+  }
+}
+.application-file-choice {
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+.application-upload input.application-native-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 1099px) {
+  .campus-nav > a > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1099px) {
+  .campus-nav > a {
+    min-width: 0;
+  }
+}

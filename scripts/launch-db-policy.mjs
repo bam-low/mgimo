@@ -6,6 +6,9 @@ export const tablePolicy = {
   Program: ["SELECT", "INSERT", "UPDATE"],
   StudentGroup: ["SELECT", "INSERT", "UPDATE"],
   Subject: ["SELECT", "INSERT", "UPDATE"],
+  Application: ["SELECT", "INSERT", "UPDATE"],
+  ApplicationDocument: ["SELECT", "INSERT"],
+  ApplicationEvent: ["SELECT", "INSERT"],
   Grade: ["SELECT", "INSERT", "UPDATE"],
   Semester: ["SELECT", "INSERT", "UPDATE"],
   Teacher: ["SELECT", "INSERT", "UPDATE"],
@@ -59,14 +62,21 @@ async function schema(client) {
       funcs.rows[0].prosrc.trim() ===
         "BEGIN RAISE EXCEPTION 'Audit history is immutable'; END;",
   );
-  const triggers = await client.query(
-    `SELECT t.tgenabled,p.proname FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE t.tgrelid='public."AuditLog"'::regclass AND t.tgname='immutable_audit' AND NOT t.tgisinternal AND t.tgfoid='public.prevent_audit_mutation()'::regprocedure AND t.tgtype=27 AND t.tgqual IS NULL AND t.tgattr::text=''`,
-  );
-  requireSafe(
-    triggers.rows.length === 1 &&
-      triggers.rows[0].tgenabled === "O" &&
-      triggers.rows[0].proname === "prevent_audit_mutation",
-  );
+  for (const [table, trigger] of [
+    ["AuditLog", "immutable_audit"],
+    ["ApplicationDocument", "immutable_application_document"],
+    ["ApplicationEvent", "immutable_application_event"],
+  ]) {
+    const triggers = await client.query(
+      `SELECT t.tgenabled,p.proname FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE t.tgrelid=$1::regclass AND t.tgname=$2 AND NOT t.tgisinternal AND t.tgfoid='public.prevent_audit_mutation()'::regprocedure AND t.tgtype=27 AND t.tgqual IS NULL AND t.tgattr::text=''`,
+      ["public." + ident(table), trigger],
+    );
+    requireSafe(
+      triggers.rows.length === 1 &&
+        triggers.rows[0].tgenabled === "O" &&
+        triggers.rows[0].proname === "prevent_audit_mutation",
+    );
+  }
 }
 async function role(client) {
   const { rows } = await client.query(
