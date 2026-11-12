@@ -1,3 +1,4 @@
+import { civilDay } from "@/lib/semester";
 import { z } from "zod";
 import { db } from "./db";
 import { actor, staff, studentAccess, Denied } from "./security";
@@ -57,6 +58,11 @@ export async function changeLesson(
         : null;
     if (d.action !== "CREATE" && (!current || current.status === "DELETED"))
       throw new Denied(404);
+    if (current?.semesterId) {
+      const error = new Denied(409);
+      error.message = "Занятие семестра изменяется в конструкторе расписания.";
+      throw error;
+    }
     if (current && current.version !== (d as { version: number }).version)
       throw new Denied(409);
     const groupId =
@@ -100,7 +106,10 @@ export async function changeLesson(
       status === "SCHEDULED" &&
       (await tx.scheduleEntry.findFirst({
         where: {
-          groupId,
+          OR: [
+            { groupId, groups: { none: {} } },
+            { groups: { some: { groupId, active: true } } },
+          ],
           status: "SCHEDULED",
           id: { not: current?.id ?? "" },
           startsAt: { lt: endsAt! },
@@ -147,7 +156,7 @@ export async function readSchedule(
   const today = dayKey(new Date(), zone),
     requested = query.day ?? today;
   if (
-    !validDay(requested) ||
+    !civilDay(requested) ||
     (query.view && !["today", "week"].includes(query.view))
   )
     throw new Denied(400);
@@ -164,7 +173,10 @@ export async function readSchedule(
     to = addDays(from, query.view === "week" ? 7 : 1);
   const lessons = await db.scheduleEntry.findMany({
     where: {
-      groupId,
+      OR: [
+        { groupId, groups: { none: {} } },
+        { groups: { some: { groupId, active: true } } },
+      ],
       status: { not: "DELETED" },
       startsAt: {
         gte: localInstant(from, "00:00", zone),
@@ -182,6 +194,7 @@ export async function readSchedule(
       endsAt: true,
       status: true,
       version: true,
+      semesterId: true,
     },
   });
   if (lessons.length > 500) throw new Denied(413);

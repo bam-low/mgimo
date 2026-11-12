@@ -46,8 +46,21 @@ export async function reuseSession(page: Page, email: string) {
   } catch {
     throw Error("Cannot restore private session fixture");
   }
+  // A URL alone can briefly remain /cabinet during a streamed redirect. Verify
+  // the actual protected API before accepting a cached, genuine session.
+  const response = await page.request.get(
+    email === "staff@example.test"
+      ? "/api/staff/schedule/builder"
+      : "/api/group",
+  );
+  if (response.status() === 401) {
+    // Previous tests deliberately log sessions out. Obtain a fresh session only
+    // through normal UI sign-in; never reset limits or create auth rows.
+    await page.context().clearCookies();
+    return false;
+  }
+  expect(response.status()).toBe(200);
   await page.goto("/cabinet");
-  // The real server must still accept the stored session and current membership.
   await expect(page).toHaveURL(/\/(cabinet|staff)$/);
   return true;
 }

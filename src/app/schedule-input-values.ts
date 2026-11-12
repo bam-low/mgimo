@@ -4,12 +4,13 @@ export function displayDate(iso: string) {
     ? iso.split("-").reverse().join(".")
     : "";
 }
-export function parseDate(text: string) {
+export function parseDate(text: string, broad = false) {
   if (!/^\d{2}\.\d{2}\.\d{4}$/.test(text)) return "";
   const iso = text.split(".").reverse().join("-");
   const parsed = new Date(iso + "T12:00:00Z");
-  return iso >= "2000-01-01" &&
-    iso <= "2100-12-31" &&
+  return (broad
+    ? iso >= "0001-01-01" && iso <= "9999-12-31"
+    : iso >= "2000-01-01" && iso <= "2100-12-31") &&
     Number.isFinite(parsed.getTime()) &&
     parsed.toISOString().slice(0, 10) === iso
     ? iso

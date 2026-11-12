@@ -12,6 +12,7 @@ export function ScheduleField({
   value,
   onValueChange,
   required = false,
+  broad = false,
 }: {
   label: string;
   name?: string;
@@ -20,6 +21,7 @@ export function ScheduleField({
   value?: string;
   onValueChange?: (value: string) => void;
   required?: boolean;
+  broad?: boolean;
 }) {
   const id = useId();
   const source = value ?? defaultValue;
@@ -28,7 +30,7 @@ export function ScheduleField({
   const [picker, P] = useState(false);
   const native = useRef<HTMLInputElement>(null);
   const visible = useRef<HTMLInputElement>(null);
-  const canonical = kind === "date" ? parseDate(text) : parseTime(text);
+  const canonical = kind === "date" ? parseDate(text, broad) : parseTime(text);
   useEffect(() => {
     T(kind === "date" ? displayDate(source) : source);
   }, [source, kind]);
@@ -39,18 +41,18 @@ export function ScheduleField({
     visible.current?.setCustomValidity(
       text && !canonical
         ? kind === "date"
-          ? "Введите существующую дату ДД.ММ.ГГГГ (2000–2100)."
+          ? `Введите существующую дату ДД.ММ.ГГГГ${broad ? "." : " (2000–2100)."}`
           : "Введите время ЧЧ:ММ от 00:00 до 23:59."
         : "",
     );
-  }, [text, canonical, kind]);
+  }, [text, canonical, kind, broad]);
   function change(raw: string) {
-    const parsed = kind === "date" ? parseDate(raw) : parseTime(raw);
+    const parsed = kind === "date" ? parseDate(raw, broad) : parseTime(raw);
     // Validate in the input event, before a submit or automation can read the DOM.
     visible.current?.setCustomValidity(
       raw && !parsed
         ? kind === "date"
-          ? "Введите существующую дату ДД.ММ.ГГГГ (2000–2100)."
+          ? `Введите существующую дату ДД.ММ.ГГГГ${broad ? "." : " (2000–2100)."}`
           : "Введите время ЧЧ:ММ от 00:00 до 23:59."
         : "",
     );
@@ -80,8 +82,12 @@ export function ScheduleField({
           className="native-schedule-picker"
           type={kind}
           value={canonical}
-          min={kind === "date" ? "2000-01-01" : undefined}
-          max={kind === "date" ? "2100-12-31" : undefined}
+          min={
+            kind === "date" ? (broad ? "0001-01-01" : "2000-01-01") : undefined
+          }
+          max={
+            kind === "date" ? (broad ? "9999-12-31" : "2100-12-31") : undefined
+          }
           tabIndex={-1}
           aria-hidden="true"
           lang="ru"

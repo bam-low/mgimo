@@ -203,6 +203,7 @@ export function ScheduleView({
             </button>
           </div>
           <ScheduleField
+            broad
             label="Дата"
             value={day || data?.today || ""}
             onValueChange={(value) => {
