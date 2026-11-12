@@ -15,6 +15,37 @@ async function login(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/\/(staff|cabinet)$/);
   await rememberSession(page, email);
 }
+async function loseCommittedResponse(page: Page, pathname: string) {
+  const completion = Promise.withResolvers<void>();
+  const session = await page.context().newCDPSession(page);
+  // Pause the response, not the upload: Chromium must deliver the original
+  // multipart file bytes to the real server without interception/re-encoding.
+  session.on("Fetch.requestPaused", async (event) => {
+    try {
+      expect(event.responseStatusCode).toBe(200);
+      await session.send("Fetch.failRequest", {
+        requestId: event.requestId,
+        errorReason: "Failed",
+      });
+      await session.send("Fetch.disable");
+      await session.detach();
+      completion.resolve();
+    } catch (error) {
+      await session.detach().catch(() => {});
+      completion.reject(error);
+    }
+  });
+  await session.send("Fetch.enable", {
+    patterns: [
+      {
+        urlPattern: new URL(pathname, page.url()).href,
+        requestStage: "Response",
+      },
+    ],
+  });
+  return { committed: completion.promise };
+}
+
 test("applications: genuine certificate bytes, completion, immutable replacement and mobile workflows", async ({
   page,
   browser,
@@ -128,9 +159,24 @@ test("applications: genuine certificate bytes, completion, immutable replacement
       name: "Обработка заявки",
       exact: true,
     });
+    // Lose the response only after the genuine server transaction committed.
+    // Recovery must consult real history and allow a subsequent, new action.
+    const taken = await loseCommittedResponse(
+      staff,
+      `/api/staff/applications/${id}/actions`,
+    );
     await actions
       .getByRole("button", { name: "Применить действие", exact: true })
       .click();
+    await taken.committed;
+    await expect(actions).toContainText("Нет соединения.");
+    await actions
+      .getByRole("button", {
+        name: "Обновить карточку, сохранив ответ",
+        exact: true,
+      })
+      .click();
+    await expect(actions).toContainText("Действие подтверждено по истории.");
     await expect(actions.getByLabel("Действие", { exact: true })).toHaveValue(
       "COMMENT",
     );
@@ -173,11 +219,29 @@ test("applications: genuine certificate bytes, completion, immutable replacement
       .getByRole("button", { name: "Выбрать файл", exact: true })
       .click();
     await (await filePicker).setFiles("demo/documents/demo-certificate.pdf");
+    await expect(upload.getByRole("checkbox")).not.toBeChecked();
     await upload.getByRole("checkbox").check();
+    const uploaded = await loseCommittedResponse(
+      staff,
+      `/api/staff/applications/${id}/documents`,
+    );
     await upload
       .getByRole("button", { name: "Загрузить документ", exact: true })
       .click();
-    await expect(upload).toContainText("Документ сохранён сервером");
+    await uploaded.committed;
+    await expect(upload).toContainText("Передача прервана.");
+    expect(
+      await upload
+        .getByLabel("Демонстрационный файл", { exact: true })
+        .evaluate((input: HTMLInputElement) => input.files?.[0].size),
+    ).toBe(fixture.length);
+    await upload
+      .getByRole("button", {
+        name: "Обновить карточку, сохранив файл",
+        exact: true,
+      })
+      .click();
+    await expect(upload).toContainText("Загрузка подтверждена по истории.");
     await expect(
       staff.getByRole("link", { name: "Скачать версию 1", exact: true }),
     ).toBeVisible();
@@ -231,6 +295,7 @@ test("applications: genuine certificate bytes, completion, immutable replacement
     await upload
       .getByLabel("Демонстрационный файл", { exact: true })
       .setInputFiles("demo/documents/demo-certificate.png");
+    await expect(upload.getByRole("checkbox")).not.toBeChecked();
     await upload
       .getByLabel("Причина замены")
       .fill("Демо уточнение оформления образца справки.");

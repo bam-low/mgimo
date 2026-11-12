@@ -182,7 +182,18 @@ export function ApplicationActions({ app }: { app: Detail }) {
     [op, O] = useState(() => crypto.randomUUID()),
     m = useMutation(true);
   const chosen = allowed.includes(action) ? action : allowed[0],
-    eligible = app.applicant?.eligible;
+    eligible = app.applicant?.eligible,
+    feedback = m.error;
+  useEffect(() => {
+    // A response can disappear after COMMIT. Only authoritative history may
+    // confirm that operation and permit a new UUID; retain the user's draft.
+    if (app.events.some((event) => event.id === op)) {
+      O(crypto.randomUUID());
+      feedback(
+        "Действие подтверждено по истории. Проверьте статус и ответ перед новым действием.",
+      );
+    }
+  }, [app.events, op, feedback]);
   if (!allowed.length)
     return (
       <p className="notice">
@@ -321,6 +332,14 @@ export function ApplicationUpload({ app }: { app: Detail }) {
     },
     [],
   );
+  useEffect(() => {
+    if (app.documents.some((document) => document.id === op)) {
+      O(crypto.randomUUID());
+      M(
+        "Загрузка подтверждена по истории. Проверьте текущую версию; выбранный файл сохранён в форме.",
+      );
+    }
+  }, [app.documents, op]);
   if (
     app.kind !== "STUDY_CERTIFICATE" ||
     !["IN_PROGRESS", "COMPLETED"].includes(app.status)
@@ -427,6 +446,7 @@ export function ApplicationUpload({ app }: { app: Detail }) {
               accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
               onChange={(e) => {
                 F(e.target.files?.[0] ?? null);
+                D(false);
                 P(0);
                 M("");
               }}
