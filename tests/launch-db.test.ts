@@ -97,6 +97,11 @@ it("limited role cannot delete structure/history, read migrations, DDL, escalate
     'DELETE FROM "ScheduleEntry"',
     'DELETE FROM "Subject"',
     'DELETE FROM "Grade"',
+    'DELETE FROM "Application"',
+    'DELETE FROM "ApplicationDocument"',
+    'DELETE FROM "ApplicationEvent"',
+    'UPDATE "ApplicationDocument" SET "sha256"="sha256"',
+    'UPDATE "ApplicationEvent" SET "eventType"="eventType"',
     'DELETE FROM "Semester"',
     'DELETE FROM "Teacher"',
     'DELETE FROM "Room"',
@@ -158,6 +163,9 @@ it("privilege audit fails closed on column grants, grant options, role membershi
     "GRANT CREATE ON SCHEMA pg_catalog TO campus_runtime",
     "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO PUBLIC",
     'ALTER TABLE "AuditLog" DISABLE TRIGGER immutable_audit',
+    'ALTER TABLE "ApplicationDocument" DISABLE TRIGGER immutable_application_document',
+    'ALTER TABLE "ApplicationEvent" DISABLE TRIGGER immutable_application_event',
+    'GRANT UPDATE ON "ApplicationDocument" TO campus_runtime',
     "CREATE TABLE public.unexpected_probe(id text)",
   ]) {
     await admin.query("BEGIN");

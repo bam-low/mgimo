@@ -64,6 +64,12 @@ server {{
  # HSTS intentionally absent until real certificate/renewal/access verification.
 }}
 '''
+# Keep the exact same closed ingress gates in the one larger upload location.
+start = text.index(' location / {', text.index(' client_max_body_size 16k;'))
+end = text.index('\n }', start) + len('\n }')
+common = text[start:end]
+upload = common.replace(' location / {', r' location ~ "^/api/staff/applications/[0-9a-fA-F-]{36}/documents$" {' + '\n  client_max_body_size 3136k;', 1)
+text = text[:start] + upload + '\n' + text[start:]
 with Path(a.output).open('x', encoding='utf-8') as f:
     f.write(text)
 print('PASS closed Nginx configuration written; no reload/deploy performed')

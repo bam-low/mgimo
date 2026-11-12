@@ -11,6 +11,7 @@ import {
 import { changeLesson, readSchedule } from "../src/server/schedule";
 import { POST, GET } from "../src/app/api/staff/schedule/builder/route";
 import type { Calendar, Rule } from "../src/lib/semester";
+import { dayKey } from "../src/lib/schedule-time";
 if (!new URL(process.env.DATABASE_URL!).pathname.endsWith("_test"))
   throw Error("Isolated test DB required");
 const uni = "demo-university",
@@ -381,7 +382,7 @@ it("future regeneration preserves past, moved single slots and manual cancellati
     future = all.filter((e) => e.startsAt > new Date());
   const moved = future[0],
     canceled = future[1];
-  const day = moved.startsAt.toISOString().slice(0, 10);
+  const day = dayKey(moved.startsAt, "Europe/Moscow");
   await commit({
     action: "OCCURRENCE_EDIT",
     id: moved.id,
@@ -398,7 +399,7 @@ it("future regeneration preserves past, moved single slots and manual cancellati
     action: "TEMPLATE_FUTURE",
     id: p.id,
     version: 1,
-    from: new Date().toISOString().slice(0, 10),
+    from: dayKey(new Date(), "Europe/Moscow"),
     rule: {
       ...rule,
       groupIds: [groups[2]],

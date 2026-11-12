@@ -150,3 +150,13 @@ Production NO-GO2app/8tools HIGH и реальные host/cloud gates сохра
 **APPROVED уточнение в чате:** изменение семестра, делающее активное ручное будущее занятие недопустимым, блокируется до его явного переноса/отмены сотрудником. Прошедшие занятия сохраняются. Это ответ владельца на конкретный вопрос, а не предположение ИИ.
 
 **IMPLEMENTED для ревью:** [периоды правил, поколения, совместимость, API и ограничения](SEMESTERS.md). Одно занятие использует ScheduleEntry, связи ScheduleGroup; старые teacher/room строки не склеиваются автоматически. Название/пояснение не регенерирует даты. Подтверждение привязано к плану, конфликт перепроверяется под тем же university lock; без новых функций PostgreSQL или расширения runtime DELETE. Один Draft PR; без merge/deploy и без снятия production NO-GO.
+
+## A43 — заявки и вымышленные справки (APPROVED, 12.11.2026)
+
+Источник: последняя секция [Issue #43](https://github.com/bam-low/mgimo/issues/43), явное утверждение владельцем Q1–Q8 и GO на реализацию. Приоритет над историческими PROPOSED.
+
+Два типа GENERAL_REQUEST/STUDY_CERTIFICATE; SUBMITTED → IN_PROGRESS → COMPLETED/REJECTED с ранним мотивированным отказом, без student edit/cancel/reopen. История принадлежит UniversityMembership и переживает перевод. Отзыв закрывает студенту все защищённые действия; STAFF видит историю и может только отклонить открытый кейс до восстановления доступа.
+
+Документы — PostgreSQL BYTEA, PDF/JPEG/PNG ≤3 МиБ, пять immutable versions; 30 МиБ membership/300 МиБ university **суммой всех сохранённых версий**. COMPLETED справки требует файл; completed replacement атомарна, с причиной и аудитом, статус не меняется. STUDENT — только current completed; STAFF — история. Только вымышленные маркированные образцы, обязательная визуальная проверка сотрудником; attachment download, без inline PDF/OCR/генерации/подписи. Подробности БД/API/ограничений: [APPLICATIONS.md](APPLICATIONS.md).
+
+Это разрешение функциональной разработки, без merge/auto-merge/deploy. Один Draft PR и ручная приёмка. Production NO-GO сохраняется; после этапа 6 — локальный UX-аудит 6.5, затем отдельно уведомления 7.

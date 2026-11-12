@@ -39,6 +39,16 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   assert.match(text, /X-Campus-Client-IP \$remote_addr/);
   assert.match(text, /ssl_reject_handshake on/);
   assert.match(text, /proxy_pass http:\/\/127.0.0.1:3000/);
+  assert.match(text, /client_max_body_size 16k;/);
+  const upload = text.match(
+    / location ~ "\^\/api\/staff\/applications\/\[0-9a-fA-F-\]\{36\}\/documents\$" \{([\s\S]*?)\n \}/,
+  )?.[1];
+  assert.ok(upload);
+  assert.match(upload, /client_max_body_size 3136k;/);
+  assert.match(upload, /auth_basic_user_file/);
+  assert.match(upload, /limit_req zone=campus_edge/);
+  assert.match(upload, /proxy_set_header X-Campus-Client-IP \$remote_addr/);
+  assert.equal((text.match(/client_max_body_size 3136k;/g) ?? []).length, 1);
   assert.notEqual(
     spawnSync("python3", [
       "ops/vps/render_nginx.py",

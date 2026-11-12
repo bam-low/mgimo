@@ -105,7 +105,7 @@ export async function actor(headers: Headers) {
   if (!user?.active || user.memberships.length !== 1) throw new Denied();
   const membership = user.memberships[0];
   if (!membership.university.active) throw new Denied();
-  return { user, membership };
+  return { user, membership, sessionId: session.session.id };
 }
 export function staff(a: Awaited<ReturnType<typeof actor>>) {
   if (a.membership.role !== "STAFF" || a.membership.status !== "APPROVED")

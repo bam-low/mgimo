@@ -1,7 +1,7 @@
 import { runtimeTestEnv } from "./runtime-test-env.mjs";
 import { URL } from "node:url";
 // Restart real generated auth/group Functions; prove database session continuity.
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import { fork } from "node:child_process";
 import { setTimeout, clearTimeout } from "node:timers";
 import path from "node:path";
@@ -13,11 +13,17 @@ if (
   !new URL(process.env.DATABASE_URL).pathname.endsWith("_test") ||
   !process.env.DEMO_STUDENT1_PASSWORD
 )
-  throw Error("Dedicated seeded *_test DB required");
+  throw Error(
+    "Требуется отдельная заполненная демо-данными БД с суффиксом _test",
+  );
 const root = (
   await readFile(".runtime-evidence/vercel-root.txt", "utf8")
 ).trim();
-const entry = path.join(root, "functions/api/auth/[...all].func");
+// Vercel may coalesce auth with another API Function. Keep the containment
+// guard strict by passing the canonical artifact directory, not its alias.
+const entry = await realpath(
+  path.join(root, "functions/api/auth/[...all].func"),
+);
 let child;
 async function start() {
   child = fork(path.resolve("scripts/vercel-function-worker.mjs"), [entry], {
@@ -32,19 +38,24 @@ async function start() {
     },
   });
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(Error("Cold-start timeout")), 15000);
+    const timer = setTimeout(
+      () => reject(Error("Истекло время ожидания холодного старта Functions")),
+      15000,
+    );
     child.once("message", ({ port }) => {
       clearTimeout(timer);
       resolve(port);
     });
     child.once("exit", () => {
       clearTimeout(timer);
-      reject(Error("Cold-start worker exited"));
+      reject(Error("Процесс Functions завершился до запуска"));
     });
   });
 }
 async function stop() {
   const current = child;
+  if (!current || current.exitCode !== null || current.signalCode !== null)
+    return;
   await new Promise((resolve) => {
     current.once("exit", resolve);
     current.kill("SIGTERM");
@@ -113,7 +124,7 @@ try {
     401,
   );
   console.log(
-    "PASS generated Function cold-start/restart: DB session persists, foreign group denied, logout revokes next request.",
+    "ПРОЙДЕНО: холодный старт и перезапуск Functions сохраняют сессию в БД; чужая группа закрыта, выход отзывает доступ к следующему запросу.",
   );
 } finally {
   if (child && !child.killed) await stop();

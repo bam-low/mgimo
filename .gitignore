@@ -16,3 +16,5 @@ test-results/
 test-results-vercel/
 
 ops/vps/__pycache__/
+
+.local-demo/

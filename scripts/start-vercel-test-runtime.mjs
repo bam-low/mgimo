@@ -73,7 +73,9 @@ const server = createServer(async (req, res) => {
         url.pathname.startsWith(prefix),
       )
     ) {
-      const file = await realpath(path.join(root, "static", url.pathname));
+      const file = await realpath(
+        path.join(root, "static", decodeURIComponent(url.pathname)),
+      );
       if (!file.startsWith(path.join(root, "static") + path.sep))
         throw Error("Static escape");
       res.setHeader(
@@ -95,6 +97,8 @@ const server = createServer(async (req, res) => {
     // not the external platform's actual overwrite guarantee (manual launch gate).
     req.headers["x-vercel-forwarded-for"] = req.socket.remoteAddress;
     delete req.headers["x-forwarded-for"];
+    delete req.headers["x-now-route-matches"];
+    delete req.headers["x-matched-path"];
     const mh = { ...req.headers };
     delete mh["content-length"];
     delete mh["transfer-encoding"];
@@ -119,12 +123,37 @@ const server = createServer(async (req, res) => {
       )
         for (const [name, value] of Object.entries(route.headers))
           res.setHeader(name, value);
-    const entry = url.pathname.startsWith("/api/auth/")
+    let entry = url.pathname.startsWith("/api/auth/")
       ? "api/auth/[...all].func"
       : url.pathname === "/"
         ? "index.func"
         : url.pathname.slice(1) + ".func";
-    const target = await realpath(path.join(root, "functions", entry));
+    let target;
+    try {
+      target = await realpath(path.join(root, "functions", entry));
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      // Generated dynamic rewrites are part of the Build Output API. Keep the
+      // actual handler untouched and choose its generated alias from config.
+      // The unmodified, coalesced Next handler resolves params from the original
+      // public URL. This local harness does not emulate hosted ingress headers.
+      const rewrite = (output.routes ?? []).find(
+        (route) =>
+          route.dest?.includes("[") &&
+          !route.has &&
+          new RegExp(route.src).test(url.pathname),
+      );
+      if (!rewrite) throw error;
+      const matched = new RegExp(rewrite.src).exec(url.pathname);
+      const destination = rewrite.dest.replace(
+        /\$([A-Za-z][A-Za-z0-9]*|\d+)/g,
+        (_, name) => matched.groups?.[name] ?? matched[Number(name)] ?? "",
+      );
+      const routed = new URL(destination, "http://local.invalid");
+      entry = decodeURIComponent(routed.pathname).slice(1) + ".func";
+      target = await realpath(path.join(root, "functions", entry));
+      req.headers["x-matched-path"] = decodeURIComponent(routed.pathname);
+    }
     const port = workers.get(target);
     if (!port) throw Error("Unknown output function");
     const upstream = httpRequest(
@@ -144,16 +173,18 @@ const server = createServer(async (req, res) => {
     );
     upstream.on("error", () => {
       res.statusCode = 500;
-      res.end("Local function proxy failed");
+      res.end("Ошибка локального прокси Functions");
     });
     req.pipe(upstream);
   } catch {
     res.statusCode = 500;
-    res.end("Local Vercel harness failed");
+    res.end("Ошибка локального тестового маршрутизатора Vercel");
   }
 });
 server.listen(3000, "127.0.0.1", () =>
-  console.log("Isolated Vercel test harness ready (not a public ingress)"),
+  console.log(
+    "Изолированный тестовый маршрутизатор Vercel готов; публичный доступ не включён",
+  ),
 );
 for (const signal of ["SIGTERM", "SIGINT"])
   process.on(signal, () => {

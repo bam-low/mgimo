@@ -51,3 +51,9 @@ Foundation #27 вручную merged в #28. Физическая схема т�
 PR #40 вручную merged в main `b784fb09`, #39 закрыта. Новая feature-ветка от актуальной main реализует [семестры и конструктор](SEMESTERS.md), переиспользует Subject и ScheduleEntry. Все future-generation изменения сохраняют ручные слоты/отмены и прошлое; правила имеют периоды действия. Нельзя регенерировать активное ручное занятие за пределами нового календаря: подтверждённый владельцем безопасный отказ. Новые таблицы одновременно включены в точную SQL policy, negative grants и restore counts. Точные CI/скриншоты — в Draft PR после фактических проверок. Исторические разделы выше остаются baseline прежних Issues; production NO-GO не снят.
 
 Локальная приёмка #41: 15 unit / 62 PostgreSQL integration / 14 standalone E2E / 15 Functions E2E и cold-start/restart / 14 HTTPS VPS E2E + encrypted fresh restore. [Галерея 360/390/1280](screenshots/issue-41/README.md). 0 CRITICAL/fixable HIGH, 6 unfixed HIGH tools сохраняют production NO-GO. Актуальные CI/SHA — [Draft PR #42](https://github.com/bam-low/mgimo/pull/42), ручное принятие ещё требуется. Следующий scope — заявки/вымышленные справки, затем утверждённый владельцем локальный визуальный/UX-аудит 6.5, затем уведомления; не начинать автоматически.
+
+## Handoff этапа 6 / Issue #43
+
+Контракт заявок/защищённых документов: [APPLICATIONS.md](APPLICATIONS.md). Утверждённые Q1–Q8 реализуются в отдельной feature-ветке от main после ручного merge #42; финальное свидетельство runtime/tests/скриншотов — в одном Draft PR. До завершения CI результаты не считать зелёными.
+
+Локальный маршрут владельца к этапу 6.5: [LOCAL_DEMO.md](LOCAL_DEMO.md), реальные образцы вне public в [demo/documents](../demo/documents/README.md). Сохранить все версии/bytes/events/audit в backup, сравнить скачанный файл после restore. Сам UX-аудит владельцем и этап 7 здесь не выполнены. Production NO-GO и ручное принятие сохраняются.
