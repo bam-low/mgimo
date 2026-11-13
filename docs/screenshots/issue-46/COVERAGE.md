@@ -45,12 +45,14 @@
 | home | Сотрудник | 1280 | Очередь и подтверждённые студенты | экран 900 px | [PNG](png/staff-home-1280-viewport.png) |
 | structure | Сотрудник | 360 | Факультеты, направления и группы | экран 900 px | [PNG](png/staff-structure-360-viewport.png) |
 | structure | Сотрудник | 1280 | Факультеты, направления и группы | экран 900 px | [PNG](png/staff-structure-1280-viewport.png) |
-| semesters | Сотрудник | 360 | Учебные семестры и календарь | экран 900 px | [PNG](png/staff-semesters-360-viewport.png) |
-| semesters | Сотрудник | 1280 | Учебные семестры и календарь | экран 900 px | [PNG](png/staff-semesters-1280-viewport.png) |
 | grades | Сотрудник | 360 | Выбор студента и дисциплины | экран 900 px | [PNG](png/staff-grades-360-viewport.png) |
 | grades | Сотрудник | 1280 | Выбор студента и дисциплины | экран 900 px | [PNG](png/staff-grades-1280-viewport.png) |
 | applications | Сотрудник | 360 | Обработка и фильтры заявок | экран 900 px | [PNG](png/staff-applications-360-viewport.png) |
 | applications | Сотрудник | 1280 | Обработка и фильтры заявок | экран 900 px | [PNG](png/staff-applications-1280-viewport.png) |
+| certificate-history | Сотрудник | 360 | Справка: загрузка, замена и история версий | экран 900 px | [PNG](png/staff-certificate-history-360-viewport.png) |
+| certificate-history | Сотрудник | 1280 | Справка: загрузка, замена и история версий | экран 900 px | [PNG](png/staff-certificate-history-1280-viewport.png) |
+| semesters | Сотрудник | 360 | Учебные семестры и календарь | экран 900 px | [PNG](png/staff-semesters-360-viewport.png) |
+| semesters | Сотрудник | 1280 | Учебные семестры и календарь | экран 900 px | [PNG](png/staff-semesters-1280-viewport.png) |
 | resources | Сотрудник | 360 | Преподаватели и аудитории | экран 900 px | [PNG](png/staff-resources-360-viewport.png) |
 | resources | Сотрудник | 1280 | Преподаватели и аудитории | экран 900 px | [PNG](png/staff-resources-1280-viewport.png) |
 | schedule | Сотрудник | 360 | Расписание: сетка и редактор | экран 900 px | [PNG](png/staff-schedule-360-viewport.png) |
@@ -63,8 +65,6 @@
 | builder | Сотрудник | 768 | Конструктор: фильтры и загруженная сетка | экран 900 px | [PNG](png/staff-builder-768-viewport.png) |
 | builder | Сотрудник | 1280 | Конструктор: фильтры и загруженная сетка | экран 900 px | [PNG](png/staff-builder-1280-viewport.png) |
 | shared-lecture | Сотрудник | 360 | Общая лекция: мобильный список | экран 900 px | [PNG](png/staff-shared-lecture-360-viewport.png) |
-| certificate-history | Сотрудник | 360 | Справка: загрузка, замена и история версий | экран 900 px | [PNG](png/staff-certificate-history-360-viewport.png) |
-| certificate-history | Сотрудник | 1280 | Справка: загрузка, замена и история версий | экран 900 px | [PNG](png/staff-certificate-history-1280-viewport.png) |
+| builder-one | Сотрудник | 360 | Одна группа: подробный редактор занятия | экран 900 px | [PNG](png/staff-builder-one-360-viewport.png) |
 | ab-calendar | Сотрудник | 360 | Числитель, знаменатель и исключённые даты | экран 900 px | [PNG](png/staff-ab-calendar-360-viewport.png) |
 | ab-calendar | Сотрудник | 1280 | Числитель, знаменатель и исключённые даты | экран 900 px | [PNG](png/staff-ab-calendar-1280-viewport.png) |
-| builder-one | Сотрудник | 360 | Одна группа: подробный редактор занятия | экран 900 px | [PNG](png/staff-builder-one-360-viewport.png) |

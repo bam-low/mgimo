@@ -3343,3 +3343,65 @@ textarea:focus {
     top: 22px;
   }
 }
+
+/* Owner review: distinct white work areas in the staff timetable. */
+.staff-schedule-page .editorial-heading,
+.staff-schedule-page .semester-links,
+.staff-schedule-page .schedule-controls,
+.staff-schedule-page .timetable-panel {
+  background: var(--card);
+  border: 1px solid #ece6df;
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.staff-schedule-page .editorial-heading {
+  margin-top: 12px;
+}
+.staff-schedule-page .semester-links {
+  gap: 8px;
+}
+.staff-schedule-page .semester-links a {
+  background: var(--paper);
+}
+.staff-schedule-page .semester-links a:hover {
+  background: var(--rose);
+}
+.staff-schedule-page .timetable-panel {
+  padding: 16px 10px;
+}
+.staff-schedule-page .timetable td {
+  border: 5px solid var(--card);
+  background: #f7f4ee;
+}
+.staff-schedule-page .timetable .slot-time {
+  background: #f0ece6;
+}
+.staff-schedule-page .timetable thead th {
+  border-bottom: 8px solid var(--card);
+}
+.staff-schedule-page .timetable thead th.is-today {
+  background: #fbe4e9;
+}
+.staff-schedule-page .mobile-timetable-day {
+  background: var(--card);
+  border: 1px solid #ece6df;
+  border-radius: 10px;
+  padding: 14px;
+  margin-block: 12px;
+}
+.staff-schedule-page .timetable-panel .mobile-timetable-day {
+  background: var(--card);
+  border-color: #ece6df;
+}
+.staff-schedule-page .program-desktop {
+  background: var(--card);
+  border: 1px solid #ece6df;
+  border-radius: var(--radius);
+  padding: 14px;
+}
+@media (min-width: 900px) {
+  .staff-schedule-page .editorial-heading,
+  .staff-schedule-page .semester-links {
+    padding: 20px 24px;
+  }
+}

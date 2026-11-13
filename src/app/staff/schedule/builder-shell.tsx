@@ -23,7 +23,7 @@ export function BuilderShell({
   children: ReactNode;
 }) {
   return (
-    <main className="campus-shell">
+    <main className="campus-shell staff-schedule-page">
       <AppNav role="STAFF" active="/staff/schedule" />
       <Workspace>
         <div className="account-line">

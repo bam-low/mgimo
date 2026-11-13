@@ -40,12 +40,14 @@ home,Сотрудник,Студенты,360,Очередь и подтверж�
 home,Сотрудник,Студенты,1280,Очередь и подтверждённые студенты,viewport,png/staff-home-1280-viewport.png
 structure,Сотрудник,Структура,360,"Факультеты, направления и группы",viewport,png/staff-structure-360-viewport.png
 structure,Сотрудник,Структура,1280,"Факультеты, направления и группы",viewport,png/staff-structure-1280-viewport.png
-semesters,Сотрудник,Семестр,360,Учебные семестры и календарь,viewport,png/staff-semesters-360-viewport.png
-semesters,Сотрудник,Семестр,1280,Учебные семестры и календарь,viewport,png/staff-semesters-1280-viewport.png
 grades,Сотрудник,Успеваемость,360,Выбор студента и дисциплины,viewport,png/staff-grades-360-viewport.png
 grades,Сотрудник,Успеваемость,1280,Выбор студента и дисциплины,viewport,png/staff-grades-1280-viewport.png
 applications,Сотрудник,Заявки,360,Обработка и фильтры заявок,viewport,png/staff-applications-360-viewport.png
 applications,Сотрудник,Заявки,1280,Обработка и фильтры заявок,viewport,png/staff-applications-1280-viewport.png
+certificate-history,Сотрудник,Справки,360,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-360-viewport.png
+certificate-history,Сотрудник,Справки,1280,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-1280-viewport.png
+semesters,Сотрудник,Семестр,360,Учебные семестры и календарь,viewport,png/staff-semesters-360-viewport.png
+semesters,Сотрудник,Семестр,1280,Учебные семестры и календарь,viewport,png/staff-semesters-1280-viewport.png
 resources,Сотрудник,Справочники,360,Преподаватели и аудитории,viewport,png/staff-resources-360-viewport.png
 resources,Сотрудник,Справочники,1280,Преподаватели и аудитории,viewport,png/staff-resources-1280-viewport.png
 schedule,Сотрудник,Расписание,360,Расписание: сетка и редактор,viewport,png/staff-schedule-360-viewport.png
@@ -58,8 +60,6 @@ builder,Сотрудник,Конструктор,390,Конструктор: ф
 builder,Сотрудник,Конструктор,768,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-768-viewport.png
 builder,Сотрудник,Конструктор,1280,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-1280-viewport.png
 shared-lecture,Сотрудник,Конструктор,360,Общая лекция: мобильный список,viewport,png/staff-shared-lecture-360-viewport.png
-certificate-history,Сотрудник,Справки,360,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-360-viewport.png
-certificate-history,Сотрудник,Справки,1280,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-1280-viewport.png
+builder-one,Сотрудник,Конструктор,360,Одна группа: подробный редактор занятия,viewport,png/staff-builder-one-360-viewport.png
 ab-calendar,Сотрудник,Семестр,360,"Числитель, знаменатель и исключённые даты",viewport,png/staff-ab-calendar-360-viewport.png
 ab-calendar,Сотрудник,Семестр,1280,"Числитель, знаменатель и исключённые даты",viewport,png/staff-ab-calendar-1280-viewport.png
-builder-one,Сотрудник,Конструктор,360,Одна группа: подробный редактор занятия,viewport,png/staff-builder-one-360-viewport.png

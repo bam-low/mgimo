@@ -36,9 +36,9 @@
     "format": "full-page",
     "file": "png/staff-schedule-selected-1280-full.png",
     "clock": "2026-11-16T06:30:00.000Z",
-    "sha256": "47498e06fcf9f99ab75182dafe4696b227a3e12dcfa1b4ffe043a8831f6df697",
     "imageWidth": 1280,
-    "imageHeight": 1750
+    "imageHeight": 1845,
+    "sha256": "2a7c00454035d97b5fb1787e10e2955bf31dfe4d4c2dc787390ee551e0800ab7"
   },
   {
     "id": "login",
@@ -936,56 +936,6 @@
     "imageHeight": 900
   },
   {
-    "id": "semesters",
-    "title": "Учебные семестры и календарь",
-    "role": "staff",
-    "section": "Семестр",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-semesters-360-viewport.png",
-    "url": "/staff/schedule/semesters",
-    "clock": "2026-11-16T06:30:10.249Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 1580
-      }
-    },
-    "sha256": "3f435446ae443a3d7b96d7a01d199c5c70af087bda213cb424a4d69fea35a6db",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
-    "id": "semesters",
-    "title": "Учебные семестры и календарь",
-    "role": "staff",
-    "section": "Семестр",
-    "width": 1280,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-semesters-1280-viewport.png",
-    "url": "/staff/schedule/semesters",
-    "clock": "2026-11-16T06:30:10.355Z",
-    "metric": {
-      "viewport": 1280,
-      "document": 1280,
-      "workspace": {
-        "client": 1000,
-        "scroll": 1000,
-        "height": 1150,
-        "content": 1150
-      }
-    },
-    "sha256": "3ab6648056f35d23cc7cf96e34b45863a4bc9b3449e4aa4a26cfd2ec686c7b77",
-    "imageWidth": 1280,
-    "imageHeight": 900
-  },
-  {
     "id": "grades",
     "title": "Выбор студента и дисциплины",
     "role": "staff",
@@ -1086,306 +1036,6 @@
     "imageHeight": 900
   },
   {
-    "id": "resources",
-    "title": "Преподаватели и аудитории",
-    "role": "staff",
-    "section": "Справочники",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-resources-360-viewport.png",
-    "url": "/staff/schedule/resources",
-    "clock": "2026-11-16T06:30:12.369Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 1212
-      }
-    },
-    "sha256": "23eb246c10a8439ac41b00e5bc4979feec6507edfaa51ad92d52b6590d57b1c8",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
-    "id": "resources",
-    "title": "Преподаватели и аудитории",
-    "role": "staff",
-    "section": "Справочники",
-    "width": 1280,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-resources-1280-viewport.png",
-    "url": "/staff/schedule/resources",
-    "clock": "2026-11-16T06:30:12.455Z",
-    "metric": {
-      "viewport": 1280,
-      "document": 1280,
-      "workspace": {
-        "client": 1000,
-        "scroll": 1000,
-        "height": 756,
-        "content": 756
-      }
-    },
-    "sha256": "c122dcd57fc2c561e70c1c6f9cb6f338549d76a0c63f7686c49e34048db34bef",
-    "imageWidth": 1280,
-    "imageHeight": 900
-  },
-  {
-    "id": "schedule",
-    "title": "Расписание: сетка и редактор",
-    "role": "staff",
-    "section": "Расписание",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-schedule-360-viewport.png",
-    "url": "/staff/schedule?day=2026-11-16",
-    "clock": "2026-11-16T06:30:12.966Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 2878
-      }
-    },
-    "sha256": "c3b77ba08ec10a42c4c37ba74343482da8d30f9e3b28cf76e037110c35c9e67b",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
-    "id": "schedule",
-    "title": "Расписание: сетка и редактор",
-    "role": "staff",
-    "section": "Расписание",
-    "width": 390,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-schedule-390-viewport.png",
-    "url": "/staff/schedule?day=2026-11-16",
-    "clock": "2026-11-16T06:30:13.017Z",
-    "metric": {
-      "viewport": 390,
-      "document": 390,
-      "workspace": {
-        "client": 390,
-        "scroll": 390,
-        "height": 725,
-        "content": 2759
-      }
-    },
-    "sha256": "228556049561aa282edb5070ae8962e381eb8e50a1cf8de52a7284e43df79879",
-    "imageWidth": 390,
-    "imageHeight": 900
-  },
-  {
-    "id": "schedule",
-    "title": "Расписание: сетка и редактор",
-    "role": "staff",
-    "section": "Расписание",
-    "width": 768,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-schedule-768-viewport.png",
-    "url": "/staff/schedule?day=2026-11-16",
-    "clock": "2026-11-16T06:30:13.110Z",
-    "metric": {
-      "viewport": 768,
-      "document": 768,
-      "workspace": {
-        "client": 768,
-        "scroll": 768,
-        "height": 725,
-        "content": 2266
-      }
-    },
-    "sha256": "13df007c463e2890c69e59821d84290f2234045dbbe10a8c3eabf0a56a0c4059",
-    "imageWidth": 768,
-    "imageHeight": 900
-  },
-  {
-    "id": "schedule",
-    "title": "Расписание: сетка и редактор",
-    "role": "staff",
-    "section": "Расписание",
-    "width": 1280,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-schedule-1280-viewport.png",
-    "url": "/staff/schedule?day=2026-11-16",
-    "clock": "2026-11-16T06:30:13.206Z",
-    "metric": {
-      "viewport": 1280,
-      "document": 1280,
-      "workspace": {
-        "client": 1000,
-        "scroll": 1000,
-        "height": 1645,
-        "content": 1645
-      }
-    },
-    "sha256": "eb2f1406fd49e845fd3b40d77810c299d338f99c47616338ac40e9b4bd1088c6",
-    "imageWidth": 1280,
-    "imageHeight": 900
-  },
-  {
-    "id": "lesson-edit",
-    "title": "Редактирование занятия на мобильном",
-    "role": "staff",
-    "section": "Расписание",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-lesson-edit-360-viewport.png",
-    "url": "/staff/schedule?day=2026-11-16",
-    "clock": "2026-11-16T06:30:13.545Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 3307
-      }
-    },
-    "sha256": "4a57fc3f8922d480eb99a6b914165850030d91365e7be1ee4e00b4f79af4db9c",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
-    "id": "builder",
-    "title": "Конструктор: фильтры и загруженная сетка",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-builder-360-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:14.422Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 3289
-      }
-    },
-    "sha256": "1010f9059974d193034d50991c540959d408afb01b127a99dc080f0245e80a0a",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
-    "id": "builder",
-    "title": "Конструктор: фильтры и загруженная сетка",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 390,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-builder-390-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:14.522Z",
-    "metric": {
-      "viewport": 390,
-      "document": 390,
-      "workspace": {
-        "client": 390,
-        "scroll": 390,
-        "height": 725,
-        "content": 3210
-      }
-    },
-    "sha256": "4c14bea7a96ae359f7684dd99c3597729e85010056e598e7d773014234fdd436",
-    "imageWidth": 390,
-    "imageHeight": 900
-  },
-  {
-    "id": "builder",
-    "title": "Конструктор: фильтры и загруженная сетка",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 768,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-builder-768-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:14.608Z",
-    "metric": {
-      "viewport": 768,
-      "document": 768,
-      "workspace": {
-        "client": 768,
-        "scroll": 768,
-        "height": 725,
-        "content": 2981
-      }
-    },
-    "sha256": "d82d4e9cd8ddc216ee6bd28733c253c9bda0a2deb8ecea1ccc5439b79cace6bd",
-    "imageWidth": 768,
-    "imageHeight": 900
-  },
-  {
-    "id": "builder",
-    "title": "Конструктор: фильтры и загруженная сетка",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 1280,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-builder-1280-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:14.731Z",
-    "metric": {
-      "viewport": 1280,
-      "document": 1280,
-      "workspace": {
-        "client": 1000,
-        "scroll": 1000,
-        "height": 2339,
-        "content": 2339
-      }
-    },
-    "sha256": "b5961f87c428f77529530dde0dd59126dc338fb326ebaafa527d4599c858a88c",
-    "imageWidth": 1280,
-    "imageHeight": 900
-  },
-  {
-    "id": "shared-lecture",
-    "title": "Общая лекция: мобильный список",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-shared-lecture-360-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:14.841Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 3481
-      }
-    },
-    "sha256": "3c9580802f11cf8a3b36a14a81d5f46052d46df48113621b47a8af2d0fd36650",
-    "imageWidth": 360,
-    "imageHeight": 900
-  },
-  {
     "id": "certificate-history",
     "title": "Справка: загрузка, замена и история версий",
     "role": "staff",
@@ -1436,6 +1086,381 @@
     "imageHeight": 900
   },
   {
+    "id": "semesters",
+    "title": "Учебные семестры и календарь",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-360-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:30:02.773Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 1735
+      }
+    },
+    "sha256": "71cc945cca67dbd0004f8041a0f97034c15d471af82a81779ecf1e6361503c11",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Учебные семестры и календарь",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-1280-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:30:02.857Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1000,
+        "scroll": 1000,
+        "height": 1260,
+        "content": 1260
+      }
+    },
+    "sha256": "0a2dbeec30a37ce8b93c31be2f232fad17452401f33b94a173089a1c64d9aee8",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "resources",
+    "title": "Преподаватели и аудитории",
+    "role": "staff",
+    "section": "Справочники",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-resources-360-viewport.png",
+    "url": "/staff/schedule/resources",
+    "clock": "2026-11-16T06:30:03.319Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 1378
+      }
+    },
+    "sha256": "f70b1c06ab83cdc0a0de07d0015355004ad7df3bb3c1a98001ab0adacaff4dde",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "resources",
+    "title": "Преподаватели и аудитории",
+    "role": "staff",
+    "section": "Справочники",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-resources-1280-viewport.png",
+    "url": "/staff/schedule/resources",
+    "clock": "2026-11-16T06:30:03.430Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1000,
+        "scroll": 1000,
+        "height": 866,
+        "content": 866
+      }
+    },
+    "sha256": "415bf29ed279cc3b58efcb8f850d9d429778659d22e35602585ddacf903d5ab6",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Расписание: сетка и редактор",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-360-viewport.png",
+    "url": "/staff/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:30:03.981Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3235
+      }
+    },
+    "sha256": "34c3c6087c94d721c20f6731326e17985a24678d78ddbc2a7d48c6f8f553565e",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Расписание: сетка и редактор",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-390-viewport.png",
+    "url": "/staff/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:30:04.032Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 725,
+        "content": 3030
+      }
+    },
+    "sha256": "4449387077433c9c4fc3587c2cba98ff664d139f502f98dfba2b5f44c9ea4568",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Расписание: сетка и редактор",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-768-viewport.png",
+    "url": "/staff/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:30:04.116Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 725,
+        "content": 2457
+      }
+    },
+    "sha256": "a4e316c6b486f65031e918b282482b4f9bc187a9e6eb1679053e3dd36087d984",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Расписание: сетка и редактор",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-1280-viewport.png",
+    "url": "/staff/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:30:04.235Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1000,
+        "scroll": 1000,
+        "height": 1741,
+        "content": 1741
+      }
+    },
+    "sha256": "c6dd5a656c2b0e1490d616c713112c11f051deb08ee1ac2a2b68471886d7706d",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "lesson-edit",
+    "title": "Редактирование занятия на мобильном",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-lesson-edit-360-viewport.png",
+    "url": "/staff/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:30:04.667Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3665
+      }
+    },
+    "sha256": "dfe8efe7e1be581228ebc0fad373183b9556a5da7e4c698f37406824f8575a60",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder",
+    "title": "Конструктор: фильтры и загруженная сетка",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:05.550Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3628
+      }
+    },
+    "sha256": "ea1293776889d16cd64fc5f99fdbdfc227f395c2395eeaf0fbb4b966682de188",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder",
+    "title": "Конструктор: фильтры и загруженная сетка",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-390-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:05.598Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 725,
+        "content": 3497
+      }
+    },
+    "sha256": "e29b812cdad70f04cef0a963deccc71ca882b8825d77994f0ee3e04f1d1e7434",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder",
+    "title": "Конструктор: фильтры и загруженная сетка",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-768-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:05.670Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 725,
+        "content": 3268
+      }
+    },
+    "sha256": "68dc5b900d82023e451a7d98f4259fbe87fb21b14cc41b1d90ca164ab7d669cf",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder",
+    "title": "Конструктор: фильтры и загруженная сетка",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-1280-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:05.782Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1000,
+        "scroll": 1000,
+        "height": 2479,
+        "content": 2479
+      }
+    },
+    "sha256": "29b475aa24275e41ee8b5ff73b037bbc89dd2fed284ff66f3adcd290396fea70",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "shared-lecture",
+    "title": "Общая лекция: мобильный список",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-shared-lecture-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:05.882Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3820
+      }
+    },
+    "sha256": "d3a16aa9ff90cd8b7497f9f3f26f8074bd3708080141a10806ebaf61751d4d69",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-one",
+    "title": "Одна группа: подробный редактор занятия",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-one-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:30:06.065Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3820
+      }
+    },
+    "sha256": "6ca537706be78d819bd33416f1949d944c3194bfe624ab1ca3d30f6a3c5b5b22",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
     "id": "ab-calendar",
     "title": "Числитель, знаменатель и исключённые даты",
     "role": "staff",
@@ -1445,7 +1470,7 @@
     "format": "viewport",
     "file": "png/staff-ab-calendar-360-viewport.png",
     "url": "/staff/schedule/semesters",
-    "clock": "2026-11-16T06:30:03.503Z",
+    "clock": "2026-11-16T06:30:06.599Z",
     "metric": {
       "viewport": 360,
       "document": 360,
@@ -1453,10 +1478,10 @@
         "client": 360,
         "scroll": 360,
         "height": 725,
-        "content": 2611
+        "content": 2766
       }
     },
-    "sha256": "0207b08f0da9ee689736244a6a7d4100fd93ab2693cc2a4afb6a506501add7cb",
+    "sha256": "c47381fd9b8a527fda37c38dfef00b01f0dfd30813be0ab8523715cc6c9aa75c",
     "imageWidth": 360,
     "imageHeight": 900
   },
@@ -1470,44 +1495,19 @@
     "format": "viewport",
     "file": "png/staff-ab-calendar-1280-viewport.png",
     "url": "/staff/schedule/semesters",
-    "clock": "2026-11-16T06:30:03.661Z",
+    "clock": "2026-11-16T06:30:06.763Z",
     "metric": {
       "viewport": 1280,
       "document": 1280,
       "workspace": {
         "client": 1000,
         "scroll": 1000,
-        "height": 1540,
-        "content": 1540
+        "height": 1650,
+        "content": 1650
       }
     },
-    "sha256": "1ac59d8f2450a7d0d0732ff8aec9b51c6c1b14ed67d1fe50e8945bbb49748eed",
+    "sha256": "6fb9d01dd4c7a65f2df37c6aee76845e10ee9e8dcb7f1f1b7dc5496cbbde7afb",
     "imageWidth": 1280,
-    "imageHeight": 900
-  },
-  {
-    "id": "builder-one",
-    "title": "Одна группа: подробный редактор занятия",
-    "role": "staff",
-    "section": "Конструктор",
-    "width": 360,
-    "height": 900,
-    "format": "viewport",
-    "file": "png/staff-builder-one-360-viewport.png",
-    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
-    "clock": "2026-11-16T06:30:04.343Z",
-    "metric": {
-      "viewport": 360,
-      "document": 360,
-      "workspace": {
-        "client": 360,
-        "scroll": 360,
-        "height": 725,
-        "content": 3481
-      }
-    },
-    "sha256": "66f7deed499f03f687d05e1c72800dd1ce509e34497d7d0b4889e5a22ee301ca",
-    "imageWidth": 360,
     "imageHeight": 900
   }
 ]

@@ -29,15 +29,6 @@
 | Факультеты, направления и группы | 360 px · экран 900 px | [![Факультеты, направления и группы](thumbs/staff-structure-360-viewport.png)](png/staff-structure-360-viewport.png) |
 | Факультеты, направления и группы | 1280 px · экран 900 px | [![Факультеты, направления и группы](thumbs/staff-structure-1280-viewport.png)](png/staff-structure-1280-viewport.png) |
 
-## Семестр
-
-| Состояние | Размер и формат | Снимок |
-| --- | --- | --- |
-| Учебные семестры и календарь | 360 px · экран 900 px | [![Учебные семестры и календарь](thumbs/staff-semesters-360-viewport.png)](png/staff-semesters-360-viewport.png) |
-| Учебные семестры и календарь | 1280 px · экран 900 px | [![Учебные семестры и календарь](thumbs/staff-semesters-1280-viewport.png)](png/staff-semesters-1280-viewport.png) |
-| Числитель, знаменатель и исключённые даты | 360 px · экран 900 px | [![Числитель, знаменатель и исключённые даты](thumbs/staff-ab-calendar-360-viewport.png)](png/staff-ab-calendar-360-viewport.png) |
-| Числитель, знаменатель и исключённые даты | 1280 px · экран 900 px | [![Числитель, знаменатель и исключённые даты](thumbs/staff-ab-calendar-1280-viewport.png)](png/staff-ab-calendar-1280-viewport.png) |
-
 ## Успеваемость
 
 | Состояние | Размер и формат | Снимок |
@@ -51,6 +42,22 @@
 | --- | --- | --- |
 | Обработка и фильтры заявок | 360 px · экран 900 px | [![Обработка и фильтры заявок](thumbs/staff-applications-360-viewport.png)](png/staff-applications-360-viewport.png) |
 | Обработка и фильтры заявок | 1280 px · экран 900 px | [![Обработка и фильтры заявок](thumbs/staff-applications-1280-viewport.png)](png/staff-applications-1280-viewport.png) |
+
+## Справки
+
+| Состояние | Размер и формат | Снимок |
+| --- | --- | --- |
+| Справка: загрузка, замена и история версий | 360 px · экран 900 px | [![Справка: загрузка, замена и история версий](thumbs/staff-certificate-history-360-viewport.png)](png/staff-certificate-history-360-viewport.png) |
+| Справка: загрузка, замена и история версий | 1280 px · экран 900 px | [![Справка: загрузка, замена и история версий](thumbs/staff-certificate-history-1280-viewport.png)](png/staff-certificate-history-1280-viewport.png) |
+
+## Семестр
+
+| Состояние | Размер и формат | Снимок |
+| --- | --- | --- |
+| Учебные семестры и календарь | 360 px · экран 900 px | [![Учебные семестры и календарь](thumbs/staff-semesters-360-viewport.png)](png/staff-semesters-360-viewport.png) |
+| Учебные семестры и календарь | 1280 px · экран 900 px | [![Учебные семестры и календарь](thumbs/staff-semesters-1280-viewport.png)](png/staff-semesters-1280-viewport.png) |
+| Числитель, знаменатель и исключённые даты | 360 px · экран 900 px | [![Числитель, знаменатель и исключённые даты](thumbs/staff-ab-calendar-360-viewport.png)](png/staff-ab-calendar-360-viewport.png) |
+| Числитель, знаменатель и исключённые даты | 1280 px · экран 900 px | [![Числитель, знаменатель и исключённые даты](thumbs/staff-ab-calendar-1280-viewport.png)](png/staff-ab-calendar-1280-viewport.png) |
 
 ## Справочники
 
@@ -69,10 +76,3 @@
 | Конструктор: фильтры и загруженная сетка | 1280 px · экран 900 px | [![Конструктор: фильтры и загруженная сетка](thumbs/staff-builder-1280-viewport.png)](png/staff-builder-1280-viewport.png) |
 | Общая лекция: мобильный список | 360 px · экран 900 px | [![Общая лекция: мобильный список](thumbs/staff-shared-lecture-360-viewport.png)](png/staff-shared-lecture-360-viewport.png) |
 | Одна группа: подробный редактор занятия | 360 px · экран 900 px | [![Одна группа: подробный редактор занятия](thumbs/staff-builder-one-360-viewport.png)](png/staff-builder-one-360-viewport.png) |
-
-## Справки
-
-| Состояние | Размер и формат | Снимок |
-| --- | --- | --- |
-| Справка: загрузка, замена и история версий | 360 px · экран 900 px | [![Справка: загрузка, замена и история версий](thumbs/staff-certificate-history-360-viewport.png)](png/staff-certificate-history-360-viewport.png) |
-| Справка: загрузка, замена и история версий | 1280 px · экран 900 px | [![Справка: загрузка, замена и история версий](thumbs/staff-certificate-history-1280-viewport.png)](png/staff-certificate-history-1280-viewport.png) |
