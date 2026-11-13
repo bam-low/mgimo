@@ -32,6 +32,8 @@
 
 Это **скриншоты локально запущенного приложения с вымышленными данными**, не изображения опубликованного сервиса. [Галерея и сравнения 360/390/1280](docs/screenshots/issue-34/review-2026-11-07/README.md) · [визуальные исходники и лицензии](docs/design/ASSET_INVENTORY_V3.md) · [дизайн-решения](docs/design/APPROVED_V3_IMPLEMENTATION.md) · [токены](docs/design/TOKENS.md).
 
+Актуальные материалы после этапа 6: [визуальный аудит 6.5 — 118 PNG, галерея, покрытие и замечания](docs/audit/stage-6-5-2026-11-13/README.md).
+
 ## Технологии и устройство
 
 - **Приложение:** Next.js 16.4.5 (App Router), React 19, TypeScript 5.9, Tailwind CSS 4.

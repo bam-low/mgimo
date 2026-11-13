@@ -1,0 +1,28 @@
+[
+  {
+    "id": "lesson-details",
+    "title": "Подробности занятия показаны в строке расписания",
+    "role": "student",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-day-360-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:04.500Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1237
+      }
+    },
+    "sha256": "808bf58ca2aa2cc3038a5692ee1825c791599d4d93c86c5da021ba3ac4fcdcf5",
+    "imageWidth": 360,
+    "imageHeight": 900,
+    "примечание": "Совпадает побайтно с кадром schedule-day"
+  }
+]

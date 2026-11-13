@@ -1,0 +1,120 @@
+Экран,Роль,Раздел,Ширина,Состояние,Формат,Путь
+login,Вход и регистрация,Вход,360,Вход — исходное состояние,viewport,png/public-login-360-viewport.png
+login,Вход и регистрация,Вход,390,Вход — исходное состояние,viewport,png/public-login-390-viewport.png
+login,Вход и регистрация,Вход,768,Вход — исходное состояние,viewport,png/public-login-768-viewport.png
+login,Вход и регистрация,Вход,1280,Вход — исходное состояние,viewport,png/public-login-1280-viewport.png
+login-error,Вход и регистрация,Вход,360,Ошибка входа; секрет очищен перед снимком,viewport,png/public-login-error-360-viewport.png
+register,Вход и регистрация,Регистрация,360,Регистрация — исходная форма,viewport,png/public-register-360-viewport.png
+register,Вход и регистрация,Регистрация,390,Регистрация — исходная форма,viewport,png/public-register-390-viewport.png
+register,Вход и регистрация,Регистрация,768,Регистрация — исходная форма,viewport,png/public-register-768-viewport.png
+register,Вход и регистрация,Регистрация,1280,Регистрация — исходная форма,viewport,png/public-register-1280-viewport.png
+register-selected,Вход и регистрация,Регистрация,360,Регистрация — учебная структура выбрана,viewport,png/public-register-selected-360-viewport.png
+home,Сотрудник,Студенты,360,Рабочее пространство и управление студентами,viewport,png/staff-home-360-viewport.png
+home,Сотрудник,Студенты,390,Рабочее пространство и управление студентами,viewport,png/staff-home-390-viewport.png
+home,Сотрудник,Студенты,768,Рабочее пространство и управление студентами,viewport,png/staff-home-768-viewport.png
+home,Сотрудник,Студенты,1280,Рабочее пространство и управление студентами,viewport,png/staff-home-1280-viewport.png
+structure,Сотрудник,Структура,360,"Факультеты, направления и группы",viewport,png/staff-structure-360-viewport.png
+structure,Сотрудник,Структура,390,"Факультеты, направления и группы",viewport,png/staff-structure-390-viewport.png
+structure,Сотрудник,Структура,768,"Факультеты, направления и группы",viewport,png/staff-structure-768-viewport.png
+structure,Сотрудник,Структура,1280,"Факультеты, направления и группы",viewport,png/staff-structure-1280-viewport.png
+structure,Сотрудник,Структура,360,Полная структура,full-scroll-stitched,png/staff-structure-360-full.png
+structure,Сотрудник,Структура,1280,Полная структура,full-page,png/staff-structure-1280-full.png
+today-current,Студент,Главная,360,Несколько занятий и текущая пара с прогрессом,viewport,png/student-today-current-360-viewport.png
+today-current,Студент,Главная,390,Несколько занятий и текущая пара с прогрессом,viewport,png/student-today-current-390-viewport.png
+today-current,Студент,Главная,768,Несколько занятий и текущая пара с прогрессом,viewport,png/student-today-current-768-viewport.png
+today-current,Студент,Главная,1280,Несколько занятий и текущая пара с прогрессом,viewport,png/student-today-current-1280-viewport.png
+schedule-day,Студент,Расписание,360,Расписание на день,viewport,png/student-schedule-day-360-viewport.png
+schedule-day,Студент,Расписание,390,Расписание на день,viewport,png/student-schedule-day-390-viewport.png
+schedule-day,Студент,Расписание,768,Расписание на день,viewport,png/student-schedule-day-768-viewport.png
+schedule-day,Студент,Расписание,1280,Расписание на день,viewport,png/student-schedule-day-1280-viewport.png
+schedule-week,Студент,Расписание,360,Недельное расписание,viewport,png/student-schedule-week-360-viewport.png
+schedule-week,Студент,Расписание,390,Недельное расписание,viewport,png/student-schedule-week-390-viewport.png
+schedule-week,Студент,Расписание,768,Недельное расписание,viewport,png/student-schedule-week-768-viewport.png
+schedule-week,Студент,Расписание,1280,Недельное расписание,viewport,png/student-schedule-week-1280-viewport.png
+profile,Студент,Профиль,360,Профиль подтверждённого студента,viewport,png/student-profile-360-viewport.png
+profile,Студент,Профиль,390,Профиль подтверждённого студента,viewport,png/student-profile-390-viewport.png
+profile,Студент,Профиль,768,Профиль подтверждённого студента,viewport,png/student-profile-768-viewport.png
+profile,Студент,Профиль,1280,Профиль подтверждённого студента,viewport,png/student-profile-1280-viewport.png
+grades-empty,Студент,Успеваемость,360,Успеваемость — нет результатов,viewport,png/student-grades-empty-360-viewport.png
+grades,Сотрудник,Успеваемость,360,Длинная форма успеваемости,full-scroll-stitched,png/staff-grades-360-full.png
+grades,Сотрудник,Успеваемость,1280,Длинная форма успеваемости,full-page,png/staff-grades-1280-full.png
+grades,Студент,Успеваемость,360,Оценки и зачёт — заполненное состояние,viewport,png/student-grades-360-viewport.png
+grades,Студент,Успеваемость,390,Оценки и зачёт — заполненное состояние,viewport,png/student-grades-390-viewport.png
+grades,Студент,Успеваемость,768,Оценки и зачёт — заполненное состояние,viewport,png/student-grades-768-viewport.png
+grades,Студент,Успеваемость,1280,Оценки и зачёт — заполненное состояние,viewport,png/student-grades-1280-viewport.png
+grades,Сотрудник,Успеваемость,360,Выставление оценок и справочник дисциплин,viewport,png/staff-grades-360-viewport.png
+grades,Сотрудник,Успеваемость,390,Выставление оценок и справочник дисциплин,viewport,png/staff-grades-390-viewport.png
+grades,Сотрудник,Успеваемость,768,Выставление оценок и справочник дисциплин,viewport,png/staff-grades-768-viewport.png
+grades,Сотрудник,Успеваемость,1280,Выставление оценок и справочник дисциплин,viewport,png/staff-grades-1280-viewport.png
+grade-edit,Сотрудник,Успеваемость,360,Редактирование оценки с обязательной причиной,viewport,png/staff-grade-edit-360-viewport.png
+schedule,Сотрудник,Расписание,360,Рабочее недельное расписание сотрудника,viewport,png/staff-schedule-360-viewport.png
+schedule,Сотрудник,Расписание,390,Рабочее недельное расписание сотрудника,viewport,png/staff-schedule-390-viewport.png
+schedule,Сотрудник,Расписание,768,Рабочее недельное расписание сотрудника,viewport,png/staff-schedule-768-viewport.png
+schedule,Сотрудник,Расписание,1280,Рабочее недельное расписание сотрудника,viewport,png/staff-schedule-1280-viewport.png
+semesters,Сотрудник,Семестр,360,Настройка семестра и исключений,viewport,png/staff-semesters-360-viewport.png
+semesters,Сотрудник,Семестр,390,Настройка семестра и исключений,viewport,png/staff-semesters-390-viewport.png
+semesters,Сотрудник,Семестр,768,Настройка семестра и исключений,viewport,png/staff-semesters-768-viewport.png
+semesters,Сотрудник,Семестр,1280,Настройка семестра и исключений,viewport,png/staff-semesters-1280-viewport.png
+semesters,Сотрудник,Семестр,360,Все параметры учебного семестра,full-scroll-stitched,png/staff-semesters-360-full.png
+semesters,Сотрудник,Семестр,1280,Все параметры учебного семестра,full-page,png/staff-semesters-1280-full.png
+semester-validation,Сотрудник,Семестр,360,Невозможная дата и длинная форма,viewport,png/staff-semester-validation-360-viewport.png
+builder-all,Сотрудник,Конструктор,360,Конструктор и полный редактор,full-scroll-stitched,png/staff-builder-all-360-full.png
+builder-all,Сотрудник,Конструктор,1280,Конструктор и полный редактор,full-page,png/staff-builder-all-1280-full.png
+builder-one,Сотрудник,Конструктор,360,Конструктор одной группы и подробное добавление,viewport,png/staff-builder-one-360-viewport.png
+resources,Сотрудник,Справочники,360,"Преподаватели, дисциплины и аудитории",viewport,png/staff-resources-360-viewport.png
+resources,Сотрудник,Справочники,1280,"Преподаватели, дисциплины и аудитории",viewport,png/staff-resources-1280-viewport.png
+applications-empty,Студент,Заявки,360,Заявок пока нет,viewport,png/student-applications-empty-360-viewport.png
+applications,Студент,Заявки,360,Список собственных заявок,viewport,png/student-applications-360-viewport.png
+applications,Студент,Заявки,390,Список собственных заявок,viewport,png/student-applications-390-viewport.png
+applications,Студент,Заявки,768,Список собственных заявок,viewport,png/student-applications-768-viewport.png
+applications,Студент,Заявки,1280,Список собственных заявок,viewport,png/student-applications-1280-viewport.png
+application-form,Студент,Заявки,360,Форма обычного обращения,viewport,png/student-application-form-360-viewport.png
+certificate-order,Студент,Справки,360,Форма заказа демонстрационной справки,viewport,png/student-certificate-order-360-viewport.png
+application-submitted,Студент,Заявки,360,"Обращение отправлено, история подачи",viewport,png/student-application-submitted-360-viewport.png
+certificate-waiting,Студент,Справки,360,Ожидание справки: файл ещё недоступен,viewport,png/student-certificate-waiting-360-viewport.png
+applications,Сотрудник,Заявки,360,Общий список обращений сотрудника и фильтры,viewport,png/staff-applications-360-viewport.png
+applications,Сотрудник,Заявки,390,Общий список обращений сотрудника и фильтры,viewport,png/staff-applications-390-viewport.png
+applications,Сотрудник,Заявки,768,Общий список обращений сотрудника и фильтры,viewport,png/staff-applications-768-viewport.png
+applications,Сотрудник,Заявки,1280,Общий список обращений сотрудника и фильтры,viewport,png/staff-applications-1280-viewport.png
+application-process,Сотрудник,Заявки,360,Обработка обращения и ответ сотрудника,viewport,png/staff-application-process-360-viewport.png
+application-progress,Студент,Заявки,360,Обращение в работе и комментарий,viewport,png/student-application-progress-360-viewport.png
+application-completed,Студент,Заявки,360,Обращение выполнено: ответ и история,viewport,png/student-application-completed-360-viewport.png
+application-rejected,Студент,Заявки,360,Мотивированный отказ в обычном обращении,viewport,png/student-application-rejected-360-viewport.png
+certificate-upload,Сотрудник,Справки,360,Настоящая загрузка справки; выполнить без файла нельзя,viewport,png/staff-certificate-upload-360-viewport.png
+certificate-ready,Сотрудник,Справки,360,Справка сохранена; подтверждение завершения,viewport,png/staff-certificate-ready-360-viewport.png
+certificate,Студент,Справки,360,Выполненная справка и защищённое скачивание,viewport,png/student-certificate-360-viewport.png
+certificate,Студент,Справки,390,Выполненная справка и защищённое скачивание,viewport,png/student-certificate-390-viewport.png
+certificate,Студент,Справки,768,Выполненная справка и защищённое скачивание,viewport,png/student-certificate-768-viewport.png
+certificate,Студент,Справки,1280,Выполненная справка и защищённое скачивание,viewport,png/student-certificate-1280-viewport.png
+certificate-history,Сотрудник,Справки,360,Замена выполненной справки и две версии,viewport,png/staff-certificate-history-360-viewport.png
+certificate-history,Сотрудник,Справки,360,Полная карточка с историей версий,full-scroll-stitched,png/staff-certificate-history-360-full.png
+certificate-history,Сотрудник,Справки,1280,Полная карточка с историей версий,full-page,png/staff-certificate-history-1280-full.png
+application-filter,Сотрудник,Заявки,1280,Рабочий фильтр мотивированных отказов,viewport,png/staff-application-filter-1280-viewport.png
+application-filter-empty,Сотрудник,Заявки,360,Пустой результат фильтров,viewport,png/staff-application-filter-empty-360-viewport.png
+not-found,Студент,Ошибки,360,Несуществующая карточка: страница 404,viewport,png/student-not-found-360-viewport.png
+membership-pending,Студент,Прикрепление,360,Профиль: ожидание подтверждения прикрепления,viewport,png/student-membership-pending-360-viewport.png
+membership-decision,Сотрудник,Студенты,360,Подтверждение или мотивированный отказ в прикреплении,viewport,png/staff-membership-decision-360-viewport.png
+membership-rejected,Студент,Прикрепление,360,Отказ в прикреплении и объяснение,viewport,png/student-membership-rejected-360-viewport.png
+membership-retry,Студент,Прикрепление,360,Разрешённая повторная подача,viewport,png/student-membership-retry-360-viewport.png
+membership-transfer,Сотрудник,Студенты,360,Перевод и отзыв действующего прикрепления,viewport,png/staff-membership-transfer-360-viewport.png
+membership-transferred,Студент,Прикрепление,360,Группа изменена после перевода,viewport,png/student-membership-transferred-360-viewport.png
+membership-revoked,Студент,Прикрепление,360,Отзыв прикрепления и закрытый учебный доступ,viewport,png/student-membership-revoked-360-viewport.png
+today-empty,Студент,Главная,360,Пустой учебный день,viewport,png/student-today-empty-360-viewport.png
+today-empty,Студент,Главная,1280,Пустой учебный день,viewport,png/student-today-empty-1280-viewport.png
+lesson-edit,Сотрудник,Расписание,360,Редактирование реального занятия,viewport,png/staff-lesson-edit-360-viewport.png
+lesson-create,Сотрудник,Расписание,360,Создание занятия: длинная форма,viewport,png/staff-lesson-create-360-viewport.png
+ab-calendar,Сотрудник,Семестр,360,Календарь числителя/знаменателя с исключениями,viewport,png/staff-ab-calendar-360-viewport.png
+lesson-canceled,Студент,Расписание,360,Отменённое занятие в расписании,viewport,png/student-lesson-canceled-360-viewport.png
+today-break,Студент,Главная,360,Перемена между занятиями,viewport,png/student-today-break-360-viewport.png
+today-break,Студент,Главная,1280,Перемена между занятиями,viewport,png/student-today-break-1280-viewport.png
+certificate-download,Студент,Справки,360,Текущая справка: версия и защищённая ссылка скачивания,viewport,png/student-certificate-download-360-viewport.png
+upload-validation,Сотрудник,Ошибки,360,Серверная ошибка формата: выбранный файл и ввод сохранены,viewport,png/staff-upload-validation-360-viewport.png
+builder-all,Сотрудник,Конструктор,360,"Конструктор: все группы направления, общая лекция",viewport,png/staff-builder-all-360-viewport.png
+builder-all,Сотрудник,Конструктор,390,"Конструктор: все группы направления, общая лекция",viewport,png/staff-builder-all-390-viewport.png
+builder-all,Сотрудник,Конструктор,768,"Конструктор: все группы направления, общая лекция",viewport,png/staff-builder-all-768-viewport.png
+builder-all,Сотрудник,Конструктор,1280,"Конструктор: все группы направления, общая лекция",viewport,png/staff-builder-all-1280-viewport.png
+shared-lecture,Сотрудник,Конструктор,1280,Общая лекция двух групп: реальная сетка занятий,viewport,png/staff-shared-lecture-1280-viewport.png
+builder-confirmation,Сотрудник,Конструктор,360,Серверный предпросмотр и подтверждение сохранения,viewport,png/staff-builder-confirmation-360-viewport.png
+shared-lecture,Сотрудник,Конструктор,360,Общая лекция двух групп: реальная сетка занятий,viewport,png/staff-shared-lecture-360-viewport.png
+shared-edit,Сотрудник,Конструктор,360,Изменение общей лекции и отделение группы,viewport,png/staff-shared-edit-360-viewport.png
+lesson-details,Студент,Расписание,360,Подробности занятия показаны в строке расписания,viewport,png/student-schedule-day-360-viewport.png

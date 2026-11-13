@@ -1,0 +1,2787 @@
+[
+  {
+    "id": "login",
+    "title": "Вход — исходное состояние",
+    "role": "public",
+    "section": "Вход",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-login-360-viewport.png",
+    "url": "/login",
+    "clock": "2026-11-16T06:15:02.643Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": null
+    },
+    "sha256": "e68fc14230cdc1099e63ae60ae44d6a91645740f3bd551de3b5aa797eaab3c11",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "login",
+    "title": "Вход — исходное состояние",
+    "role": "public",
+    "section": "Вход",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-login-390-viewport.png",
+    "url": "/login",
+    "clock": "2026-11-16T06:15:02.690Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": null
+    },
+    "sha256": "b6d74395f4f526550febb78b913d9439c2e25468423cc2407b45ace1989e6243",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "login",
+    "title": "Вход — исходное состояние",
+    "role": "public",
+    "section": "Вход",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-login-768-viewport.png",
+    "url": "/login",
+    "clock": "2026-11-16T06:15:02.754Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": null
+    },
+    "sha256": "e2a38793fefe3847bb7d845be6cf31c51899d65c5ab026bcff4433ad9f1ad122",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "login",
+    "title": "Вход — исходное состояние",
+    "role": "public",
+    "section": "Вход",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-login-1280-viewport.png",
+    "url": "/login",
+    "clock": "2026-11-16T06:15:02.837Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": null
+    },
+    "sha256": "67560b3804a6102af695ff3f0fdc770a3da0ad3f4bb31f233d7e4a7fc24d91b1",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "login-error",
+    "title": "Ошибка входа; секрет очищен перед снимком",
+    "role": "public",
+    "section": "Вход",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-login-error-360-viewport.png",
+    "url": "/login",
+    "clock": "2026-11-16T06:15:03.771Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": null
+    },
+    "sha256": "d1e918e243fb5b361685ded3409822bc8f1e88c518a938bfc78461e0dd2ffcc0",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "register",
+    "title": "Регистрация — исходная форма",
+    "role": "public",
+    "section": "Регистрация",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-register-360-viewport.png",
+    "url": "/register",
+    "clock": "2026-11-16T06:15:03.975Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": null
+    },
+    "sha256": "da1895b52cc17817bce5b47cddb58f16b1e9a7b9b3b6655799a9f948f8e8db38",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "register",
+    "title": "Регистрация — исходная форма",
+    "role": "public",
+    "section": "Регистрация",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-register-390-viewport.png",
+    "url": "/register",
+    "clock": "2026-11-16T06:15:04.029Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": null
+    },
+    "sha256": "1a965345a7d7a706f9f711a4f33866b1628b46945658f8fee518bb4d6c8782e3",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "register",
+    "title": "Регистрация — исходная форма",
+    "role": "public",
+    "section": "Регистрация",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-register-768-viewport.png",
+    "url": "/register",
+    "clock": "2026-11-16T06:15:04.087Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": null
+    },
+    "sha256": "6e52bb16abb70d0c02e9a64c9ac479bbdbe299577974e78d324908651e240d4f",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "register",
+    "title": "Регистрация — исходная форма",
+    "role": "public",
+    "section": "Регистрация",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-register-1280-viewport.png",
+    "url": "/register",
+    "clock": "2026-11-16T06:15:04.153Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": null
+    },
+    "sha256": "188c688ee88f793f71cc01dbc55f0ddbb01d8e14db2c26114ff75b35ee6af8f5",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "register-selected",
+    "title": "Регистрация — учебная структура выбрана",
+    "role": "public",
+    "section": "Регистрация",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/public-register-selected-360-viewport.png",
+    "url": "/register",
+    "clock": "2026-11-16T06:15:04.225Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": null
+    },
+    "sha256": "29d7e68767eb2f0eab1d48290b14a90d67c88263e9b902c5119a45e36c7d5865",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "home",
+    "title": "Рабочее пространство и управление студентами",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-home-360-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:06.724Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1491
+      }
+    },
+    "sha256": "d1b5ec6f39b13e56a98dfb0d0588e0c67ad7d3e842d222280076979917d95a1d",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "home",
+    "title": "Рабочее пространство и управление студентами",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-home-390-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:06.775Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1454
+      }
+    },
+    "sha256": "abe9423a7a871e50ca493806efced7167fc46352367008f65200bfa049059ef5",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "home",
+    "title": "Рабочее пространство и управление студентами",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-home-768-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:06.828Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1402
+      }
+    },
+    "sha256": "25ab1ecce7c5a84ae01393e9cf347c5318872ac371dad59ca700ded45bbd9e5a",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "home",
+    "title": "Рабочее пространство и управление студентами",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-home-1280-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:06.885Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1356,
+        "content": 1356
+      }
+    },
+    "sha256": "d3579cf3109889f79f24188f8e8486833cf579fb18beb5851802c6e80a684f25",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "structure",
+    "title": "Факультеты, направления и группы",
+    "role": "staff",
+    "section": "Структура",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-structure-360-viewport.png",
+    "url": "/staff/structure",
+    "clock": "2026-11-16T06:15:07.337Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2048
+      }
+    },
+    "sha256": "de9687e3891d323d6c01e686e230f11ddad99125c14ac398d5bff2ebe5dd6833",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "structure",
+    "title": "Факультеты, направления и группы",
+    "role": "staff",
+    "section": "Структура",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-structure-390-viewport.png",
+    "url": "/staff/structure",
+    "clock": "2026-11-16T06:15:07.389Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 2025
+      }
+    },
+    "sha256": "5cfbbaf14629b87104d0a64a428a9af7f0341bb52d69d21f9b6a3343208ebf22",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "structure",
+    "title": "Факультеты, направления и группы",
+    "role": "staff",
+    "section": "Структура",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-structure-768-viewport.png",
+    "url": "/staff/structure",
+    "clock": "2026-11-16T06:15:07.448Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1330
+      }
+    },
+    "sha256": "554609367060e617f1c846bf6172a03996306f161d6ac8f758402ae86bb54c52",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "structure",
+    "title": "Факультеты, направления и группы",
+    "role": "staff",
+    "section": "Структура",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-structure-1280-viewport.png",
+    "url": "/staff/structure",
+    "clock": "2026-11-16T06:15:07.522Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1318,
+        "content": 1318
+      }
+    },
+    "sha256": "1b189b0a4e187d376b0f4c1acf30804d492557dc73aa94038fce93cbd36d5f3f",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "structure",
+    "title": "Полная структура",
+    "role": "staff",
+    "section": "Структура",
+    "width": 360,
+    "format": "full-scroll-stitched",
+    "file": "png/staff-structure-360-full.png",
+    "tiles": 3,
+    "clock": "2026-11-16T06:15:00.000Z",
+    "method": "Склейка неизменённых кадров реальной прокрутки .workspace-scroll; стили не менялись",
+    "sha256": "59cd43cbcc5a0750b703edc0b6de1ed8fe19120663bb76e8699c7780b658e211",
+    "imageWidth": 360,
+    "imageHeight": 2048
+  },
+  {
+    "id": "structure",
+    "title": "Полная структура",
+    "role": "staff",
+    "section": "Структура",
+    "width": 1280,
+    "format": "full-page",
+    "file": "png/staff-structure-1280-full.png",
+    "clock": "2026-11-16T06:15:00.000Z",
+    "sha256": "3911a6ae657bf637e2d7cd1301b5fdf8360f3b7ca159072fbe2cfbca8a141ec3",
+    "imageWidth": 1280,
+    "imageHeight": 1403
+  },
+  {
+    "id": "today-current",
+    "title": "Несколько занятий и текущая пара с прогрессом",
+    "role": "student",
+    "section": "Главная",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-current-360-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:15:08.276Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1800
+      }
+    },
+    "sha256": "b7be6359529bc0da9cfae1d68440c0e4fddf42d1b40f1e19ecd89ab25ae70a2d",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-current",
+    "title": "Несколько занятий и текущая пара с прогрессом",
+    "role": "student",
+    "section": "Главная",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-current-390-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:15:08.325Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1711
+      }
+    },
+    "sha256": "1a71936ffb34659f898e5f6486bf04c0e147658762fb6d3ee452caef075d9ff0",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-current",
+    "title": "Несколько занятий и текущая пара с прогрессом",
+    "role": "student",
+    "section": "Главная",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-current-768-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:15:08.397Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1594
+      }
+    },
+    "sha256": "2dbd8613c8b0813ef961512f00d5c4c61a732cde6555d353f2f8d1f06a412546",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-current",
+    "title": "Несколько занятий и текущая пара с прогрессом",
+    "role": "student",
+    "section": "Главная",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-current-1280-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:15:08.495Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1185,
+        "content": 1185
+      }
+    },
+    "sha256": "e5b6ddc03b32f8e8c56262bf46ff4a76f67e101b4b3da0a17254a244c282cd1a",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-day",
+    "title": "Расписание на день",
+    "role": "student",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-day-360-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:08.640Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1237
+      }
+    },
+    "sha256": "808bf58ca2aa2cc3038a5692ee1825c791599d4d93c86c5da021ba3ac4fcdcf5",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-day",
+    "title": "Расписание на день",
+    "role": "student",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-day-390-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:08.690Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1137
+      }
+    },
+    "sha256": "d1eb5460a7276d84f9ec149305fc27596e494117e34ae8769275931a66ae55b7",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-day",
+    "title": "Расписание на день",
+    "role": "student",
+    "section": "Расписание",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-day-768-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:08.765Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 918
+      }
+    },
+    "sha256": "37407665543f686eefda8eb22af1c2a8af9119620e444a285ab7a21ed9e2e9cf",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-day",
+    "title": "Расписание на день",
+    "role": "student",
+    "section": "Расписание",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-day-1280-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:08.842Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 900,
+        "content": 900
+      }
+    },
+    "sha256": "261f2ce4afdb3735143b8c00dfdc17d1b2eed0ef3cb0026370080e4647b1dfc4",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-week",
+    "title": "Недельное расписание",
+    "role": "student",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-week-360-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:08.961Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2321
+      }
+    },
+    "sha256": "ef3f7918e56f861970cf8c6f4dfb8dd783d0a361c7b4fec696d7d00508d79f42",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-week",
+    "title": "Недельное расписание",
+    "role": "student",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-week-390-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:09.024Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 2222
+      }
+    },
+    "sha256": "06aee7fcb44eb0b63c5a2460bd8b592196188db79b9c36032f3192a173dda53e",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-week",
+    "title": "Недельное расписание",
+    "role": "student",
+    "section": "Расписание",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-week-768-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:09.114Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1782
+      }
+    },
+    "sha256": "8323ee991ae7be81a3a9e01fe178329d4a8343c2fcec4a6d5e2e2f2d6d1967ba",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-week",
+    "title": "Недельное расписание",
+    "role": "student",
+    "section": "Расписание",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-schedule-week-1280-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:09.202Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1402,
+        "content": 1402
+      }
+    },
+    "sha256": "8d3f34fe1b82612d94061c35bee4eafef0983f76384cf4a0f42313f0f547b6f6",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "profile",
+    "title": "Профиль подтверждённого студента",
+    "role": "student",
+    "section": "Профиль",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-profile-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:10.094Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 713
+      }
+    },
+    "sha256": "f748b81a35ca47eb7ca98dfd016d3dddbe93ca6700c61596c991021988474001",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "profile",
+    "title": "Профиль подтверждённого студента",
+    "role": "student",
+    "section": "Профиль",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-profile-390-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:10.140Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 728
+      }
+    },
+    "sha256": "1dbf93a63e9e36f0d87de358626678ba7ee502c5a602f1c3479f5ef40a9eaaca",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "profile",
+    "title": "Профиль подтверждённого студента",
+    "role": "student",
+    "section": "Профиль",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-profile-768-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:10.195Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 728
+      }
+    },
+    "sha256": "c4d595e86c1aa72003867eb028aaeed590799190b5c10d7e7b327f042abcce4f",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "profile",
+    "title": "Профиль подтверждённого студента",
+    "role": "student",
+    "section": "Профиль",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-profile-1280-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:10.269Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 491,
+        "content": 491
+      }
+    },
+    "sha256": "381ff64854606f1841d353c526a22837502e37c37f6b3e47f1546ed55c057e0f",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades-empty",
+    "title": "Успеваемость — нет результатов",
+    "role": "student",
+    "section": "Успеваемость",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-grades-empty-360-viewport.png",
+    "url": "/grades",
+    "clock": "2026-11-16T06:15:10.738Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 713
+      }
+    },
+    "sha256": "23c39c09ab1e6deec9c8bbb89bcd988c387f1e840004d6d19ce328468c508253",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Длинная форма успеваемости",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 360,
+    "format": "full-scroll-stitched",
+    "file": "png/staff-grades-360-full.png",
+    "tiles": 6,
+    "clock": "2026-11-16T06:15:00.000Z",
+    "method": "Склейка неизменённых кадров реальной прокрутки .workspace-scroll; стили не менялись",
+    "sha256": "57ee9f6deaf08ec33608c7266bfafe89a061166231b8279a21cae94ea052a04a",
+    "imageWidth": 360,
+    "imageHeight": 3710
+  },
+  {
+    "id": "grades",
+    "title": "Длинная форма успеваемости",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 1280,
+    "format": "full-page",
+    "file": "png/staff-grades-1280-full.png",
+    "clock": "2026-11-16T06:15:00.000Z",
+    "sha256": "4030056f4a00315d1314798e1e30c9376e82702900944deaac362055197d60d0",
+    "imageWidth": 1280,
+    "imageHeight": 3666
+  },
+  {
+    "id": "grades",
+    "title": "Оценки и зачёт — заполненное состояние",
+    "role": "student",
+    "section": "Успеваемость",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-grades-360-viewport.png",
+    "url": "/grades",
+    "clock": "2026-11-16T06:15:04.250Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1111
+      }
+    },
+    "sha256": "23086807f4b557f0aa543bedc96e3d3d1c55baa4685076bfa6030f1b9ee86cc7",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Оценки и зачёт — заполненное состояние",
+    "role": "student",
+    "section": "Успеваемость",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-grades-390-viewport.png",
+    "url": "/grades",
+    "clock": "2026-11-16T06:15:04.303Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1063
+      }
+    },
+    "sha256": "46945f1815533c714fc56795d523ea415a9b821032bb8eaabf6389fac9668da4",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Оценки и зачёт — заполненное состояние",
+    "role": "student",
+    "section": "Успеваемость",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-grades-768-viewport.png",
+    "url": "/grades",
+    "clock": "2026-11-16T06:15:04.361Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 994
+      }
+    },
+    "sha256": "ff33ff14422a2316f11371eced6e443ec9cf1630f08b094edab72cb5f4044df2",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Оценки и зачёт — заполненное состояние",
+    "role": "student",
+    "section": "Успеваемость",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-grades-1280-viewport.png",
+    "url": "/grades",
+    "clock": "2026-11-16T06:15:04.448Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 981,
+        "content": 981
+      }
+    },
+    "sha256": "5640f704ce838cddd3d10215bd71f0b4cfe60d47c6ffb47c56ba1965937b5a7a",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Выставление оценок и справочник дисциплин",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-grades-360-viewport.png",
+    "url": "/staff/grades?student=cmwewpd1l000217r0a3iev9kg",
+    "clock": "2026-11-16T06:15:04.943Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3710
+      }
+    },
+    "sha256": "41178f2b6593f526d73f9fa16bf7104c5f4afcd4cd1421a0fa29593d1c936a31",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Выставление оценок и справочник дисциплин",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-grades-390-viewport.png",
+    "url": "/staff/grades?student=cmwewpd1l000217r0a3iev9kg",
+    "clock": "2026-11-16T06:15:05.005Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 3662
+      }
+    },
+    "sha256": "d604fbbc40a03921cd01f77655f94d58f7940d5dc1264a5c028f71f01296dca5",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Выставление оценок и справочник дисциплин",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-grades-768-viewport.png",
+    "url": "/staff/grades?student=cmwewpd1l000217r0a3iev9kg",
+    "clock": "2026-11-16T06:15:05.081Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 3593
+      }
+    },
+    "sha256": "490ec83d7649199e4cbe9099b9abe1656f6c7a9b3e7ebfd9603e146016ac93b3",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "grades",
+    "title": "Выставление оценок и справочник дисциплин",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-grades-1280-viewport.png",
+    "url": "/staff/grades?student=cmwewpd1l000217r0a3iev9kg",
+    "clock": "2026-11-16T06:15:05.184Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 3580,
+        "content": 3580
+      }
+    },
+    "sha256": "d3d0011429ed3e61477bbaf0fb880bc6bec5a6ca6e69438e6340daf434c0f7cd",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "grade-edit",
+    "title": "Редактирование оценки с обязательной причиной",
+    "role": "staff",
+    "section": "Успеваемость",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-grade-edit-360-viewport.png",
+    "url": "/staff/grades?student=cmwewpd1l000217r0a3iev9kg",
+    "clock": "2026-11-16T06:15:06.020Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 4400
+      }
+    },
+    "sha256": "dc10c82a8c2935ccf33ed4111b105c277764e2a7065be6c419e93cd0db14f019",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Рабочее недельное расписание сотрудника",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-360-viewport.png",
+    "url": "/staff/schedule",
+    "clock": "2026-11-16T06:15:06.764Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2748
+      }
+    },
+    "sha256": "12c97cdaf2d90d594ddd45a906a40df659d977e14e7a45e5f85efe394b1015e2",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Рабочее недельное расписание сотрудника",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-390-viewport.png",
+    "url": "/staff/schedule",
+    "clock": "2026-11-16T06:15:06.817Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 2692
+      }
+    },
+    "sha256": "861b6cbb7cf998b15809f32621c0455735c78c6a079b4acd868f4fdd05fc4672",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Рабочее недельное расписание сотрудника",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-768-viewport.png",
+    "url": "/staff/schedule",
+    "clock": "2026-11-16T06:15:06.893Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 2245
+      }
+    },
+    "sha256": "4535ba5d5304e7c31424d95447d38f9e0fa0310cbbe05a9ff9796ce116cf03ff",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule",
+    "title": "Рабочее недельное расписание сотрудника",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-1280-viewport.png",
+    "url": "/staff/schedule",
+    "clock": "2026-11-16T06:15:06.997Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1212,
+        "content": 1212
+      }
+    },
+    "sha256": "83fa58ffb83f4c2b6da689df72fd60ecf32da36b8d131ad643eb27d8c1c4b4c9",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Настройка семестра и исключений",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-360-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:22.559Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1540
+      }
+    },
+    "sha256": "24f01d25dec39dd7957917ef70cec664aa6d8a7fe71c6d928912884b4bc88701",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Настройка семестра и исключений",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-390-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:22.617Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1520
+      }
+    },
+    "sha256": "3467c667706a76b7ae2c8b3c0d8adacdc08ca7a0d750401c9598f9d916a499a6",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Настройка семестра и исключений",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-768-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:22.673Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1370
+      }
+    },
+    "sha256": "d837cdbe5f21d7efb54a200266253b2797761f7f40c616fb31d1b51ce0ea2b96",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Настройка семестра и исключений",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semesters-1280-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:22.773Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1231,
+        "content": 1231
+      }
+    },
+    "sha256": "f15ef1dc754af0986b694ccc3fa4f8e7571ecf58d64ea0dbd5e5f44add2b390c",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "semesters",
+    "title": "Все параметры учебного семестра",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 360,
+    "format": "full-scroll-stitched",
+    "file": "png/staff-semesters-360-full.png",
+    "tiles": 3,
+    "clock": "2026-11-16T06:15:00.000Z",
+    "method": "Склейка неизменённых кадров реальной прокрутки .workspace-scroll; стили не менялись",
+    "sha256": "de957406badce5e0d2578d2f7794488b4ec58c3c02672f2779c842c3b431cdd8",
+    "imageWidth": 360,
+    "imageHeight": 1540
+  },
+  {
+    "id": "semesters",
+    "title": "Все параметры учебного семестра",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 1280,
+    "format": "full-page",
+    "file": "png/staff-semesters-1280-full.png",
+    "clock": "2026-11-16T06:15:00.000Z",
+    "sha256": "b0550319c0449942c231b64fe7e0041e6e9e0efc8a7de0e4450d153e599bbfb4",
+    "imageWidth": 1280,
+    "imageHeight": 1302
+  },
+  {
+    "id": "semester-validation",
+    "title": "Невозможная дата и длинная форма",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-semester-validation-360-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:38.167Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1501
+      }
+    },
+    "sha256": "7ec600e9401d916f439be251b4cf5c70daaf58b7fde67fca2c8663f05a4a19c1",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор и полный редактор",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "format": "full-scroll-stitched",
+    "file": "png/staff-builder-all-360-full.png",
+    "tiles": 5,
+    "clock": "2026-11-16T06:15:00.000Z",
+    "method": "Механическая склейка реальных снимков внутренней области прокрутки, без изменения CSS приложения.",
+    "sha256": "ea4eac17e569bec58443f907432c29722304341a71bd617c0c3d92b815e4f975",
+    "imageWidth": 360,
+    "imageHeight": 3229
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор и полный редактор",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 1280,
+    "format": "full-page",
+    "file": "png/staff-builder-all-1280-full.png",
+    "clock": "2026-11-16T06:15:00.000Z",
+    "sha256": "c5e29463efae23d7cd9e997377687a53f85c9351ecdd0f9f813d29313cb90d46",
+    "imageWidth": 1280,
+    "imageHeight": 2451
+  },
+  {
+    "id": "builder-one",
+    "title": "Конструктор одной группы и подробное добавление",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-one-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:15:39.199Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3421
+      }
+    },
+    "sha256": "b926ebd735f5653b235f81cc36428cd9e5ddfbc4ebbdff40c088bb35ce7389b8",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "resources",
+    "title": "Преподаватели, дисциплины и аудитории",
+    "role": "staff",
+    "section": "Справочники",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-resources-360-viewport.png",
+    "url": "/staff/schedule/resources",
+    "clock": "2026-11-16T06:15:40.081Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1225
+      }
+    },
+    "sha256": "279871ca4f2a7edee58ae55d472c4115d6e6e00a19ee5961e269eefa9e5115b8",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "resources",
+    "title": "Преподаватели, дисциплины и аудитории",
+    "role": "staff",
+    "section": "Справочники",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-resources-1280-viewport.png",
+    "url": "/staff/schedule/resources",
+    "clock": "2026-11-16T06:15:40.153Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 837,
+        "content": 837
+      }
+    },
+    "sha256": "5db13d29ced963ccb52fab74ae078f5162dd77ce1471888ea1769b98329a8f51",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications-empty",
+    "title": "Заявок пока нет",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-applications-empty-360-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:40.666Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1315
+      }
+    },
+    "sha256": "59031c418347b08908291a8194d36e79abc969aa5d7e08b5a36be907e3817d66",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Список собственных заявок",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-applications-360-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.120Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1669
+      }
+    },
+    "sha256": "20384745134137c8f4643e57ccf6f241e7126a3575ca6df21377c45afd16f88f",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Список собственных заявок",
+    "role": "student",
+    "section": "Заявки",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-applications-390-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.187Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1651
+      }
+    },
+    "sha256": "23fbf0da98424b63c41a5aaed096b575241f4d9ecc4b89f2eefda6d43d0eff3b",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Список собственных заявок",
+    "role": "student",
+    "section": "Заявки",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-applications-768-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.278Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1526
+      }
+    },
+    "sha256": "c8d259c7fcc7840e0f345264fdd39743c5720e8f77e1417c2d0dbbfd52ee298b",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Список собственных заявок",
+    "role": "student",
+    "section": "Заявки",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-applications-1280-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.362Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1169,
+        "content": 1169
+      }
+    },
+    "sha256": "918d9a480c14206e6161577f81b01d0fb009250acf9dbd9157ea540dbb9f3978",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-form",
+    "title": "Форма обычного обращения",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-application-form-360-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.447Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1669
+      }
+    },
+    "sha256": "2748f6144a4dea56cf48c959520797748af4469cf2d91019905405b0958be8bd",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-order",
+    "title": "Форма заказа демонстрационной справки",
+    "role": "student",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-order-360-viewport.png",
+    "url": "/applications",
+    "clock": "2026-11-16T06:15:41.532Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1871
+      }
+    },
+    "sha256": "129ca1969d297f11a071f9403996f59a5f4ad30eb2c610d177fe752709389313",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-submitted",
+    "title": "Обращение отправлено, история подачи",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-application-submitted-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043001",
+    "clock": "2026-11-16T06:15:42.269Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 789
+      }
+    },
+    "sha256": "d355ef12a6f805f128022f9f644ec61514dfd2850d2726b305478064d271ab63",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-waiting",
+    "title": "Ожидание справки: файл ещё недоступен",
+    "role": "student",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-waiting-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:43.171Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1033
+      }
+    },
+    "sha256": "0c1cc1a076af7468fe7f118d08d5fabd4464dbad8354c719e5f88a246e9960a6",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Общий список обращений сотрудника и фильтры",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-applications-360-viewport.png",
+    "url": "/staff/applications",
+    "clock": "2026-11-16T06:15:44.081Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1253
+      }
+    },
+    "sha256": "952e5255d32ffd718c195cc546b4e44652e0d93829f8713fb08c685d868b7fc9",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Общий список обращений сотрудника и фильтры",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-applications-390-viewport.png",
+    "url": "/staff/applications",
+    "clock": "2026-11-16T06:15:44.130Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1235
+      }
+    },
+    "sha256": "0ccb9fe99d2cf907ff422acf79f97f9caeda95d3c8076b93a5e96230084092e8",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Общий список обращений сотрудника и фильтры",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-applications-768-viewport.png",
+    "url": "/staff/applications",
+    "clock": "2026-11-16T06:15:44.193Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1153
+      }
+    },
+    "sha256": "106ae48f4e04da1fd3f79ef61c4c8b94e9e518b5bd7260ff8e02d24c741fdeca",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "applications",
+    "title": "Общий список обращений сотрудника и фильтры",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-applications-1280-viewport.png",
+    "url": "/staff/applications",
+    "clock": "2026-11-16T06:15:44.278Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 672,
+        "content": 672
+      }
+    },
+    "sha256": "103184e36ab105e375188aba79cdba9b5ca48131da6caceadc494590eb937b77",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-process",
+    "title": "Обработка обращения и ответ сотрудника",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-application-process-360-viewport.png",
+    "url": "/staff/applications/00000000-0000-4000-8000-000000043001",
+    "clock": "2026-11-16T06:15:44.882Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1537
+      }
+    },
+    "sha256": "d48c9557878330bc619a3aaafc54e2d9255a5b8fb76fa8d9f5f96899124e24dd",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-progress",
+    "title": "Обращение в работе и комментарий",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-application-progress-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043001",
+    "clock": "2026-11-16T06:15:45.284Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1006
+      }
+    },
+    "sha256": "b57ac7fbf130c320f9de451f727f541e74060f4dd75ba88e56390b766e8e4acc",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-completed",
+    "title": "Обращение выполнено: ответ и история",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-application-completed-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043001",
+    "clock": "2026-11-16T06:15:45.754Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1350
+      }
+    },
+    "sha256": "00a29eb0daa7580f1c1da186fc0a3ecb5215aad6627bfbe41fc570c723338c67",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-rejected",
+    "title": "Мотивированный отказ в обычном обращении",
+    "role": "student",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-application-rejected-360-viewport.png",
+    "url": "/applications/647de518-d108-42ec-8580-f1d02f327e02",
+    "clock": "2026-11-16T06:15:46.703Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1172
+      }
+    },
+    "sha256": "f16a3ed0f8cd29ca772779a81146f6c18b25fe3124268e92904b04d58e04c6c4",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-upload",
+    "title": "Настоящая загрузка справки; выполнить без файла нельзя",
+    "role": "staff",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-certificate-upload-360-viewport.png",
+    "url": "/staff/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:47.218Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2065
+      }
+    },
+    "sha256": "de56e6c017303fbb49f01e1933b39eccf071718cc07d3cc62543fa32f05948e4",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-ready",
+    "title": "Справка сохранена; подтверждение завершения",
+    "role": "staff",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-certificate-ready-360-viewport.png",
+    "url": "/staff/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:47.976Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2586
+      }
+    },
+    "sha256": "7e7a2bd5abddefe66514e75bda3e20ee275757aacde58e2b7eb875c57cf66f2a",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate",
+    "title": "Выполненная справка и защищённое скачивание",
+    "role": "student",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:48.432Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1542
+      }
+    },
+    "sha256": "4d2918f1776bc30289aea07d53b341c39c42c266778d1fbc89f90a98da473e1c",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate",
+    "title": "Выполненная справка и защищённое скачивание",
+    "role": "student",
+    "section": "Справки",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-390-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:48.482Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 1444
+      }
+    },
+    "sha256": "0483f1af89ec96c40b1117992506c3eeb1af886d08348dfbf385931c51ac0898",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate",
+    "title": "Выполненная справка и защищённое скачивание",
+    "role": "student",
+    "section": "Справки",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-768-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:48.540Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 1256
+      }
+    },
+    "sha256": "7ff82f6787190ccce21544f7762308df69e3497dd3e3fbb9591702abd87c1dfa",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate",
+    "title": "Выполненная справка и защищённое скачивание",
+    "role": "student",
+    "section": "Справки",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-1280-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:48.627Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1239,
+        "content": 1239
+      }
+    },
+    "sha256": "487e2bd37e2e68ad03011cd7218862261bdfb2402b778d024763465be43d0d32",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-history",
+    "title": "Замена выполненной справки и две версии",
+    "role": "staff",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-certificate-history-360-viewport.png",
+    "url": "/staff/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:49.318Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2974
+      }
+    },
+    "sha256": "eedf831f60a34f4c0647bf807c43d9d6deb648eed98295e73d43a157e39cdece",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-history",
+    "title": "Полная карточка с историей версий",
+    "role": "staff",
+    "section": "Справки",
+    "width": 360,
+    "format": "full-scroll-stitched",
+    "file": "png/staff-certificate-history-360-full.png",
+    "tiles": 5,
+    "clock": "2026-11-16T06:15:00.000Z",
+    "method": "Склейка неизменённых кадров реальной прокрутки .workspace-scroll; стили не менялись",
+    "sha256": "69af4c5472a9fc47609a699a4932392f0ef09f26a177e6d8f3f528f7552733d8",
+    "imageWidth": 360,
+    "imageHeight": 2974
+  },
+  {
+    "id": "certificate-history",
+    "title": "Полная карточка с историей версий",
+    "role": "staff",
+    "section": "Справки",
+    "width": 1280,
+    "format": "full-page",
+    "file": "png/staff-certificate-history-1280-full.png",
+    "clock": "2026-11-16T06:15:00.000Z",
+    "sha256": "690a8b7fb5dc822fc0ea65d85da38fc6bdc578e5b77d05380f6d3f9f691a8e0a",
+    "imageWidth": 1280,
+    "imageHeight": 2412
+  },
+  {
+    "id": "application-filter",
+    "title": "Рабочий фильтр мотивированных отказов",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-application-filter-1280-viewport.png",
+    "url": "/staff/applications?status=REJECTED",
+    "clock": "2026-11-16T06:15:50.180Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 672,
+        "content": 672
+      }
+    },
+    "sha256": "0318e74c5411ac940711d633cd4bee44914510fe0e8fc0d2bfd1b42393dd3c3c",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "application-filter-empty",
+    "title": "Пустой результат фильтров",
+    "role": "staff",
+    "section": "Заявки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-application-filter-empty-360-viewport.png",
+    "url": "/staff/applications?from=2035-01-01&to=2035-01-02",
+    "clock": "2026-11-16T06:15:51.081Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 876
+      }
+    },
+    "sha256": "1fb7551eaa0a47ac83c81633cab11839b06a647ef8579b43ca8ccdc4135a1e36",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "not-found",
+    "title": "Несуществующая карточка: страница 404",
+    "role": "student",
+    "section": "Ошибки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-not-found-360-viewport.png",
+    "url": "/applications/b0bac2c9-79c5-4cd4-98dd-a1b1254add50",
+    "clock": "2026-11-16T06:15:51.243Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": null
+    },
+    "sha256": "5b92c5c0590c2d961f104de97eac2df6e33a6e217336d396f5e7dfdba70f4687",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-pending",
+    "title": "Профиль: ожидание подтверждения прикрепления",
+    "role": "student",
+    "section": "Прикрепление",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-membership-pending-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:04.724Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 713
+      }
+    },
+    "sha256": "7c4d7e7df118b98f0c89e16b24bbb7f7afc94aa51682e2bdf66e3e87776705e4",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-decision",
+    "title": "Подтверждение или мотивированный отказ в прикреплении",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-membership-decision-360-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:05.238Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1944
+      }
+    },
+    "sha256": "0709ecf346f6c1c56862dfd4d14588b1b5c7b5dd32ef1864487c6eb40e194121",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-rejected",
+    "title": "Отказ в прикреплении и объяснение",
+    "role": "student",
+    "section": "Прикрепление",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-membership-rejected-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:05.770Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 917
+      }
+    },
+    "sha256": "822ec0933982b6a81de3bb8d27d4e93c1e701230fface0d78b7a39be5c75325c",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-retry",
+    "title": "Разрешённая повторная подача",
+    "role": "student",
+    "section": "Прикрепление",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-membership-retry-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:06.188Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 917
+      }
+    },
+    "sha256": "e874bcffa0a986b398d855a55e236b44e6e1bc9e459d543810622046f74a5672",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-transfer",
+    "title": "Перевод и отзыв действующего прикрепления",
+    "role": "staff",
+    "section": "Студенты",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-membership-transfer-360-viewport.png",
+    "url": "/staff",
+    "clock": "2026-11-16T06:15:06.721Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2003
+      }
+    },
+    "sha256": "8eaccb802fc6d43b4ce06807b5c4531df97242abc29edba270fc96ee43629848",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-transferred",
+    "title": "Группа изменена после перевода",
+    "role": "student",
+    "section": "Прикрепление",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-membership-transferred-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:06.908Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 713
+      }
+    },
+    "sha256": "4fb4e72683832eba0241cd67b67a7df9a448d0663015296794fa94b5fee4e76b",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "membership-revoked",
+    "title": "Отзыв прикрепления и закрытый учебный доступ",
+    "role": "student",
+    "section": "Прикрепление",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-membership-revoked-360-viewport.png",
+    "url": "/cabinet",
+    "clock": "2026-11-16T06:15:07.087Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 713
+      }
+    },
+    "sha256": "550890a803fc893dac84ac554774fe6e684e4df9cc18134c66e5879d3f6c3738",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-empty",
+    "title": "Пустой учебный день",
+    "role": "student",
+    "section": "Главная",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-empty-360-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-22T07:00:01.609Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1170
+      }
+    },
+    "sha256": "38f7f90a432123e7df4c820aff9ad3c9ba19f4f994ae2db39637e224c72d7201",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-empty",
+    "title": "Пустой учебный день",
+    "role": "student",
+    "section": "Главная",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-empty-1280-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-22T07:00:01.679Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 958,
+        "content": 958
+      }
+    },
+    "sha256": "9e1601d8631c4024f114044c6e2ae4b87f4174ef591d13704a0dd9001925c63d",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "lesson-edit",
+    "title": "Редактирование реального занятия",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-lesson-edit-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T06:15:03.254Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3177
+      }
+    },
+    "sha256": "3ef30a6b3c53a0c9db516a732cfdc3129b2efe303865d32a91a1805c3d8d22d9",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "lesson-create",
+    "title": "Создание занятия: длинная форма",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-lesson-create-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T06:15:03.382Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2748
+      }
+    },
+    "sha256": "61200c50f1c7bc89f9ea3b3450df683f02592db2cdfac564214f6c61cb685d69",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "ab-calendar",
+    "title": "Календарь числителя/знаменателя с исключениями",
+    "role": "staff",
+    "section": "Семестр",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-ab-calendar-360-viewport.png",
+    "url": "/staff/schedule/semesters",
+    "clock": "2026-11-16T06:15:03.941Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 2571
+      }
+    },
+    "sha256": "f719c6a2b4523baacad3d70adf6b6d2945fb6e95a2b005eed26068150b3093c7",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "lesson-canceled",
+    "title": "Отменённое занятие в расписании",
+    "role": "student",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-lesson-canceled-360-viewport.png",
+    "url": "/schedule?day=2026-11-16",
+    "clock": "2026-11-16T06:15:04.568Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1237
+      }
+    },
+    "sha256": "8ea64b438aec64d07cdc725057a13a84dd549f6c9dd8a068ef2e3b204de803f9",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-break",
+    "title": "Перемена между занятиями",
+    "role": "student",
+    "section": "Главная",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-break-360-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:55:01.386Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1658
+      }
+    },
+    "sha256": "26ef869c52129601c9823449df09345d62afdb20fb5cad6c57cd0038bd193fe3",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "today-break",
+    "title": "Перемена между занятиями",
+    "role": "student",
+    "section": "Главная",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-today-break-1280-viewport.png",
+    "url": "/today",
+    "clock": "2026-11-16T06:55:01.515Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 1124,
+        "content": 1124
+      }
+    },
+    "sha256": "95d76b75e4c625e76c68b6f992fbd46365e1d09165c9d3c1efb180d0206554fd",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "certificate-download",
+    "title": "Текущая справка: версия и защищённая ссылка скачивания",
+    "role": "student",
+    "section": "Справки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/student-certificate-download-360-viewport.png",
+    "url": "/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:03.464Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 1683
+      }
+    },
+    "sha256": "4ff84876539510741e0decae0911eacfca7b4cf09b88cb4391191dceed018971",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "upload-validation",
+    "title": "Серверная ошибка формата: выбранный файл и ввод сохранены",
+    "role": "staff",
+    "section": "Ошибки",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-upload-validation-360-viewport.png",
+    "url": "/staff/applications/00000000-0000-4000-8000-000000043002",
+    "clock": "2026-11-16T06:15:04.214Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3094
+      }
+    },
+    "sha256": "2df7237de50b5f3eaeba1c24a82426858dddde85b7d4a7deb9254f65ed50df0b",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор: все группы направления, общая лекция",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-all-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:04.803Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3229
+      }
+    },
+    "sha256": "8992e22422a28f363aab9d62b08573db23eaa8f2ee1f81412e758a75bad7cf51",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор: все группы направления, общая лекция",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-all-390-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:04.879Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 728,
+        "content": 3150
+      }
+    },
+    "sha256": "30896e3994a6e5073e03bde7c4ad794338f32f95ac5e09da0b582a028becb8ce",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор: все группы направления, общая лекция",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-all-768-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:04.958Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 728,
+        "content": 2940
+      }
+    },
+    "sha256": "b45c2d8e0514df1b326dab0595cffdafd8042c7a2a82340250f973fdf503202f",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-all",
+    "title": "Конструктор: все группы направления, общая лекция",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-all-1280-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:05.034Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 2380,
+        "content": 2380
+      }
+    },
+    "sha256": "85e8b489f6199cfb855260dd276e4596ebabc0e338ebcbfc5063a6436b6fa749",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "shared-lecture",
+    "title": "Общая лекция двух групп: реальная сетка занятий",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-shared-lecture-1280-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:05.710Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1016,
+        "scroll": 1016,
+        "height": 2380,
+        "content": 2380
+      }
+    },
+    "sha256": "d5650fac0fea44f7682417532ede220276358df870db361cf1c8b40a5ac27f88",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "builder-confirmation",
+    "title": "Серверный предпросмотр и подтверждение сохранения",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-builder-confirmation-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-17",
+    "clock": "2026-11-16T06:15:05.962Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3861
+      }
+    },
+    "sha256": "74b4fe33efa6f3cceca0ba2b621e0ecc9d71c5b75135791b8bfd41f0bce23932",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "shared-lecture",
+    "title": "Общая лекция двух групп: реальная сетка занятий",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-shared-lecture-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:15:03.274Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3421
+      }
+    },
+    "sha256": "aea8af94b8c52e2b2c070731f108b385b4f03c66c001e156e13977a2a660f36a",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "shared-edit",
+    "title": "Изменение общей лекции и отделение группы",
+    "role": "staff",
+    "section": "Конструктор",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-shared-edit-360-viewport.png",
+    "url": "/staff/schedule/builder?semesterId=ff6f4e9c-586d-4462-957d-1acbceb5cf77&programId=program-2&day=2026-11-16",
+    "clock": "2026-11-16T06:15:03.419Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 713,
+        "content": 3474
+      }
+    },
+    "sha256": "fe703e371a2c5780af1da728078d5fe98e8381fc97cacf604b7b26064af40c4e",
+    "imageWidth": 360,
+    "imageHeight": 900
+  }
+]

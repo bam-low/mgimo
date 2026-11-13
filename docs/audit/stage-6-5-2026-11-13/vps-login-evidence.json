@@ -1,0 +1,113 @@
+{
+  "описание": "Безопасные события второго локального инструментированного прогона, 15 E2E PASS; не исходный GitHub запуск. Слушатель page.response не покрывает все APIRequestContext-входы.",
+  "события": [
+    {
+      "время": "2026-11-13T12:14:40.350Z",
+      "тест": "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows",
+      "роль": "студент 1",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:14:55.756Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:14:57.381Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:14:58.184Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:14:59.498Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:00.318Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:01.640Z",
+      "тест": "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:02.559Z",
+      "тест": "STAFF selects student and subject, records marks and credit; personal student history and audited corrections",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:10.216Z",
+      "тест": "student → staff → approved at 360px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:11.079Z",
+      "тест": "student → staff → approved at 360px",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:12.339Z",
+      "тест": "student → staff → approved at 360px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:13.268Z",
+      "тест": "student → staff → approved at 360px",
+      "роль": "студент 2",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:14.713Z",
+      "тест": "student → staff → approved at 1280px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:15.582Z",
+      "тест": "student → staff → approved at 1280px",
+      "роль": "сотрудник",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:16.876Z",
+      "тест": "student → staff → approved at 1280px",
+      "роль": "иной демо-аккаунт",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:17.801Z",
+      "тест": "student → staff → approved at 1280px",
+      "роль": "студент 2",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:15:23.349Z",
+      "тест": "Russian fields, real multi-lesson/empty days, and isolated clock boundary states",
+      "роль": "студент 1",
+      "статус": 200
+    },
+    {
+      "время": "2026-11-13T12:16:19.558Z",
+      "тест": "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict",
+      "роль": "сотрудник",
+      "статус": 200
+    }
+  ]
+}
