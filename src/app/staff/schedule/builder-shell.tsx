@@ -6,7 +6,7 @@ import { protectedPage } from "@/server/page";
 import { builderCatalog } from "@/server/semester-builder";
 import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
-import { Logout, RefreshContext } from "../../forms";
+import { RefreshContext } from "../../forms";
 export async function builderPage() {
   const a = await protectedPage(async () => {
     const a = await actor(await headers());
@@ -28,7 +28,6 @@ export function BuilderShell({
       <Workspace>
         <div className="account-line">
           <span>Рабочее пространство сотрудника</span>
-          <Logout />
         </div>
         <RefreshContext />
         <header className="editorial-heading">

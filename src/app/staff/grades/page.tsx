@@ -7,7 +7,7 @@ import { staffStructure } from "@/server/structure";
 import { dayKey } from "@/lib/schedule-time";
 import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
-import { Logout, RefreshContext } from "../../forms";
+import { RefreshContext } from "../../forms";
 import { GradeList } from "../../grade-list";
 import { GradeForm, SubjectForm } from "../../grade-forms";
 export const dynamic = "force-dynamic";
@@ -51,7 +51,6 @@ export default async function Page({
       <Workspace>
         <div className="account-line">
           <span>Рабочее пространство сотрудника</span>
-          <Logout />
         </div>
         <RefreshContext />
         <header className="editorial-heading">

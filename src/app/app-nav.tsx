@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logout } from "./forms";
 import { Icon, type IconName } from "./ui-icon";
 export function AppNav({
   role,
@@ -18,15 +19,15 @@ export function AppNav({
             icon: "structure",
           },
           { href: "/staff/schedule", label: "Расписание", icon: "calendar" },
-          { href: "/staff/grades", label: "Успеваемость", icon: "structure" },
+          { href: "/staff/grades", label: "Успеваемость", icon: "book" },
           { href: "/staff", label: "Прикрепления", icon: "people" },
-          { href: "/staff/applications", label: "Заявки", icon: "people" },
+          { href: "/staff/applications", label: "Заявки", icon: "document" },
         ]
       : [
           { href: "/today", label: "Главная", icon: "home" },
           { href: "/schedule", label: "Расписание", icon: "calendar" },
-          { href: "/grades", label: "Успеваемость", icon: "structure" },
-          { href: "/applications", label: "Заявки", icon: "people" },
+          { href: "/grades", label: "Успеваемость", icon: "book" },
+          { href: "/applications", label: "Заявки", icon: "document" },
           { href: "/cabinet", label: "Профиль", icon: "user" },
         ];
   return (
@@ -55,6 +56,9 @@ export function AppNav({
         <span className="edition">
           {role === "STAFF" ? "ДЕКАНАТ" : "СТУДЕНТ"}
         </span>
+        <div className="masthead-actions">
+          <Logout />
+        </div>
       </header>
       <nav className="campus-nav" aria-label="Разделы платформы">
         {links
@@ -104,7 +108,7 @@ export function AppNav({
         </span>
       </nav>
       <p className="concept-note">
-        Концепт, не официальный сервис · Только вымышленные данные
+        Демо · Неофициальный сервис · Вымышленные данные
       </p>
     </>
   );

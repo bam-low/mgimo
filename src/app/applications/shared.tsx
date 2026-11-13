@@ -4,7 +4,7 @@ import { actor, staff, studentAccess } from "@/server/security";
 import { protectedPage } from "@/server/page";
 import { AppNav } from "../app-nav";
 import { Workspace } from "../workspace";
-import { Logout, RefreshContext } from "../forms";
+import { RefreshContext } from "../forms";
 export async function applicationPageActor(isStaff: boolean) {
   return protectedPage(async () => {
     const a = await actor(await headers());
@@ -33,7 +33,6 @@ export function ApplicationShell({
               ? "Рабочее пространство сотрудника"
               : "Ваши обращения в деканат"}
           </span>
-          <Logout />
         </div>
         <RefreshContext />
         <header className="editorial-heading">

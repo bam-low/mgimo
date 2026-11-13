@@ -32,6 +32,8 @@
 
 Это **скриншоты локально запущенного приложения с вымышленными данными**, не изображения опубликованного сервиса. [Галерея и сравнения 360/390/1280](docs/screenshots/issue-34/review-2026-11-07/README.md) · [визуальные исходники и лицензии](docs/design/ASSET_INVENTORY_V3.md) · [дизайн-решения](docs/design/APPROVED_V3_IMPLEMENTATION.md) · [токены](docs/design/TOKENS.md).
 
+Новая версия на визуальном ревью: [приближение к Figma, сравнения и галерея #46](docs/screenshots/issue-46/README.md).
+
 ## Технологии и устройство
 
 - **Приложение:** Next.js 16.4.5 (App Router), React 19, TypeScript 5.9, Tailwind CSS 4.

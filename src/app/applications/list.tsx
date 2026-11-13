@@ -18,6 +18,11 @@ export async function ApplicationList({
     base = isStaff ? "/staff/applications" : "/applications";
   return (
     <ApplicationShell isStaff={isStaff}>
+      {!isStaff && (
+        <Link className="compose-jump card-action" href="#new-application">
+          Создать обращение или заказать справку
+        </Link>
+      )}
       <form
         action={base}
         className="application-filters"
@@ -93,7 +98,7 @@ export async function ApplicationList({
               data-testid="application-row"
               key={app.id}
             >
-              <span className="badge">
+              <span className="badge" data-status={app.status}>
                 {statusLabel[app.status as keyof typeof statusLabel]}
               </span>
               <p className="eyebrow">

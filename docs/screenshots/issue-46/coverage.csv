@@ -1,0 +1,65 @@
+Экран,Роль,Раздел,Ширина,Состояние,Формат,Путь
+today-current,Студент,Главная,1280,Главная целиком,full-page,png/student-today-current-1280-full.png
+today-current,Студент,Главная,360,Главная: полная прокрутка,full-scroll-stitched,png/student-today-current-360-full.png
+schedule-selected,Сотрудник,Расписание,1280,Выбранное занятие и действующий редактор,full-page,png/staff-schedule-selected-1280-full.png
+login,Вход и регистрация,Вход,360,Вход: общий язык Figma,viewport,png/public-login-360-viewport.png
+login,Вход и регистрация,Вход,390,Вход: общий язык Figma,viewport,png/public-login-390-viewport.png
+login,Вход и регистрация,Вход,768,Вход: общий язык Figma,viewport,png/public-login-768-viewport.png
+login,Вход и регистрация,Вход,1280,Вход: общий язык Figma,viewport,png/public-login-1280-viewport.png
+register,Вход и регистрация,Регистрация,360,Регистрация: настоящие поля и вымышленные данные,viewport,png/public-register-360-viewport.png
+register,Вход и регистрация,Регистрация,390,Регистрация: настоящие поля и вымышленные данные,viewport,png/public-register-390-viewport.png
+register,Вход и регистрация,Регистрация,768,Регистрация: настоящие поля и вымышленные данные,viewport,png/public-register-768-viewport.png
+register,Вход и регистрация,Регистрация,1280,Регистрация: настоящие поля и вымышленные данные,viewport,png/public-register-1280-viewport.png
+landing,Вход и регистрация,Начало,360,Публичная главная Кампуса,viewport,png/public-landing-360-viewport.png
+landing,Вход и регистрация,Начало,1280,Публичная главная Кампуса,viewport,png/public-landing-1280-viewport.png
+not-found,Вход и регистрация,Ошибки,360,Русская 404 с навигацией,viewport,png/public-not-found-360-viewport.png
+today-current,Студент,Главная,360,"Главная: реальная пара, оценки и заявки",viewport,png/student-today-current-360-viewport.png
+today-current,Студент,Главная,390,"Главная: реальная пара, оценки и заявки",viewport,png/student-today-current-390-viewport.png
+today-current,Студент,Главная,768,"Главная: реальная пара, оценки и заявки",viewport,png/student-today-current-768-viewport.png
+today-current,Студент,Главная,1280,"Главная: реальная пара, оценки и заявки",viewport,png/student-today-current-1280-viewport.png
+schedule,Студент,Расписание,360,Моё расписание,viewport,png/student-schedule-360-viewport.png
+schedule,Студент,Расписание,390,Моё расписание,viewport,png/student-schedule-390-viewport.png
+schedule,Студент,Расписание,768,Моё расписание,viewport,png/student-schedule-768-viewport.png
+schedule,Студент,Расписание,1280,Моё расписание,viewport,png/student-schedule-1280-viewport.png
+grades,Студент,Успеваемость,360,Собственные учебные результаты,viewport,png/student-grades-360-viewport.png
+grades,Студент,Успеваемость,390,Собственные учебные результаты,viewport,png/student-grades-390-viewport.png
+grades,Студент,Успеваемость,768,Собственные учебные результаты,viewport,png/student-grades-768-viewport.png
+grades,Студент,Успеваемость,1280,Собственные учебные результаты,viewport,png/student-grades-1280-viewport.png
+applications,Студент,Заявки,360,Список заявок и создание обращения,viewport,png/student-applications-360-viewport.png
+applications,Студент,Заявки,390,Список заявок и создание обращения,viewport,png/student-applications-390-viewport.png
+applications,Студент,Заявки,768,Список заявок и создание обращения,viewport,png/student-applications-768-viewport.png
+applications,Студент,Заявки,1280,Список заявок и создание обращения,viewport,png/student-applications-1280-viewport.png
+compose,Студент,Заявки,360,Форма обращения: рабочий переход с главной,viewport,png/student-compose-360-viewport.png
+certificate,Студент,Справки,360,Выполненная справка: скачивание в верхней части карточки,viewport,png/student-certificate-360-viewport.png
+certificate,Студент,Справки,390,Выполненная справка: скачивание в верхней части карточки,viewport,png/student-certificate-390-viewport.png
+certificate,Студент,Справки,768,Выполненная справка: скачивание в верхней части карточки,viewport,png/student-certificate-768-viewport.png
+certificate,Студент,Справки,1280,Выполненная справка: скачивание в верхней части карточки,viewport,png/student-certificate-1280-viewport.png
+profile,Студент,Профиль,360,Профиль и подтверждённая группа,viewport,png/student-profile-360-viewport.png
+profile,Студент,Профиль,1280,Профиль и подтверждённая группа,viewport,png/student-profile-1280-viewport.png
+home,Сотрудник,Студенты,360,Очередь и подтверждённые студенты,viewport,png/staff-home-360-viewport.png
+home,Сотрудник,Студенты,1280,Очередь и подтверждённые студенты,viewport,png/staff-home-1280-viewport.png
+structure,Сотрудник,Структура,360,"Факультеты, направления и группы",viewport,png/staff-structure-360-viewport.png
+structure,Сотрудник,Структура,1280,"Факультеты, направления и группы",viewport,png/staff-structure-1280-viewport.png
+semesters,Сотрудник,Семестр,360,Учебные семестры и календарь,viewport,png/staff-semesters-360-viewport.png
+semesters,Сотрудник,Семестр,1280,Учебные семестры и календарь,viewport,png/staff-semesters-1280-viewport.png
+grades,Сотрудник,Успеваемость,360,Выбор студента и дисциплины,viewport,png/staff-grades-360-viewport.png
+grades,Сотрудник,Успеваемость,1280,Выбор студента и дисциплины,viewport,png/staff-grades-1280-viewport.png
+applications,Сотрудник,Заявки,360,Обработка и фильтры заявок,viewport,png/staff-applications-360-viewport.png
+applications,Сотрудник,Заявки,1280,Обработка и фильтры заявок,viewport,png/staff-applications-1280-viewport.png
+resources,Сотрудник,Справочники,360,Преподаватели и аудитории,viewport,png/staff-resources-360-viewport.png
+resources,Сотрудник,Справочники,1280,Преподаватели и аудитории,viewport,png/staff-resources-1280-viewport.png
+schedule,Сотрудник,Расписание,360,Расписание: сетка и редактор,viewport,png/staff-schedule-360-viewport.png
+schedule,Сотрудник,Расписание,390,Расписание: сетка и редактор,viewport,png/staff-schedule-390-viewport.png
+schedule,Сотрудник,Расписание,768,Расписание: сетка и редактор,viewport,png/staff-schedule-768-viewport.png
+schedule,Сотрудник,Расписание,1280,Расписание: сетка и редактор,viewport,png/staff-schedule-1280-viewport.png
+lesson-edit,Сотрудник,Расписание,360,Редактирование занятия на мобильном,viewport,png/staff-lesson-edit-360-viewport.png
+builder,Сотрудник,Конструктор,360,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-360-viewport.png
+builder,Сотрудник,Конструктор,390,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-390-viewport.png
+builder,Сотрудник,Конструктор,768,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-768-viewport.png
+builder,Сотрудник,Конструктор,1280,Конструктор: фильтры и загруженная сетка,viewport,png/staff-builder-1280-viewport.png
+shared-lecture,Сотрудник,Конструктор,360,Общая лекция: мобильный список,viewport,png/staff-shared-lecture-360-viewport.png
+certificate-history,Сотрудник,Справки,360,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-360-viewport.png
+certificate-history,Сотрудник,Справки,1280,"Справка: загрузка, замена и история версий",viewport,png/staff-certificate-history-1280-viewport.png
+ab-calendar,Сотрудник,Семестр,360,"Числитель, знаменатель и исключённые даты",viewport,png/staff-ab-calendar-360-viewport.png
+ab-calendar,Сотрудник,Семестр,1280,"Числитель, знаменатель и исключённые даты",viewport,png/staff-ab-calendar-1280-viewport.png
+builder-one,Сотрудник,Конструктор,360,Одна группа: подробный редактор занятия,viewport,png/staff-builder-one-360-viewport.png

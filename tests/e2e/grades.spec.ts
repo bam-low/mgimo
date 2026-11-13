@@ -95,6 +95,13 @@ test("STAFF selects student and subject, records marks and credit; personal stud
       "student1@example.test",
       process.env.DEMO_STUDENT1_PASSWORD!,
     );
+    await sp.goto("/today");
+    await expect(
+      sp.getByRole("region", { name: "Последние результаты", exact: true }),
+    ).toContainText(title);
+    await expect(
+      sp.getByRole("link", { name: "Все результаты", exact: true }),
+    ).toHaveAttribute("href", "/grades");
     await sp.goto("/grades");
     const own = () =>
       sp
@@ -113,6 +120,9 @@ test("STAFF selects student and subject, records marks and credit; personal stud
         "student2@example.test",
         process.env.DEMO_STUDENT2_PASSWORD!,
       );
+      await op.goto("/today");
+      await expect(op.locator(".home-overview")).toBeVisible();
+      await expect(op.locator(".home-overview")).not.toContainText(title);
       await op.goto("/grades");
       await expect(op.getByText(title, { exact: true })).toHaveCount(0);
       expect(
@@ -158,12 +168,25 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     await expect(own()).toHaveCount(1);
     await expect(own()).toContainText("Зачтено");
     // Real rendered states, no screenshot-only styles or fabricated grade values.
-    for (const width of [360, 390, 1280]) {
+    for (const width of [360, 390, 768, 1280]) {
       for (const [p, role] of [
         [page, "staff"],
         [sp, "student"],
       ] as const) {
         await p.setViewportSize({ width, height: 900 });
+        await expect(p.getByRole("button", { name: "Выйти", exact: true })).toHaveCount(1);
+        const header = await p.locator(".campus-masthead").evaluate((element) => {
+          const brand = element.querySelector(".wordmark")!.getBoundingClientRect();
+          const exit = element.querySelector("button")!.getBoundingClientRect();
+          return {
+            aligned: Math.abs(brand.y + brand.height / 2 - exit.y - exit.height / 2),
+            right: exit.right,
+            height: exit.height,
+          };
+        });
+        expect(header.aligned).toBeLessThan(2);
+        expect(header.right).toBeLessThanOrEqual(width);
+        expect(header.height).toBeGreaterThanOrEqual(44);
         await p.emulateMedia({ reducedMotion: "reduce" });
         await p.evaluate(() => document.fonts.ready);
         expect(

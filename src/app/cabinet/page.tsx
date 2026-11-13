@@ -9,7 +9,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { actor } from "@/server/security";
 import { db } from "@/server/db";
-import { ActionForm, Logout, RefreshContext } from "../forms";
+import { ActionForm, RefreshContext } from "../forms";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -60,23 +60,33 @@ export default async function Page({
       />
       <Workspace>
         <RefreshContext />
-        <header>
-          <h1>Личный кабинет</h1>
-          <Logout />
+        <div className="account-line">
+          <span>Ваш профиль в Кампусе</span>
+        </div>
+        <header className="editorial-heading">
+          <div>
+            <p className="eyebrow">Мой кампус / Профиль</p>
+            <h1>Личный кабинет</h1>
+            <p>Учебная группа, прикрепление и история обращений.</p>
+          </div>
         </header>
-        <p>Конкурсный концепт, не официальный сервис</p>
-        <p>
-          Не вводите настоящие ФИО, email или личные пароли. Используйте только
-          выданные демонстрационные данные.
-        </p>
-        <h2>{a.user.name}</h2>
-        <p data-testid="membership-status" role="status">
-          {status}
-        </p>
-        <p>{m.university.name}</p>
-        <p>
-          Группа: {enrollment?.group.name ?? selected?.name ?? "Не назначена"}
-        </p>
+        <details className="demo-details">
+          <summary>Только вымышленные данные</summary>
+          <p>
+            Не вводите настоящие ФИО, email или личные пароли. Используйте
+            только выданные демонстрационные данные.
+          </p>
+        </details>
+        <section className="profile-identity" aria-label="Прикрепление">
+          <h2>{a.user.name}</h2>
+          <p className="badge" data-testid="membership-status" role="status">
+            {status}
+          </p>
+          <p>{m.university.name}</p>
+          <p>
+            Группа: {enrollment?.group.name ?? selected?.name ?? "Не назначена"}
+          </p>
+        </section>
         {m.status === "APPROVED" && studyActive ? (
           <p>
             Прикрепление подтверждено.{" "}
@@ -101,7 +111,14 @@ export default async function Page({
         <ul>
           {history.items.map((r) => (
             <li key={r.id}>
-              {universityDate(r.createdAt, m.university.timezone)} — {r.status}
+              {universityDate(r.createdAt, m.university.timezone)} —{" "}
+              {
+                {
+                  PENDING: "Ожидает подтверждения",
+                  APPROVED: "Подтверждено",
+                  REJECTED: "Отклонено",
+                }[r.status]
+              }
             </li>
           ))}
         </ul>

@@ -9,6 +9,12 @@ const paths = {
       <rect x="15" y="15" width="6" height="6" />
     </>
   ),
+  document: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M9 7h6M9 11h6M9 15h4" />
+    </>
+  ),
   calendar: (
     <>
       <rect x="3" y="5" width="18" height="16" rx="2" />

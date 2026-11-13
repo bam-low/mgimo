@@ -18,7 +18,12 @@ export function GradeList({
       <h2>{membershipId ? "Результаты и история" : "Мои результаты"}</h2>
       {!data.rows.length && <p className="notice">Результатов пока нет.</p>}
       {data.rows.map((r) => (
-        <article className="request" key={r.id} data-testid="grade-row">
+        <article
+          className="request grade-result"
+          data-voided={r.voided}
+          key={r.id}
+          data-testid="grade-row"
+        >
           <h3>{r.subject.name}</h3>
           <p>
             {displayDate(r.issuedOn)} · {r.kind === "MARK" ? "Оценка" : "Зачёт"}

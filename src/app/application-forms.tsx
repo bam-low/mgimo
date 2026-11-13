@@ -67,7 +67,7 @@ export function ApplicationForm() {
     [op] = useState(() => crypto.randomUUID());
   const m = useMutation();
   return (
-    <section className="editor-panel application-compose">
+    <section id="new-application" className="editor-panel application-compose">
       <h2>Создать заявку</h2>
       <p>
         Только вымышленные данные. Не вводите настоящие ФИО, контакты или

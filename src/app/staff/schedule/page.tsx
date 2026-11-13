@@ -11,7 +11,7 @@ import { readSchedule } from "@/server/schedule";
 import { dayKey, addDays } from "@/lib/schedule-time";
 import { AppNav } from "../../app-nav";
 import { LessonEditor } from "../../lesson-form";
-import { Logout, RefreshContext } from "../../forms";
+import { RefreshContext } from "../../forms";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -49,9 +49,6 @@ export default async function Page({
       <Workspace>
         <div className="account-line">
           <span>Рабочее пространство сотрудника</span>
-          <div className="logout-control">
-            <Logout />
-          </div>
         </div>
 
         <RefreshContext />
