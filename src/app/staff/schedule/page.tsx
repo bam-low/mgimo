@@ -1,3 +1,4 @@
+import { ScheduleManagement } from "../../schedule-management";
 import { ScheduleField } from "../../schedule-field";
 import { GroupFilterField } from "../../group-filter-field";
 import { displayDate } from "../../schedule-input-values";
@@ -57,14 +58,7 @@ export default async function Page({
           <h1>Расписание занятий</h1>
           <p>Выберите группу и неделю. Изменения доступны студентам.</p>
         </header>
-        <nav className="semester-links" aria-label="Управление расписанием">
-          <Link href="/staff/schedule/semesters">Учебные семестры</Link>
-          <Link href="/staff/schedule/builder">Конструктор расписания</Link>
-          <Link href="/staff/schedule/resources">
-            Преподаватели и аудитории
-          </Link>
-          <Link href="/staff/structure">Управлять группами</Link>
-        </nav>
+        <ScheduleManagement />
         {!data ? (
           <p className="notice">
             Сначала <Link href="/staff/structure">создайте учебную группу</Link>

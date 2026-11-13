@@ -1,0 +1,227 @@
+[
+  {
+    "id": "schedule-top",
+    "title": "Верх расписания: компактное управление",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-top-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.510Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3037
+      }
+    },
+    "sha256": "dfdb4701925fc8c23b0893ff7159939f89dd919dfbc687810db8db9a995b7438",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-first-day",
+    "title": "Первый день с настоящими занятиями",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-first-day-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.602Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3037
+      }
+    },
+    "sha256": "7e8e55f7f061c6a42f8d48a06f9db3b35176d97ea9595efb6f659efbde40d425",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-management-open",
+    "title": "Раскрытые переходы: клавиатура и все четыре ссылки",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-management-open-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.746Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3249
+      }
+    },
+    "sha256": "e7060fa8d1c024359e4a0f0d7c987b2bec6d961655be420e8747ff92a1279b6c",
+    "imageWidth": 360,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-top",
+    "title": "Верх расписания: компактное управление",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-top-390-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.814Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 725,
+        "content": 2884
+      }
+    },
+    "sha256": "73c7d2ef7ad26f97142eb7e421722a287730061444d78784c0e5969aafb74988",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-first-day",
+    "title": "Первый день с настоящими занятиями",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-first-day-390-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.889Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 725,
+        "content": 2884
+      }
+    },
+    "sha256": "cbd9a97ca2ab664a2e31085110d8b035fd922ff7b60eb95e3ddf94da0f752cc8",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-management-open",
+    "title": "Раскрытые переходы: клавиатура и все четыре ссылки",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 390,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-management-open-390-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:03.980Z",
+    "metric": {
+      "viewport": 390,
+      "document": 390,
+      "workspace": {
+        "client": 390,
+        "scroll": 390,
+        "height": 725,
+        "content": 3096
+      }
+    },
+    "sha256": "a014ed17c713b7785833cd34bed3d09fcf73a2b2f7b3c6d80b62823d1c4e4cf2",
+    "imageWidth": 390,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-top",
+    "title": "Верх расписания: компактное управление",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 768,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-top-768-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:04.081Z",
+    "metric": {
+      "viewport": 768,
+      "document": 768,
+      "workspace": {
+        "client": 768,
+        "scroll": 768,
+        "height": 725,
+        "content": 2415
+      }
+    },
+    "sha256": "32cbbcb2da885ca6a51cf1ea75f97bf55dd2bb0c2adb8bd608498328b6477676",
+    "imageWidth": 768,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-top",
+    "title": "Верх расписания: компактное управление",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 1280,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-top-1280-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:04.188Z",
+    "metric": {
+      "viewport": 1280,
+      "document": 1280,
+      "workspace": {
+        "client": 1000,
+        "scroll": 1000,
+        "height": 1741,
+        "content": 1741
+      }
+    },
+    "sha256": "cbaebbdac5501aa15386eb5ff1e415f200dda42ddc354e7ee2480ec38369371a",
+    "imageWidth": 1280,
+    "imageHeight": 900
+  },
+  {
+    "id": "schedule-group-context",
+    "title": "Полные факультет и направление доступны по раскрытию",
+    "role": "staff",
+    "section": "Расписание",
+    "width": 360,
+    "height": 900,
+    "format": "viewport",
+    "file": "png/staff-schedule-group-context-360-viewport.png",
+    "url": "/staff/schedule?groupId=group-1&day=2026-11-16",
+    "clock": "2026-11-16T07:30:04.352Z",
+    "metric": {
+      "viewport": 360,
+      "document": 360,
+      "workspace": {
+        "client": 360,
+        "scroll": 360,
+        "height": 725,
+        "content": 3089
+      }
+    },
+    "sha256": "f1c5572312ab2bbf17e304794f5aaf7203ce1df80a089d8a07770b15d8d9d151",
+    "imageWidth": 360,
+    "imageHeight": 900
+  }
+]

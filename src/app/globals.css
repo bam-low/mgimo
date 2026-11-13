@@ -3405,3 +3405,45 @@ textarea:focus {
     padding: 20px 24px;
   }
 }
+
+/* Owner review: collapse only the timetable's service links on mobile/tablet. */
+.management-mobile {
+  display: none;
+}
+@media (max-width: 1099px) {
+  .staff-schedule-page .management-desktop {
+    display: none;
+  }
+  .management-mobile {
+    display: block;
+    background: var(--card);
+    border: 1px solid #ece6df;
+    border-radius: var(--radius);
+    margin-block: 12px;
+  }
+  .management-mobile > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 12px 16px;
+    color: var(--brand);
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .management-mobile > summary::-webkit-details-marker {
+    display: none;
+  }
+  .management-mobile[open] > summary .ui-icon {
+    transform: rotate(90deg);
+  }
+  .staff-schedule-page .management-mobile .semester-links {
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+    padding: 0 12px 12px;
+    border: 0;
+  }
+}

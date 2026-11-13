@@ -27,7 +27,7 @@ export function GroupFilterField({
       >
         {groups.map((g) => (
           <option value={g.id} key={g.id}>
-            {g.name}
+            {g.groupName ?? g.name}
             {!g.available ? " (неактивна)" : ""}
           </option>
         ))}
