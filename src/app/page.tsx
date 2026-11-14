@@ -29,8 +29,7 @@ export default function Home() {
         </li>
       </ul>
       <p className="demo-disclaimer">
-        Конкурсный концепт, не официальный сервис университета. Используйте
-        только вымышленные данные.
+        Используйте только вымышленные данные.
       </p>
       <nav aria-label="Доступ к платформе">
         <Link className="card-action" href="/login">

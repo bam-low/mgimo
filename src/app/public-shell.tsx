@@ -34,10 +34,8 @@ export function PublicShell({ children }: { children: ReactNode }) {
             priority
           />
         </div>
-        <p className="footnote">Конкурсный концепт, не официальный сервис</p>
       </section>
       <section className="public-content">
-        <span className="badge">Концепт · Неофициальный сервис</span>
         {children}
       </section>
     </main>

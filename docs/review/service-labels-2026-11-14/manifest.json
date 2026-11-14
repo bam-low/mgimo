@@ -1,0 +1,50 @@
+[
+  {
+    "role": "public",
+    "width": 360,
+    "file": "public-360.png",
+    "documentWidth": 360,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "af48a4d7e319a8f0ddbed97b33d02c7d338d0bbe099ffb4fc72a347ef681a9c1"
+  },
+  {
+    "role": "public",
+    "width": 1280,
+    "file": "public-1280.png",
+    "documentWidth": 1280,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "a65c055c328eec2c39f15687ff61d4c56ecbb3dd110d69ebd3ed415a9636833e"
+  },
+  {
+    "role": "student",
+    "width": 360,
+    "file": "student-360.png",
+    "documentWidth": 360,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "30fa7ce9551f18ac02b1fe706aed8e7c436f12d2c086113daddc7aec2645d2c6"
+  },
+  {
+    "role": "student",
+    "width": 1280,
+    "file": "student-1280.png",
+    "documentWidth": 1280,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "aa6971a4bc81dfbe414ba6105756743a24c8941f4ae9c9a646f892d7fd7bee60"
+  },
+  {
+    "role": "staff",
+    "width": 360,
+    "file": "staff-360.png",
+    "documentWidth": 360,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "0ca68d9cd32b937f2a8b1b556ce0acee2c0a40edbd09e9e286303b13d7496c35"
+  },
+  {
+    "role": "staff",
+    "width": 1280,
+    "file": "staff-1280.png",
+    "documentWidth": 1280,
+    "forbiddenSignatureAbsent": true,
+    "sha256": "050a4a5390e567781576cc6ae95dac466b960c24d1339f1356ebb40b57e84b94"
+  }
+]

@@ -106,12 +106,10 @@ export function AppNav({
           ))}
         <span className="nav-context">
           {role === "STAFF" ? "Рабочее пространство" : "Ваш учебный день"}
-          <small>Демонстрационный кампус</small>
+          <small>Кампус</small>
         </span>
       </nav>
-      <p className="concept-note">
-        Демо · Неофициальный сервис · Вымышленные данные
-      </p>
+      <p className="concept-note">Вымышленные данные</p>
     </>
   );
 }
