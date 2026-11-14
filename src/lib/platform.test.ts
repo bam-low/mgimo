@@ -7,8 +7,8 @@ describe("публичная идентификация платформы", () 
     expect(platformMetadata.title).toBe(platform.name);
   });
 
-  it("сохраняет заметное предупреждение о неофициальном концепте и в метаданных", () => {
-    expect(platform.disclaimer).toBe("Конкурсный концепт, не официальный сервис");
+  it("сохраняет предупреждение о вымышленных данных в метаданных", () => {
+    expect(platform.disclaimer).toBe("Только вымышленные данные");
     expect(platformMetadata.description).toContain(platform.disclaimer);
     expect(platformMetadata.description).toContain(platform.description);
   });
