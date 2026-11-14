@@ -43,7 +43,7 @@ export async function ApplicationDetailPage({
     <ApplicationShell isStaff={isStaff}>
       <Link href={base}>← К списку заявок</Link>
       <section className="application-card" aria-label="Карточка заявки">
-        <span className="badge">
+        <span className="badge" data-status={app.status}>
           {statusLabel[app.status as keyof typeof statusLabel]}
         </span>
         <p className="eyebrow">
@@ -52,42 +52,6 @@ export async function ApplicationDetailPage({
         <h2>{app.subject}</h2>
         <p>Создана {when(app.createdAt)}</p>
         <p className="footnote">Группа при подаче: {app.submittedGroupName}</p>
-        {app.applicant && (
-          <div className="notice">
-            <strong>{app.applicant.name}</strong>
-            <p>
-              Текущая группа:{" "}
-              {app.applicant.currentGroups.join(", ") ||
-                "Нет действующей группы"}
-            </p>
-            <p>
-              Учебный доступ: {app.applicant.eligible ? "действует" : "закрыт"}
-            </p>
-          </div>
-        )}
-        {app.purpose && (
-          <>
-            <h3>Вымышленная цель / место предъявления</h3>
-            <p className="application-text">{app.purpose}</p>
-          </>
-        )}
-        {app.description && (
-          <>
-            <h3>Содержание / пояснение</h3>
-            <p className="application-text">{app.description}</p>
-          </>
-        )}
-        {app.responseText && (
-          <section className="notice">
-            <h3>
-              {app.status === "REJECTED"
-                ? "Причина отказа"
-                : "Ответ сотрудника"}
-            </h3>
-            <p className="application-text">{app.responseText}</p>
-            <p>{when(app.resolvedAt)}</p>
-          </section>
-        )}
         {app.kind === "STUDY_CERTIFICATE" && (
           <section aria-label="Справка">
             <h3>Демонстрационный документ</h3>
@@ -125,6 +89,42 @@ export async function ApplicationDetailPage({
                   : "Документ появится после выполнения заявки сотрудником."}
               </p>
             )}
+          </section>
+        )}
+        {app.applicant && (
+          <div className="notice">
+            <strong>{app.applicant.name}</strong>
+            <p>
+              Текущая группа:{" "}
+              {app.applicant.currentGroups.join(", ") ||
+                "Нет действующей группы"}
+            </p>
+            <p>
+              Учебный доступ: {app.applicant.eligible ? "действует" : "закрыт"}
+            </p>
+          </div>
+        )}
+        {app.purpose && (
+          <>
+            <h3>Вымышленная цель / место предъявления</h3>
+            <p className="application-text">{app.purpose}</p>
+          </>
+        )}
+        {app.description && (
+          <>
+            <h3>Содержание / пояснение</h3>
+            <p className="application-text">{app.description}</p>
+          </>
+        )}
+        {app.responseText && (
+          <section className="notice">
+            <h3>
+              {app.status === "REJECTED"
+                ? "Причина отказа"
+                : "Ответ сотрудника"}
+            </h3>
+            <p className="application-text">{app.responseText}</p>
+            <p>{when(app.resolvedAt)}</p>
           </section>
         )}
       </section>

@@ -1,0 +1,50 @@
+[
+  {
+    "width": 360,
+    "document": 360,
+    "workspace": {
+      "client": 360,
+      "scroll": 360
+    },
+    "navigationSeparated": true,
+    "logoutAligned": true,
+    "managementHeight": 50,
+    "shortGroup": "Демо-группа 1"
+  },
+  {
+    "width": 390,
+    "document": 390,
+    "workspace": {
+      "client": 390,
+      "scroll": 390
+    },
+    "navigationSeparated": true,
+    "logoutAligned": true,
+    "managementHeight": 50,
+    "shortGroup": "Демо-группа 1"
+  },
+  {
+    "width": 768,
+    "document": 768,
+    "workspace": {
+      "client": 768,
+      "scroll": 768
+    },
+    "navigationSeparated": true,
+    "logoutAligned": true,
+    "managementHeight": 50,
+    "shortGroup": "Демо-группа 1"
+  },
+  {
+    "width": 1280,
+    "document": 1280,
+    "workspace": {
+      "client": 1000,
+      "scroll": 1000
+    },
+    "navigationSeparated": true,
+    "logoutAligned": true,
+    "managementHeight": 86,
+    "shortGroup": "Демо-группа 1"
+  }
+]

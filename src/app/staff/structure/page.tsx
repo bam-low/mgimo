@@ -5,7 +5,7 @@ import { protectedPage } from "@/server/page";
 import { staffStructure } from "@/server/structure";
 import { AppNav } from "../../app-nav";
 import { StructureEditor } from "../../structure-forms";
-import { Logout, RefreshContext } from "../../forms";
+import { RefreshContext } from "../../forms";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   const tree = await protectedPage(async () => {
@@ -19,9 +19,6 @@ export default async function Page() {
       <Workspace>
         <div className="account-line">
           <span>Рабочее пространство сотрудника</span>
-          <div className="logout-control">
-            <Logout />
-          </div>
         </div>
         <RefreshContext />
         <header className="editorial-heading">

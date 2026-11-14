@@ -5,7 +5,7 @@ import { protectedPage } from "@/server/page";
 import { readGrades } from "@/server/grades";
 import { AppNav } from "../app-nav";
 import { Workspace } from "../workspace";
-import { Logout, RefreshContext } from "../forms";
+import { RefreshContext } from "../forms";
 import { GradeList } from "../grade-list";
 export const dynamic = "force-dynamic";
 export default async function Page({
@@ -23,7 +23,6 @@ export default async function Page({
       <Workspace>
         <div className="account-line">
           <span>Личные учебные результаты</span>
-          <Logout />
         </div>
         <RefreshContext />
         <header className="editorial-heading">

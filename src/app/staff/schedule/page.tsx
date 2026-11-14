@@ -1,3 +1,4 @@
+import { ScheduleManagement } from "../../schedule-management";
 import { ScheduleField } from "../../schedule-field";
 import { GroupFilterField } from "../../group-filter-field";
 import { displayDate } from "../../schedule-input-values";
@@ -11,7 +12,7 @@ import { readSchedule } from "@/server/schedule";
 import { dayKey, addDays } from "@/lib/schedule-time";
 import { AppNav } from "../../app-nav";
 import { LessonEditor } from "../../lesson-form";
-import { Logout, RefreshContext } from "../../forms";
+import { RefreshContext } from "../../forms";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -44,14 +45,11 @@ export default async function Page({
       )
     : null;
   return (
-    <main className="campus-shell">
+    <main className="campus-shell staff-schedule-page">
       <AppNav role="STAFF" active="/staff/schedule" />
       <Workspace>
         <div className="account-line">
           <span>Рабочее пространство сотрудника</span>
-          <div className="logout-control">
-            <Logout />
-          </div>
         </div>
 
         <RefreshContext />
@@ -60,14 +58,7 @@ export default async function Page({
           <h1>Расписание занятий</h1>
           <p>Выберите группу и неделю. Изменения доступны студентам.</p>
         </header>
-        <nav className="semester-links" aria-label="Управление расписанием">
-          <Link href="/staff/schedule/semesters">Учебные семестры</Link>
-          <Link href="/staff/schedule/builder">Конструктор расписания</Link>
-          <Link href="/staff/schedule/resources">
-            Преподаватели и аудитории
-          </Link>
-          <Link href="/staff/structure">Управлять группами</Link>
-        </nav>
+        <ScheduleManagement />
         {!data ? (
           <p className="notice">
             Сначала <Link href="/staff/structure">создайте учебную группу</Link>

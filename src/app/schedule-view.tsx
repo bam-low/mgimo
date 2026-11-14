@@ -3,7 +3,7 @@ import { ScheduleField } from "./schedule-field";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   dayKey,
   addDays,
@@ -24,9 +24,11 @@ type Data = {
 export function ScheduleView({
   home = false,
   name = "",
+  overview,
 }: {
   home?: boolean;
   name?: string;
+  overview?: ReactNode;
 }) {
   const [view, V] = useState("today"),
     [day, D] = useState("");
@@ -151,7 +153,7 @@ export function ScheduleView({
               {data ? formatDate(data.today) : "Ваш учебный день"}
             </p>
             <h1>
-              Здравствуйте,
+              Добрый день,
               <br /> <em>{name || "студент"}!</em>
             </h1>
             <p>
@@ -457,74 +459,7 @@ export function ScheduleView({
           </div>
           {home && (
             <aside className="student-aside" aria-label="Мой кампус">
-              <section className="paper-card quick-links">
-                <p className="eyebrow">Быстрые переходы</p>
-                <Link href="/schedule">
-                  <span className="link-icon">
-                    <Icon name="calendar" />
-                  </span>
-                  <span>
-                    <strong>Расписание недели</strong>
-                    <small>Все дни вашей группы</small>
-                  </span>
-                  <Icon name="chevron" />
-                </Link>
-                <Link href="/cabinet">
-                  <span className="link-icon lavender">
-                    <Icon name="user" />
-                  </span>
-                  <span>
-                    <strong>Мой профиль</strong>
-                    <small>Прикрепление и история</small>
-                  </span>
-                  <Icon name="chevron" />
-                </Link>
-              </section>
-              <section className="paper-card day-summary">
-                <h2>
-                  <Icon name="book" />
-                  Учебный день
-                </h2>
-                <div className="day-summary-count">
-                  <strong>{planned.length}</strong>
-                  <span>занятий в плане дня</span>
-                </div>
-                {planned.length ? (
-                  <dl>
-                    <div>
-                      <dt>Первая пара</dt>
-                      <dd>
-                        {timeLabel(
-                          new Date(planned[0].startsAt),
-                          data.timezone,
-                        )}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Последняя пара до</dt>
-                      <dd>
-                        {timeLabel(
-                          new Date(planned.at(-1)!.endsAt),
-                          data.timezone,
-                        )}
-                      </dd>
-                    </div>
-                  </dl>
-                ) : (
-                  <p>В расписании свободный день.</p>
-                )}
-              </section>
-              <section className="campus-note">
-                <span className="eyebrow">Личный кампус</span>
-                <h2>Учёба в своём ритме</h2>
-                <p>Сегодняшние занятия, время и группа — в одном месте.</p>
-                <Image
-                  src="/design/campus-garden.svg"
-                  width={300}
-                  height={144}
-                  alt=""
-                />
-              </section>
+              {overview}
             </aside>
           )}
         </div>

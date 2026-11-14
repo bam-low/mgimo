@@ -8,7 +8,7 @@ import { universityDate } from "@/lib/time";
 import { headers } from "next/headers";
 import { actor, staff } from "@/server/security";
 import { db } from "@/server/db";
-import { ActionForm, MembershipForm, Logout, RefreshContext } from "../forms";
+import { ActionForm, MembershipForm, RefreshContext } from "../forms";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -46,45 +46,58 @@ export default async function Page({
       <AppNav role="STAFF" active="/staff" />
       <Workspace>
         <RefreshContext />
-        <header>
-          <h1>Очередь прикреплений</h1>
-          <Logout />
+        <div className="account-line">
+          <span>Рабочее пространство сотрудника</span>
+        </div>
+        <header className="editorial-heading">
+          <div>
+            <p className="eyebrow">Деканат / Студенты</p>
+            <h1>Очередь прикреплений</h1>
+            <p>Подтверждение учебной группы и управление доступом.</p>
+          </div>
         </header>
-        <p>Конкурсный концепт, не официальный сервис</p>
-        <p>
-          Не вводите настоящие ФИО, email или личные пароли. Используйте только
-          выданные демонстрационные данные.
-        </p>
-        {requests.length === 0 ? (
-          <p>Ожидающих обращений нет.</p>
-        ) : (
-          requests.map((r) => (
-            <section
-              className="request"
-              key={r.id}
-              data-testid="pending-request"
-            >
-              <h2>
-                {r.membership.profile?.firstName}{" "}
-                {r.membership.profile?.lastName}
-              </h2>
-              <p>Группа: {r.targetGroup.name}</p>
-              <p>
-                Подача:{" "}
-                {universityDate(r.createdAt, a.membership.university.timezone)}
-              </p>
-              {(!r.targetGroup.active ||
-                !r.targetGroup.program.active ||
-                !r.targetGroup.program.faculty.active) && (
+        <details className="demo-details">
+          <summary>Только вымышленные данные</summary>
+          <p>
+            Не вводите настоящие ФИО, email или личные пароли. Используйте
+            только выданные демонстрационные данные.
+          </p>
+        </details>
+        <div className="enrollment-queue">
+          {requests.length === 0 ? (
+            <p>Ожидающих обращений нет.</p>
+          ) : (
+            requests.map((r) => (
+              <section
+                className="request"
+                key={r.id}
+                data-testid="pending-request"
+              >
+                <h2>
+                  {r.membership.profile?.firstName}{" "}
+                  {r.membership.profile?.lastName}
+                </h2>
+                <p>Группа: {r.targetGroup.name}</p>
                 <p>
-                  Группа недоступна: одобрение запрещено, запрос можно
-                  отклонить.
+                  Подача:{" "}
+                  {universityDate(
+                    r.createdAt,
+                    a.membership.university.timezone,
+                  )}
                 </p>
-              )}
-              <ActionForm url="/api/staff/decision" requestId={r.id} />
-            </section>
-          ))
-        )}
+                {(!r.targetGroup.active ||
+                  !r.targetGroup.program.active ||
+                  !r.targetGroup.program.faculty.active) && (
+                  <p>
+                    Группа недоступна: одобрение запрещено, запрос можно
+                    отклонить.
+                  </p>
+                )}
+                <ActionForm url="/api/staff/decision" requestId={r.id} />
+              </section>
+            ))
+          )}
+        </div>
         <nav aria-label="Страницы очереди" className="flex gap-4">
           {pendingAfter && (
             <Link href="/staff" prefetch={false}>
@@ -102,32 +115,34 @@ export default async function Page({
         </nav>
         <h2>Подтверждённые студенты</h2>
         {!members.items.length && <p>Подтверждённых студентов пока нет.</p>}
-        {members.items.map((m) => {
-          const current = m.enrollments[0];
-          return (
-            <section
-              className="request"
-              key={m.id}
-              data-testid="student-membership"
-            >
-              <h3>
-                {m.profile?.firstName} {m.profile?.lastName}
-              </h3>
-              <p>
-                {current
-                  ? `Группа: ${current.group.name}`
-                  : "Прикрепление отозвано"}
-              </p>
-              <MembershipForm
-                key={current?.id ?? String(m.resubmissionAllowed)}
-                membershipId={m.id}
-                enrollmentId={current?.id}
-                allowed={m.resubmissionAllowed}
-                groups={groups.filter((g) => g.id !== current?.groupId)}
-              />
-            </section>
-          );
-        })}
+        <div className="membership-grid">
+          {members.items.map((m) => {
+            const current = m.enrollments[0];
+            return (
+              <section
+                className="request"
+                key={m.id}
+                data-testid="student-membership"
+              >
+                <h3>
+                  {m.profile?.firstName} {m.profile?.lastName}
+                </h3>
+                <p>
+                  {current
+                    ? `Группа: ${current.group.name}`
+                    : "Прикрепление отозвано"}
+                </p>
+                <MembershipForm
+                  key={current?.id ?? String(m.resubmissionAllowed)}
+                  membershipId={m.id}
+                  enrollmentId={current?.id}
+                  allowed={m.resubmissionAllowed}
+                  groups={groups.filter((g) => g.id !== current?.groupId)}
+                />
+              </section>
+            );
+          })}
+        </div>
         <nav aria-label="Страницы студентов" className="flex gap-4">
           {membersAfter && (
             <Link href="/staff" prefetch={false}>

@@ -1,0 +1,88 @@
+{
+  "standalone": {
+    "начало": {
+      "runtime": "standalone",
+      "этап": "начало теста",
+      "тест": "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows",
+      "счётчики": {
+        "минута": 29909757,
+        "источник": 0,
+        "аккаунт": null
+      },
+      "итого": {
+        "users": 3,
+        "sessions": 0,
+        "buckets": 0
+      }
+    },
+    "входов_по_сценариям": {
+      "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+      "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+      "STAFF selects student and subject, records marks and credit; personal student history and audited corrections": 3,
+      "student → staff → approved at 360px": 4,
+      "student → staff → approved at 1280px": 4,
+      "Russian fields, real multi-lesson/empty days, and isolated clock boundary states": 1,
+      "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+    },
+    "статусы": {
+      "200": 21,
+      "429": 1
+    }
+  },
+  "functions": {
+    "начало": {
+      "runtime": "functions",
+      "этап": "начало теста",
+      "тест": "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows",
+      "счётчики": {
+        "минута": 29909976,
+        "источник": 0,
+        "аккаунт": null
+      },
+      "итого": {
+        "users": 8,
+        "sessions": 6,
+        "buckets": 8
+      }
+    },
+    "входов_по_сценариям": {
+      "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+      "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+      "STAFF selects student and subject, records marks and credit; personal student history and audited corrections": 3,
+      "student → staff → approved at 360px": 4,
+      "student → staff → approved at 1280px": 4,
+      "Russian fields, real multi-lesson/empty days, and isolated clock boundary states": 1,
+      "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+    },
+    "статусы": {
+      "200": 22
+    }
+  },
+  "vps": {
+    "начало": {
+      "runtime": "vps",
+      "этап": "начало теста",
+      "тест": "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows",
+      "счётчики": {
+        "источник": null,
+        "аккаунт": null
+      },
+      "итого": {
+        "изоляция": "отдельный PostgreSQL закрытой VPS-репетиции"
+      }
+    },
+    "входов_по_сценариям": {
+      "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+      "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+      "STAFF selects student and subject, records marks and credit; personal student history and audited corrections": 3,
+      "student → staff → approved at 360px": 4,
+      "student → staff → approved at 1280px": 4,
+      "Russian fields, real multi-lesson/empty days, and isolated clock boundary states": 1,
+      "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+    },
+    "статусы": {
+      "200": 22
+    }
+  },
+  "ограничение": "В первом standalone наблюдатель задержал снятие счётчиков отказа до teardown; позднее значение 0 не используется как счётчик в момент 429. Порог доказан отдельно в quota-evidence. Инструментирование меняет длительность запуска; это не исторические HTTP-события GitHub."
+}

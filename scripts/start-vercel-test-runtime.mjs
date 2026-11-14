@@ -118,6 +118,7 @@ const server = createServer(async (req, res) => {
     for (const route of output.routes ?? [])
       if (
         route.src &&
+        !route.dest &&
         route.headers &&
         new RegExp(route.src).test(url.pathname)
       )
@@ -143,9 +144,23 @@ const server = createServer(async (req, res) => {
           !route.has &&
           new RegExp(route.src).test(url.pathname),
       );
-      if (!rewrite) throw error;
-      const matched = new RegExp(rewrite.src).exec(url.pathname);
-      const destination = rewrite.dest.replace(
+      // The Build Output API also emits a terminal framework 404 rewrite.
+      // Run its real copied handler; never replace an unknown URL with fake HTML.
+      const fallback =
+        !rewrite &&
+        (output.routes ?? []).find(
+          (route) =>
+            route.status === 404 &&
+            route.dest &&
+            !route.has &&
+            !route.missing &&
+            !route.continue &&
+            new RegExp(route.src).test(url.pathname),
+        );
+      const selected = rewrite || fallback;
+      if (!selected) throw error;
+      const matched = new RegExp(selected.src).exec(url.pathname);
+      const destination = selected.dest.replace(
         /\$([A-Za-z][A-Za-z0-9]*|\d+)/g,
         (_, name) => matched.groups?.[name] ?? matched[Number(name)] ?? "",
       );
@@ -153,6 +168,11 @@ const server = createServer(async (req, res) => {
       entry = decodeURIComponent(routed.pathname).slice(1) + ".func";
       target = await realpath(path.join(root, "functions", entry));
       req.headers["x-matched-path"] = decodeURIComponent(routed.pathname);
+      if (fallback) {
+        // Generated error headers are request context for Next's own 404 render.
+        for (const [name, value] of Object.entries(fallback.headers ?? {}))
+          req.headers[name.toLowerCase()] = value;
+      }
     }
     const port = workers.get(target);
     if (!port) throw Error("Unknown output function");
