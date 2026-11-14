@@ -115,6 +115,7 @@ model UniversityMembership {
  resubmissionAllowed Boolean @default(false)
  university University @relation(fields:[universityId],references:[id])
  user User @relation(fields:[userId],references:[id])
+ notifications Notification[]
  applications Application[]
  profile StudentProfile?
  grades Grade[]
@@ -132,6 +133,8 @@ model StudentProfile {
  membership UniversityMembership @relation(fields:[membershipId],references:[id])
 }
 model EnrollmentRequest {
+ notifications Notification[]
+ @@unique([id,membershipId])
  id String @id @default(cuid())
  membershipId String
  targetGroupId String
@@ -346,6 +349,8 @@ model ScheduleGroup {
 }
 
 model Application {
+ notifications Notification[]
+ @@unique([id,membershipId,universityId])
  id String @id
  universityId String
  membershipId String
@@ -402,6 +407,8 @@ model ApplicationDocument {
  @@index([universityId,applicationId])
 }
 model ApplicationEvent {
+ notifications Notification[]
+ @@unique([id,applicationId,universityId])
  id String @id
  applicationId String
  universityId String
@@ -417,4 +424,24 @@ model ApplicationEvent {
  applicationVersion Int
  createdAt DateTime @default(now()) @db.Timestamptz(3)
  @@index([applicationId,createdAt,id])
+}
+
+model Notification {
+ id String @id @default(cuid())
+ universityId String
+ recipientMembershipId String
+ recipient UniversityMembership @relation(fields:[recipientMembershipId,universityId],references:[id,universityId],onDelete:Restrict)
+ kind String
+ schemaVersion Int @default(1)
+ sourceKey String
+ enrollmentRequestId String?
+ enrollmentRequest EnrollmentRequest? @relation(fields:[enrollmentRequestId,recipientMembershipId],references:[id,membershipId],onDelete:Restrict)
+ applicationId String?
+ application Application? @relation(fields:[applicationId,recipientMembershipId,universityId],references:[id,membershipId,universityId],onDelete:Restrict)
+ applicationEventId String?
+ applicationEvent ApplicationEvent? @relation(fields:[applicationEventId,applicationId,universityId],references:[id,applicationId,universityId],onDelete:Restrict)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ readAt DateTime? @db.Timestamptz(3)
+ @@unique([universityId,recipientMembershipId,sourceKey])
+ @@index([recipientMembershipId,universityId,createdAt,id])
 }

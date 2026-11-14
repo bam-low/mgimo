@@ -1,3 +1,4 @@
+import { notifyEnrollment } from "./notification-events";
 import { validGroup, lockMembership, requireStaff } from "./enrollment-guards";
 import { syntheticIdentity } from "./demo-identity";
 import { z } from "zod";
@@ -128,5 +129,13 @@ export async function decide(
         newGroupId: r.targetGroupId,
       },
     });
+    await notifyEnrollment(
+      tx,
+      actorId,
+      universityId,
+      r.membershipId,
+      r.id,
+      status,
+    );
   });
 }

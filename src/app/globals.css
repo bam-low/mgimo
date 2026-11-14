@@ -3458,3 +3458,72 @@ textarea:focus {
   padding: 0;
   border: 0;
 }
+
+/* Notifications: preserve the accepted header/exit and five mobile tabs. */
+.masthead-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notification-entry {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--brand);
+}
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  padding: 2px 5px;
+  border-radius: 12px;
+  background: var(--brand);
+  color: white;
+  font: 600 0.65rem/1.4 var(--body);
+}
+.notification-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block: 18px;
+}
+.notification-filters a {
+  padding: 10px 16px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.notification-filters a[aria-current] {
+  background: var(--lavender, #e7e0f2);
+  border-color: var(--brand);
+}
+.notification-list {
+  display: grid;
+  gap: 14px;
+}
+.notification-card {
+  background: white;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.notification-card[data-unread="true"] {
+  border-left: 4px solid var(--brand);
+}
+.notification-card h2 {
+  font-size: 1.25rem;
+}
+.notification-card time,
+.notification-read-state {
+  font: 400 0.8rem/1.5 var(--body);
+  color: var(--muted);
+}
+.notification-card .card-action {
+  margin-top: 18px;
+}

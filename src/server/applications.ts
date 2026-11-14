@@ -1,3 +1,4 @@
+import { notifyApplication } from "./notification-events";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { Prisma } from "../generated/prisma/client";
@@ -128,6 +129,14 @@ async function event(
       documentId,
     },
   });
+  await notifyApplication(
+    tx,
+    a.user.id,
+    a.membership.universityId,
+    app.id,
+    operationId,
+    type,
+  );
 }
 async function operationUnused(tx: Prisma.TransactionClient, id: string) {
   if (
@@ -287,6 +296,9 @@ export async function actOnApplication(
       type,
       next,
       "text" in d ? d.text : undefined,
+      d.action === "COMPLETE" && old.kind === "STUDY_CERTIFICATE"
+        ? (next.currentDocumentId ?? undefined)
+        : undefined,
     );
     await audit(tx, a, id, type, {
       before: {
