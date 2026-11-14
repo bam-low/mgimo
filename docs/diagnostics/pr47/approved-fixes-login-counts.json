@@ -1,0 +1,66 @@
+{
+  "дата": "2026-11-14",
+  "база": "ca9c909329656fed91bedee541d455f0b6941e30",
+  "метод": "Временный внешний наблюдатель, настоящие запросы/ответы, без изменения источника/часов/лимитов/RateBucket. Только безопасные числовые данные.",
+  "обычные_наборы": {
+    "standalone": {
+      "всего_POST_sign_in": 18,
+      "HTTP": {
+        "200": 18
+      },
+      "по_сценариям": {
+        "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+        "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+        "student → staff → approved at 360px": 4,
+        "student → staff → approved at 1280px": 4,
+        "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+      }
+    },
+    "functions": {
+      "всего_POST_sign_in": 18,
+      "HTTP": {
+        "200": 18
+      },
+      "по_сценариям": {
+        "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+        "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+        "student → staff → approved at 360px": 4,
+        "student → staff → approved at 1280px": 4,
+        "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+      }
+    },
+    "vps": {
+      "всего_POST_sign_in": 19,
+      "HTTP": {
+        "401": 1,
+        "200": 18
+      },
+      "по_сценариям": {
+        "preflight": 1,
+        "applications: genuine certificate bytes, completion, immutable replacement and mobile workflows": 3,
+        "STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px": 6,
+        "student → staff → approved at 360px": 4,
+        "student → staff → approved at 1280px": 4,
+        "semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict": 1
+      }
+    }
+  },
+  "дополнительные_проверки": {
+    "functions-security": {
+      "всего_POST_sign_in": 35,
+      "HTTP": {
+        "401": 10,
+        "429": 14,
+        "200": 2,
+        "400": 9
+      }
+    },
+    "functions-cold-start": {
+      "всего_POST_sign_in": 1,
+      "HTTP": {
+        "200": 1
+      }
+    }
+  },
+  "ограничение": "Локальные инструментированные прогоны; не HTTP-статусы исторических GitHub-отказов. Проверки Functions security и cold-start дополнительно измерены отдельными повторами на той же БД без очистки rate counters."
+}

@@ -1297,10 +1297,13 @@ progress::-moz-progress-bar {
   margin-top: 5px;
 }
 .lesson-inspector form > label,
-.lesson-inspector form > button {
+.lesson-inspector .lesson-fields > label,
+.lesson-inspector form > button,
+.lesson-inspector .lesson-fields > button {
   margin-bottom: 14px;
 }
-.lesson-inspector form > button {
+.lesson-inspector form > button,
+.lesson-inspector .lesson-fields > button {
   width: 100%;
   font-size: 0.75rem;
 }
@@ -3446,4 +3449,12 @@ textarea:focus {
     padding: 0 12px 12px;
     border: 0;
   }
+}
+
+/* The SSR form stays inert until its client validation/submit handlers exist. */
+.lesson-fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }

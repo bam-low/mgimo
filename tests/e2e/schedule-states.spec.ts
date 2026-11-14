@@ -1,3 +1,4 @@
+import { signInWithSession } from "./ui-sign-in";
 import { test, expect } from "@playwright/test";
 import { dayKey, monday, addDays } from "../../src/lib/schedule-time";
 import { displayDate } from "../../src/app/schedule-input-values";
@@ -8,18 +9,11 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
   if (!process.env.DATABASE_URL?.split("?")[0].endsWith("_test"))
     throw Error("Dedicated synthetic *_test DB required");
   test.setTimeout(90000);
-  await page.goto("/login");
-  await page
-    .getByLabel("Демонстрационный логин", { exact: true })
-    .fill("student1@example.test");
-  await page
-    .getByLabel("Демонстрационный пароль", { exact: true })
-    .evaluate((e, v) => {
-      (e as HTMLInputElement).value = v;
-      e.dispatchEvent(new Event("input", { bubbles: true }));
-    }, process.env.DEMO_STUDENT1_PASSWORD!);
-  await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page).toHaveURL(/\/cabinet$/);
+  await signInWithSession(
+    page,
+    "student1@example.test",
+    process.env.DEMO_STUDENT1_PASSWORD!,
+  );
   const today = dayKey(new Date(), "Europe/Moscow"),
     first = monday(today),
     empty = addDays(first, 6);

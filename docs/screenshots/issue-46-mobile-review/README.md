@@ -28,3 +28,7 @@
 PR остаётся Draft, Production NO-GO сохраняется. Merge/auto-merge/deploy не выполнялись.
 
 Локально также пройдены lint, TypeScript, production build/standalone artifact gate, 19 unit и 71 PostgreSQL integration. Закрытая локальная VPS-репетиция нового мобильного runtime: 16 E2E и encrypted fresh restore PASS. Диагностические Functions baseline PR: 17 E2E PASS. Это локальные результаты, не исправление ранее красных GitHub CI и не production GO.
+
+## Контроль перехода к дню — 14.11.2026
+
+[Настоящий снимок 360 px](day-navigation-360.png), [шаги и координаты](day-navigation-360.json). При переходе к первому дню с занятиями заголовок виден целиком ниже шапки; перекрытие не воспроизведено. Компоновка не менялась.

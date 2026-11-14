@@ -1,23 +1,13 @@
-import { rememberSession } from "./session-cache";
-import { test, expect, type Page } from "@playwright/test";
+import { signInWithSession } from "./ui-sign-in";
+import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Демонстрационный логин", { exact: true }).fill(email);
-  await page
-    .getByLabel("Демонстрационный пароль", { exact: true })
-    .fill(password);
-  await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page).toHaveURL(/\/(cabinet|staff)$/);
-  await rememberSession(page, email);
-}
 test("STAFF selects student and subject, records marks and credit; personal student history and audited corrections", async ({
   page,
   browser,
 }) => {
   test.setTimeout(180000);
   page.on("dialog", (d) => d.accept());
-  await login(page, "staff@example.test", process.env.DEMO_STAFF_PASSWORD!);
+  await signInWithSession(page, "staff@example.test", process.env.DEMO_STAFF_PASSWORD!);
   await page.goto("/staff/grades");
   await page.getByText("Справочник дисциплин", { exact: true }).click();
   const title =
@@ -90,7 +80,7 @@ test("STAFF selects student and subject, records marks and credit; personal stud
   const studentContext = await browser.newContext();
   const sp = await studentContext.newPage();
   try {
-    await login(
+    await signInWithSession(
       sp,
       "student1@example.test",
       process.env.DEMO_STUDENT1_PASSWORD!,
@@ -115,7 +105,7 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     const other = await browser.newContext();
     const op = await other.newPage();
     try {
-      await login(
+      await signInWithSession(
         op,
         "student2@example.test",
         process.env.DEMO_STUDENT2_PASSWORD!,

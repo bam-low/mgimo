@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { LessonTitleField } from "./lesson-title-field";
 import { ScheduleField } from "./schedule-field";
 import { Icon } from "./ui-icon";
@@ -31,6 +31,10 @@ export function LessonEditor({
     [busy, B] = useState(false),
     [message, M] = useState(""),
     router = useRouter();
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setReady(true);
+  }, []);
   const formRef = useRef<HTMLFormElement>(null);
   const inspectorRef = useRef<HTMLElement>(null);
   const lesson = lessons.find((l) => l.id === selected);
@@ -324,6 +328,8 @@ export function LessonEditor({
               ref={formRef}
               key={lesson ? `${lesson.id}-${lesson.version}` : "new"}
               aria-label="Занятие"
+              aria-busy={!ready}
+              data-ready={ready}
               onSubmit={async (e) => {
                 e.preventDefault();
                 const f = new FormData(e.currentTarget);
@@ -340,73 +346,84 @@ export function LessonEditor({
                 });
               }}
             >
-              <LessonTitleField initialValue={lesson?.title} />
-              <ScheduleField
-                label="Дата занятия"
-                name="day"
-                required
-                defaultValue={
-                  lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
-                }
-              />
-              <div className="time-fields">
+              {!ready && (
+                <p role="status" className="footnote">
+                  Подключаем форму занятия…
+                </p>
+              )}
+              <fieldset
+                className="lesson-fields"
+                disabled={!ready}
+                aria-label="Поля занятия"
+              >
+                <LessonTitleField initialValue={lesson?.title} />
                 <ScheduleField
-                  label="Начало"
-                  name="start"
-                  kind="time"
+                  label="Дата занятия"
+                  name="day"
                   required
                   defaultValue={
-                    lesson
-                      ? timeLabel(new Date(lesson.startsAt), timezone)
-                      : "09:00"
+                    lesson ? dayKey(new Date(lesson.startsAt), timezone) : day
                   }
                 />
-                <ScheduleField
-                  label="Конец"
-                  name="end"
-                  kind="time"
-                  required
-                  defaultValue={
-                    lesson
-                      ? timeLabel(new Date(lesson.endsAt), timezone)
-                      : "10:30"
-                  }
-                />
-              </div>
-              <label>
-                Вымышленный преподаватель (необязательно)
-                <input
-                  name="teacher"
-                  maxLength={120}
-                  defaultValue={lesson?.teacher ?? ""}
-                />
-              </label>
-              <label>
-                Аудитория (необязательно)
-                <input
-                  name="room"
-                  maxLength={80}
-                  defaultValue={lesson?.room ?? ""}
-                />
-              </label>
-              <div className="inspector-primary-actions">
-                <button disabled={busy}>
-                  {busy
-                    ? "Сохраняем…"
-                    : lesson
-                      ? "Сохранить занятие"
-                      : "Создать занятие"}
-                </button>
-                {lesson && (
-                  <button
-                    className="secondary"
-                    type="button"
-                    onClick={() => S("")}
-                  >
-                    Закрыть без сохранения
+                <div className="time-fields">
+                  <ScheduleField
+                    label="Начало"
+                    name="start"
+                    kind="time"
+                    required
+                    defaultValue={
+                      lesson
+                        ? timeLabel(new Date(lesson.startsAt), timezone)
+                        : "09:00"
+                    }
+                  />
+                  <ScheduleField
+                    label="Конец"
+                    name="end"
+                    kind="time"
+                    required
+                    defaultValue={
+                      lesson
+                        ? timeLabel(new Date(lesson.endsAt), timezone)
+                        : "10:30"
+                    }
+                  />
+                </div>
+                <label>
+                  Вымышленный преподаватель (необязательно)
+                  <input
+                    name="teacher"
+                    maxLength={120}
+                    defaultValue={lesson?.teacher ?? ""}
+                  />
+                </label>
+                <label>
+                  Аудитория (необязательно)
+                  <input
+                    name="room"
+                    maxLength={80}
+                    defaultValue={lesson?.room ?? ""}
+                  />
+                </label>
+                <div className="inspector-primary-actions">
+                  <button disabled={busy}>
+                    {busy
+                      ? "Сохраняем…"
+                      : lesson
+                        ? "Сохранить занятие"
+                        : "Создать занятие"}
                   </button>
-                )}
-              </div>
+                  {lesson && (
+                    <button
+                      className="secondary"
+                      type="button"
+                      onClick={() => S("")}
+                    >
+                      Закрыть без сохранения
+                    </button>
+                  )}
+                </div>
+              </fieldset>
             </form>
 
             <p
