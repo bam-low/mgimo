@@ -1,0 +1,459 @@
+[
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "/api/staff/schedule/builder",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "invalid-date",
+    "value": "31.02.2026",
+    "message": "Введите существующую дату ДД.ММ.ГГГГ (2000–2100).",
+    "valid": false,
+    "writes": 0
+  },
+  {
+    "id": "/api/register",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/register",
+    "method": "POST",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/staff/decision",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/enrollment",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/decision",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/subjects",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/grades",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-grade",
+    "present": false,
+    "note": "Ошибка наблюдателя: DTO содержит subjectId, не subject.id. Перепроверено отдельным настоящим STAFF GET; исходное наблюдение сохранено."
+  },
+  {
+    "id": "/api/applications",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/applications",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 409,
+    "expected": 409
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "upload-demo",
+    "status": 200
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/applications/:id/actions",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/applications/:id/document",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-download",
+    "bytesEqual": true,
+    "sha256": "7f4f25b4f1c669db03d1477a7f4d672547ed4434393c02c49da9d0c0956e70ff",
+    "bytes": 136061
+  },
+  {
+    "id": "/api/staff/applications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "upload-demo",
+    "status": 200
+  },
+  {
+    "id": "/api/notifications",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/notifications/:id/read",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/notifications/:id/read",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/notifications/:id/read",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/notifications/:id/read",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-read-concurrency",
+    "distinctReadAt": 1,
+    "auditCount": 1
+  },
+  {
+    "id": "/api/notifications/:id",
+    "method": "GET",
+    "status": 404,
+    "expected": 404
+  },
+  {
+    "id": "/api/applications/:id",
+    "method": "GET",
+    "status": 404,
+    "expected": 404,
+    "note": "Чужой объект скрывается404; первоначальная проверка403 в наблюдателе была неверной, код приложения не менялся."
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "/api/applications?kind=STUDY_CERTIFICATE&status=COMPLETED",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/notifications",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/membership",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/group?id=group-1",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/applications/:id/document",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-history-after-transfer",
+    "gradeIDsUnchanged": true,
+    "documentStatus": 200
+  },
+  {
+    "id": "/api/staff/membership",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/applications/:id/document",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/applications/:id",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/group",
+    "method": "GET",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "id": "/api/notifications/:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-revoked-notification",
+    "targetAvailable": false,
+    "ownNotificationStatus": 200
+  },
+  {
+    "id": "/api/staff/membership",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/enrollment",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/staff/decision",
+    "method": "POST",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/applications/:id/document",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "/api/grades",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-restored",
+    "downloadStatus": 200,
+    "gradeIDsUnchanged": true
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "/api/schedule?view=today",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "real-clock-current-api",
+    "serverNow": "2026-11-16T06:15:03.975Z",
+    "day": "2026-11-16",
+    "lessons": 3,
+    "method": "Настоящий API на отдельной clock-fixture DB; ответы не подменены."
+  },
+  {
+    "id": "real-clock-live-progress",
+    "first": 56.33291666666666,
+    "second": 56.35372916666667,
+    "advanced": true
+  },
+  {
+    "id": "/api/schedule?view=today",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "real-clock-break",
+    "serverNow": "2026-11-16T06:51:02.284Z",
+    "verifiedHeading": "Сейчас перемена"
+  },
+  {
+    "id": "/api/schedule?view=today",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "real-clock-finished",
+    "serverNow": "2026-11-16T12:51:02.410Z",
+    "verifiedHeading": "Все пары на сегодня закончились"
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "student-text200",
+    "method": "CSS root font-size200% в браузере для проверки изменения размера текста, не изменение исходников и не имитация полного browser zoom",
+    "rootFontSize": "32px"
+  },
+  {
+    "id": "staff-text200",
+    "method": "CSS root font-size200% в браузере для проверки изменения размера текста, не изменение исходников и не имитация полного browser zoom",
+    "rootFontSize": "32px"
+  },
+  {
+    "id": "ui-login",
+    "status": 200
+  },
+  {
+    "id": "/api/grades?membershipId=:id",
+    "method": "GET",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "id": "cross-grade-correct-dto",
+    "present": true,
+    "method": "Настоящий STAFF API: subjectId на верхнем уровне DTO, mark5; read-only поиск ранее созданной фикстуры"
+  }
+]
