@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { randomUUID, createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { signInWithSession } from "./ui-sign-in";
+
 test("Личные уведомления: справка, прочтение, конкуренция, отзыв и восстановление доступа", async ({
   page,
   browser,
@@ -9,8 +10,13 @@ test("Личные уведомления: справка, прочтение, �
   test.setTimeout(180000);
   const origin = process.env.BETTER_AUTH_URL!,
     context = await browser.newContext(),
-    sp = await context.newPage();
+    sp = await context.newPage(),
+    otherContext = await browser.newContext(),
+    op = await otherContext.newPage();
   page.on("dialog", (d) => d.accept());
+  async function post(p: Page, path: string, data: unknown) {
+    return p.request.post(path, { headers: { origin }, data });
+  }
   async function staffCard(testId: string, nextLabel: string) {
     for (let i = 0; i < 100; i++) {
       await page.waitForLoadState("networkidle");
@@ -20,12 +26,14 @@ test("Личные уведомления: справка, прочтение, �
           exact: true,
         }),
       ).toBeVisible();
-      const card = page.getByTestId(testId).filter({
-        has: page.getByRole("heading", {
-          name: "Демо Студент 2",
-          exact: true,
-        }),
-      });
+      const card = page
+        .getByTestId(testId)
+        .filter({
+          has: page.getByRole("heading", {
+            name: "Демо Студент 1",
+            exact: true,
+          }),
+        });
       if (await card.count()) return card;
       const next = page.getByRole("link", { name: nextLabel, exact: true });
       await expect(next).toBeVisible();
@@ -33,19 +41,8 @@ test("Личные уведомления: справка, прочтение, �
       expect(href).toMatch(/^\/staff\?(pendingAfter|membersAfter)=/);
       await next.click({ timeout: 15000 });
       await expect(page).toHaveURL(new URL(href!, origin).href);
-      await page.waitForLoadState("networkidle");
-      await expect(
-        page.getByRole("heading", {
-          name: "Очередь прикреплений",
-          exact: true,
-        }),
-      ).toBeVisible();
     }
     throw Error("Не найдена карточка вымышленного студента в очереди");
-  }
-
-  async function post(p: Page, path: string, data: unknown) {
-    return p.request.post(path, { headers: { origin }, data });
   }
   async function shot(p: Page, state: string) {
     for (const width of [360, 390, 768, 1280]) {
@@ -80,6 +77,28 @@ test("Личные уведомления: справка, прочтение, �
       });
     }
   }
+  type Notice = {
+    id: string;
+    kind: string;
+    readAt: string | null;
+    target: { href?: string; available: boolean };
+  };
+  async function notices(p: Page): Promise<Notice[]> {
+    const r = await p.request.get("/api/notifications");
+    expect(r.status()).toBe(200);
+    return (await r.json()).items;
+  }
+  async function action(id: string, name: string, text?: string) {
+    const d = await (
+      await page.request.get(`/api/staff/applications/${id}`)
+    ).json();
+    return post(page, `/api/staff/applications/${id}/actions`, {
+      action: name,
+      expectedVersion: d.version,
+      operationId: randomUUID(),
+      ...(text ? { text } : {}),
+    });
+  }
   try {
     await signInWithSession(
       page,
@@ -88,126 +107,197 @@ test("Личные уведомления: справка, прочтение, �
     );
     await signInWithSession(
       sp,
+      "student1@example.test",
+      process.env.DEMO_STUDENT1_PASSWORD!,
+    );
+    await signInWithSession(
+      op,
       "student2@example.test",
       process.env.DEMO_STUDENT2_PASSWORD!,
     );
-    await sp.goto("/notifications");
-    await expect(
-      sp.getByRole("heading", { name: "Уведомления", exact: true }),
-    ).toBeVisible();
-    if (
-      (await (await sp.request.get("/api/notifications")).json()).items
-        .length === 0
-    ) {
+    await op.goto("/notifications");
+    if (!(await notices(op)).length) {
       await expect(
-        sp.getByRole("heading", { name: "Пока нет уведомлений" }),
+        op.getByRole("heading", { name: "Пока нет уведомлений" }),
       ).toBeVisible();
-      await shot(sp, "empty");
+      await shot(op, "empty");
     }
-    const created = await post(sp, "/api/applications", {
-      kind: "STUDY_CERTIFICATE",
+    // Two writes per STUDENT2/runtime: four across both Node runtimes, under the
+    // unchanged five creations/10min limit. No extra STAFF uploads in a full suite.
+    const general = await post(op, "/api/applications", {
+      kind: "GENERAL_REQUEST",
       operationId: randomUUID(),
-      purpose: "Демонстрационная справка для уведомлений",
-      description: "",
+      subject: "Демо уведомление об обращении",
+      description: "Вымышленный вопрос для проверки статуса",
     });
-    expect(created.status()).toBe(200);
-    const { id } = await created.json();
-    const path = `/api/staff/applications/${id}`;
+    expect(general.status()).toBe(200);
+    const generalId = (await general.json()).id;
     const taking = await Promise.all([
-      post(page, path + "/actions", {
+      post(page, `/api/staff/applications/${generalId}/actions`, {
         action: "TAKE",
         expectedVersion: 1,
         operationId: randomUUID(),
       }),
-      post(page, path + "/actions", {
+      post(page, `/api/staff/applications/${generalId}/actions`, {
         action: "TAKE",
         expectedVersion: 1,
         operationId: randomUUID(),
       }),
     ]);
     expect(taking.map((r) => r.status()).sort()).toEqual([200, 409]);
-    let d = await (await page.request.get(path)).json();
-    const bytes = await readFile("demo/documents/demo-certificate.pdf");
-    async function upload() {
-      const response = await page.request.post(path + "/documents", {
-        headers: { origin },
-        multipart: {
-          metadata: JSON.stringify({
-            operationId: randomUUID(),
-            expectedVersion: d.version,
-            expectedCurrentDocumentId: d.currentDocumentId,
-            demoConfirmed: true,
-            ...(d.currentDocumentId
-              ? { reason: "Демонстрационное обновление готовой справки" }
-              : {}),
-          }),
-          file: {
-            name: "demo-certificate.pdf",
-            mimeType: "application/pdf",
-            buffer: bytes,
-          },
-        },
-      });
-      expect(response.status()).toBe(200);
-      d = await (await page.request.get(path)).json();
-    }
-    const noFile = await post(page, path + "/actions", {
-      action: "COMPLETE",
-      operationId: randomUUID(),
-      expectedVersion: d.version,
-      text: "Демонстрационный ответ",
-    });
-    expect(noFile.status()).toBe(409);
-    await upload();
     expect(
-      (await (await sp.request.get("/api/notifications")).json()).items.filter(
-        (n: { target: { href?: string } }) =>
-          n.target.href === `/applications/${id}`,
+      (
+        await action(
+          generalId,
+          "COMPLETE",
+          "Демонстрационный ответ без вложения",
+        )
+      ).status(),
+    ).toBe(200);
+    const empty = await post(op, "/api/applications", {
+      kind: "STUDY_CERTIFICATE",
+      operationId: randomUUID(),
+      purpose: "Проверка запрета без файла",
+      description: "",
+    });
+    expect(empty.status()).toBe(200);
+    const emptyId = (await empty.json()).id;
+    expect((await action(emptyId, "TAKE")).status()).toBe(200);
+    expect(
+      (await action(emptyId, "COMPLETE", "Демо готово без файла")).status(),
+    ).toBe(409);
+    expect(
+      (
+        await action(emptyId, "REJECT", "Демонстрационный мотивированный отказ")
+      ).status(),
+    ).toBe(200);
+    const own = await notices(op);
+    expect(
+      own.filter(
+        (n) =>
+          n.kind === "APPLICATION_COMPLETED" &&
+          n.target.href === `/applications/${generalId}`,
       ),
     ).toHaveLength(1);
-    const complete = await post(page, path + "/actions", {
-      action: "COMPLETE",
-      operationId: randomUUID(),
-      expectedVersion: d.version,
-      text: "Демонстрационная справка готова",
-    });
-    expect(complete.status()).toBe(200);
-    d = await (await page.request.get(path)).json();
-    let items = (await (await sp.request.get("/api/notifications")).json())
-      .items;
-    const ready = items.find(
-      (n: { kind: string; target: { href?: string } }) =>
-        n.kind === "CERTIFICATE_READY" &&
-        n.target.href === `/applications/${id}`,
+    expect(
+      own.filter(
+        (n) =>
+          n.kind === "APPLICATION_REJECTED" &&
+          n.target.href === `/applications/${emptyId}`,
+      ),
+    ).toHaveLength(1);
+    expect(
+      own.filter(
+        (n) =>
+          n.kind === "CERTIFICATE_READY" &&
+          n.target.href === `/applications/${emptyId}`,
+      ),
+    ).toHaveLength(0);
+    // Reuse the real completed/replaced certificate produced by applications.spec.
+    // It independently verifies uploaded/downloaded bytes in every runtime. A
+    // single-test run remains self-contained via the same real upload workflow.
+    let items = await notices(sp);
+    const list = await sp.request.get(
+      "/api/applications?kind=STUDY_CERTIFICATE&status=COMPLETED",
     );
-    expect(ready).toBeDefined();
+    expect(list.status()).toBe(200);
+    const candidate = (await list.json()).rows.find(
+      (a: { id: string }) =>
+        items.some(
+          (n) =>
+            n.kind === "CERTIFICATE_READY" &&
+            !n.readAt &&
+            n.target.href === `/applications/${a.id}`,
+        ) &&
+        items.some(
+          (n) =>
+            n.kind === "CERTIFICATE_UPDATED" &&
+            n.target.href === `/applications/${a.id}`,
+        ),
+    );
+    let id: string;
+    if (candidate) id = candidate.id;
+    else {
+      const r = await post(sp, "/api/applications", {
+        kind: "STUDY_CERTIFICATE",
+        operationId: randomUUID(),
+        purpose: "Демонстрационная справка для уведомлений",
+        description: "",
+      });
+      expect(r.status()).toBe(200);
+      id = (await r.json()).id;
+      expect((await action(id, "TAKE")).status()).toBe(200);
+      expect(
+        (await action(id, "COMPLETE", "Демо готово без файла")).status(),
+      ).toBe(409);
+      const bytes = await readFile("demo/documents/demo-certificate.pdf");
+      async function upload() {
+        const d = await (
+          await page.request.get(`/api/staff/applications/${id}`)
+        ).json();
+        const r = await page.request.post(
+          `/api/staff/applications/${id}/documents`,
+          {
+            headers: { origin },
+            multipart: {
+              metadata: JSON.stringify({
+                operationId: randomUUID(),
+                expectedVersion: d.version,
+                expectedCurrentDocumentId: d.currentDocumentId,
+                demoConfirmed: true,
+                ...(d.currentDocumentId
+                  ? { reason: "Демонстрационная замена готовой справки" }
+                  : {}),
+              }),
+              file: {
+                name: "demo-certificate.pdf",
+                mimeType: "application/pdf",
+                buffer: bytes,
+              },
+            },
+          },
+        );
+        expect(r.status()).toBe(200);
+      }
+      await upload();
+      expect(
+        (await notices(sp)).filter(
+          (n) => n.target.href === `/applications/${id}`,
+        ),
+      ).toHaveLength(1);
+      expect(
+        (
+          await action(id, "COMPLETE", "Демонстрационная справка готова")
+        ).status(),
+      ).toBe(200);
+      await upload();
+    }
+    items = await notices(sp);
+    const related = items.filter(
+      (n) => n.target.href === `/applications/${id}`,
+    );
+    expect(related.filter((n) => n.kind === "CERTIFICATE_READY")).toHaveLength(
+      1,
+    );
+    expect(
+      related.filter((n) => n.kind === "CERTIFICATE_UPDATED"),
+    ).toHaveLength(1);
+    expect(
+      related.filter((n) => n.kind === "APPLICATION_COMPLETED"),
+    ).toHaveLength(0);
+    const ready = related.find((n) => n.kind === "CERTIFICATE_READY")!,
+      taken = related.find((n) => n.kind === "APPLICATION_TAKEN")!;
+    expect(ready.readAt).toBeNull();
     const beforeGet = await sp.request.get(`/api/notifications/${ready.id}`);
     expect((await beforeGet.json()).notification.readAt).toBeNull();
-    const foreign = await browser.newContext(),
-      fp = await foreign.newPage();
-    try {
-      await signInWithSession(
-        fp,
-        "student1@example.test",
-        process.env.DEMO_STUDENT1_PASSWORD!,
-      );
-      expect(
-        (await fp.request.get(`/api/notifications/${ready.id}`)).status(),
-      ).toBe(404);
-      expect(
-        (await post(fp, `/api/notifications/${ready.id}/read`, {})).status(),
-      ).toBe(404);
-    } finally {
-      await foreign.close();
-    }
+    expect(
+      (await op.request.get(`/api/notifications/${ready.id}`)).status(),
+    ).toBe(404);
+    expect(
+      (await post(op, `/api/notifications/${ready.id}/read`, {})).status(),
+    ).toBe(404);
     expect((await page.request.get("/api/notifications")).status()).toBe(403);
     await sp.goto("/notifications?filter=unread");
-    const taken = items.find(
-      (n: { kind: string; target: { href?: string } }) =>
-        n.kind === "APPLICATION_TAKEN" &&
-        n.target.href === `/applications/${id}`,
-    );
-    expect(taken).toBeDefined();
     const takenCard = sp
       .locator("article")
       .filter({ has: sp.locator(`a[href^="/notifications/${taken.id}?"]`) });
@@ -237,13 +327,9 @@ test("Личные уведомления: справка, прочтение, �
       sp.locator(`a[href^="/notifications/${taken.id}?"]`),
     ).toHaveCount(0);
     await shot(sp, "unread");
-    await sp
-      .getByRole("link", {
-        name: "Демонстрационная справка готова",
-        exact: true,
-      })
-      .click();
+    await sp.locator(`a[href^="/notifications/${ready.id}?"]`).click();
     await expect(sp.getByText("Прочитано", { exact: true })).toBeVisible();
+    await expect(sp.getByText(/Документ уже обновлён/)).toBeVisible();
     await shot(sp, "ready");
     const reads = await Promise.all(
       Array.from({ length: 4 }, () =>
@@ -255,29 +341,29 @@ test("Личные уведомления: справка, прочтение, �
       reads.map(async (r) => (await r.json()).readAt),
     );
     expect(new Set(times).size).toBe(1);
-    const denied = await sp.request.post(
-      `/api/notifications/${ready.id}/read`,
-      { headers: { origin: "https://foreign.invalid" }, data: {} },
-    );
-    expect(denied.status()).toBe(403);
-    const downloaded = await sp.request.get(`/api/applications/${id}/document`);
+    expect(
+      (
+        await sp.request.post(`/api/notifications/${ready.id}/read`, {
+          headers: { origin: "https://foreign.invalid" },
+          data: {},
+        })
+      ).status(),
+    ).toBe(403);
+    const detail = await (
+        await sp.request.get(`/api/applications/${id}`)
+      ).json(),
+      downloaded = await sp.request.get(`/api/applications/${id}/document`);
     expect(downloaded.status()).toBe(200);
+    expect((await downloaded.body()).length).toBe(
+      detail.currentDocument.byteSize,
+    );
     expect(
       createHash("sha256")
         .update(await downloaded.body())
         .digest("hex"),
-    ).toBe(createHash("sha256").update(bytes).digest("hex"));
-    await upload();
-    items = (await (await sp.request.get("/api/notifications")).json()).items;
-    expect(
-      items.filter(
-        (n: { kind: string; target: { href?: string } }) =>
-          n.kind === "CERTIFICATE_UPDATED" &&
-          n.target.href === `/applications/${id}`,
-      ),
-    ).toHaveLength(1);
-    await sp.reload();
-    await expect(sp.getByText(/Документ уже обновлён/)).toBeVisible();
+    ).toBe(detail.currentDocument.sha256);
+    const originalGroup = (await (await sp.request.get("/api/group")).json())
+      .id;
     await page.goto("/staff");
     const card = await staffCard("student-membership", "Следующие студенты");
     await card.getByLabel("Действие", { exact: true }).selectOption("REVOKE");
@@ -299,9 +385,9 @@ test("Личные уведомления: справка, прочтение, �
       expect(
         (await sp.request.get(`/api/applications/${id}/document`)).status(),
       ).toBe(403);
-      const response = await sp.request.get(`/api/notifications/${ready.id}`),
-        safe = await response.json();
-      expect(response.status()).toBe(200);
+      const r = await sp.request.get(`/api/notifications/${ready.id}`),
+        safe = await r.json();
+      expect(r.status()).toBe(200);
       expect(safe.notification.readAt).toBe(times[0]);
       expect(JSON.stringify(safe)).not.toContain(id);
     } finally {
@@ -320,7 +406,7 @@ test("Личные уведомления: справка, прочтение, �
       await sp.goto("/cabinet");
       await sp
         .getByLabel("Новая группа", { exact: true })
-        .selectOption("group-2");
+        .selectOption(originalGroup);
       await sp.getByRole("button", { name: "Отправить", exact: true }).click();
       await expect(sp.getByTestId("membership-status")).toHaveText(
         "Ожидает подтверждения",
@@ -337,10 +423,8 @@ test("Личные уведомления: справка, прочтение, �
       await expect(pending).toHaveCount(0);
     }
     await sp.goto("/notifications");
-    const approved = (
-      await (await sp.request.get("/api/notifications")).json()
-    ).items.filter(
-      (n: { kind: string; target: { available: boolean; href?: string } }) =>
+    const approved = (await notices(sp)).filter(
+      (n) =>
         n.kind === "ENROLLMENT_APPROVED" &&
         n.target.available &&
         n.target.href === "/cabinet",
@@ -358,5 +442,6 @@ test("Личные уведомления: справка, прочтение, �
     ).toBeVisible();
   } finally {
     await context.close();
+    await otherContext.close();
   }
 });
