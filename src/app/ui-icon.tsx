@@ -1,6 +1,7 @@
 // Original simple icon geometry for Issue #34, authorized by owner clarification.
 // No external icon package, copied Figma path or runtime asset service.
 const paths = {
+  bell: <path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5Zm5 3h4" />,
   home: (
     <>
       <rect x="3" y="3" width="6" height="6" />

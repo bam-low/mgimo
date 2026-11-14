@@ -212,3 +212,8 @@ PR #40/#39 принят вручную в main (`b784fb09`). В новой ве�
 PDF parser (pdf-lib 1.17.1, MIT), multipart parser (busboy 1.6.0, MIT) и image decoder (sharp 0.35.5, Apache-2.0, уже использовался Next) — точные версии в lockfile. Worker изолирует парсинг, ограничивает heap/время, не получает env-секреты; нативная память sharp ограничивается также pixel/input/process limits. Внешний антивирус/OCR не заявляются. Работу Worker и зависимостей требуется доказать в каждом поддерживаемом runtime; tracing includes не отменяет artifact gates.
 
 Локальный handoff этапа 6.5: [LOCAL_DEMO.md](LOCAL_DEMO.md). Этап 7 уведомлений, полный редизайн, настоящий документ/подпись и production rollout не входят в #43.
+
+
+## Этап 7: атомарные внутренние уведомления
+
+Владелец утвердил Issue #48 и рекомендованные Q1–Q8; контракт и границы — [NOTIFICATIONS](NOTIFICATIONS.md). Только STUDENT in-app, без STAFF/внешних каналов/backfill/polling. Доменное действие/Notification/аудит атомарны, readAt идемпотентно; общая собственная лента доступна без прикрепления, но заявки и файлы после отзыва остаются закрыты. История на UniversityMembership, без TTL/удаления/сброса прочтения. Реализация в отдельной ветке от main `131b3675` для одного Draft PR; до ручного merge не считать принятой в main. Все три runtime, negative permissions и encrypted fresh restore обязательны. Production NO-GO сохраняется; дальше отдельный финальный аудит этапа8, не автоматический deploy.

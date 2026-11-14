@@ -1,0 +1,146 @@
+[
+  {
+    "file": "notifications-empty-1280.png",
+    "role": "STUDENT",
+    "state": "empty",
+    "width": 1280,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "736b8f08e484cb528641f88734e447f17066c1e7507ba4a7a7e38f9df27302b1"
+  },
+  {
+    "file": "notifications-empty-360.png",
+    "role": "STUDENT",
+    "state": "empty",
+    "width": 360,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "7b358beaf778ebba799ba9d09ab0ee143fdf3adf87412ec8f26e545a5dc343be"
+  },
+  {
+    "file": "notifications-empty-390.png",
+    "role": "STUDENT",
+    "state": "empty",
+    "width": 390,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "1303baac59d05af4c2b8dc9605bc01d854e4399d89f828594aa053597318b89f"
+  },
+  {
+    "file": "notifications-empty-768.png",
+    "role": "STUDENT",
+    "state": "empty",
+    "width": 768,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "9db01a0ac3c544c172a0bfcf2e652b9c4e4f5fbd4eca25185f14f77bee24d4f9"
+  },
+  {
+    "file": "notifications-ready-1280.png",
+    "role": "STUDENT",
+    "state": "ready",
+    "width": 1280,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "7a04249015b8b12876f843da2ad89418261a28dc536bebdee94ec593a20b1bf4"
+  },
+  {
+    "file": "notifications-ready-360.png",
+    "role": "STUDENT",
+    "state": "ready",
+    "width": 360,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "ee4e686cf3508ac15042c862533dc8369a9feb62ee40507fcef944d8e4dc76c8"
+  },
+  {
+    "file": "notifications-ready-390.png",
+    "role": "STUDENT",
+    "state": "ready",
+    "width": 390,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "81a013de6d7f6e04a62e494115bffe39e11000dde3a59e77c91aed6ad8470614"
+  },
+  {
+    "file": "notifications-ready-768.png",
+    "role": "STUDENT",
+    "state": "ready",
+    "width": 768,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "04ca6458196861e4ae2f00ebbd93f63e5b83721365cc1ac96d82f8c80849be4f"
+  },
+  {
+    "file": "notifications-revoked-1280.png",
+    "role": "STUDENT",
+    "state": "revoked",
+    "width": 1280,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "a8120cbe0d6c7316d3ea02d776decc057e198206ac995139bfd1d8d109db4213"
+  },
+  {
+    "file": "notifications-revoked-360.png",
+    "role": "STUDENT",
+    "state": "revoked",
+    "width": 360,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "5aeb29ffd6ef3788cc93810855beac97736535ae1b10f8a248ec51506361bc04"
+  },
+  {
+    "file": "notifications-revoked-390.png",
+    "role": "STUDENT",
+    "state": "revoked",
+    "width": 390,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "7b7ee5eb1d45cad9ee967c78dc53a6786bfc22555ba1b5be9e472f4083fc7e46"
+  },
+  {
+    "file": "notifications-revoked-768.png",
+    "role": "STUDENT",
+    "state": "revoked",
+    "width": 768,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "6bb2bad3dcab0bfc592b5993cf0c514ea83e4684c869b461196dad4708a1faaf"
+  },
+  {
+    "file": "notifications-unread-1280.png",
+    "role": "STUDENT",
+    "state": "unread",
+    "width": 1280,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "74c5a0c5f054699f10be2b83a0bddd2f0fad39e476451b2af0fabcab39eebbe8"
+  },
+  {
+    "file": "notifications-unread-360.png",
+    "role": "STUDENT",
+    "state": "unread",
+    "width": 360,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "d3d6eba20e72623c0f426b9f0d7f83b974dda4a9cae049a93861167f228848a1"
+  },
+  {
+    "file": "notifications-unread-390.png",
+    "role": "STUDENT",
+    "state": "unread",
+    "width": 390,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "dfc8ee40f00355fe65f3aa686324a0c479b3bb6bfdd97177b1317bb5018bb06b"
+  },
+  {
+    "file": "notifications-unread-768.png",
+    "role": "STUDENT",
+    "state": "unread",
+    "width": 768,
+    "height": 900,
+    "runtime": "Next.js standalone / Chromium / PostgreSQL",
+    "sha256": "49be807654df2b18c4e68d36d51d0daf91393f61588a52ed7c0cfa559d1c69a0"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "runtime": "VPS closed rehearsal",
+  "total": 19,
+  "HTTP": {
+    "401": 1,
+    "200": 18
+  },
+  "method": "Внешний наблюдатель настоящих browser/API ответов; HTTPS preflight учитывается отдельно. Ни payload, ни credentials/cookies/tokens не сохраняются. Другие диагностические/отменённые runtime исключены."
+}

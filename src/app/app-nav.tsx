@@ -1,3 +1,4 @@
+import { NotificationBadge } from "./notification-badge";
 import Link from "next/link";
 import { Logout } from "./forms";
 import { Icon, type IconName } from "./ui-icon";
@@ -57,6 +58,7 @@ export function AppNav({
           {role === "STAFF" ? "ДЕКАНАТ" : "СТУДЕНТ"}
         </span>
         <div className="masthead-actions">
+          {role === "STUDENT" && <NotificationBadge />}
           <Logout />
         </div>
       </header>

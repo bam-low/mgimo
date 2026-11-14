@@ -9,6 +9,7 @@ export const tablePolicy = {
   Application: ["SELECT", "INSERT", "UPDATE"],
   ApplicationDocument: ["SELECT", "INSERT"],
   ApplicationEvent: ["SELECT", "INSERT"],
+  Notification: ["SELECT", "INSERT"],
   Grade: ["SELECT", "INSERT", "UPDATE"],
   Semester: ["SELECT", "INSERT", "UPDATE"],
   Teacher: ["SELECT", "INSERT", "UPDATE"],
@@ -38,10 +39,19 @@ function requireSafe(value) {
 const ident = (s) => '"' + s.replaceAll('"', '""') + '"';
 async function noCustomColumnGrants(client) {
   const result = await client.query(
-    `SELECT 1 FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(a.attacl) g WHERE n.nspname='public' AND (g.grantee=0 OR g.grantee=(SELECT oid FROM pg_roles WHERE rolname=$1))`,
+    `SELECT c.relname,a.attname,g.privilege_type,g.is_grantable,(g.grantee=0) AS public FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(a.attacl) g WHERE n.nspname='public' AND (g.grantee=0 OR g.grantee=(SELECT oid FROM pg_roles WHERE rolname=$1))`,
     [runtimeRole],
   );
-  requireSafe(result.rowCount === 0);
+  requireSafe(
+    result.rows.every(
+      (r) =>
+        r.relname === "Notification" &&
+        r.attname === "readAt" &&
+        r.privilege_type === "UPDATE" &&
+        !r.is_grantable &&
+        !r.public,
+    ),
+  );
 }
 async function schema(client) {
   const { rows } = await client.query(
@@ -54,13 +64,44 @@ async function schema(client) {
       ),
   );
   const funcs = await client.query(
-    `SELECT p.prosecdef,p.prosrc FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public'`,
+    `SELECT p.proname,p.prosecdef,p.prosrc FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public'`,
+  );
+  const expected = {
+    prevent_audit_mutation:
+      "BEGIN RAISE EXCEPTION 'Audit history is immutable'; END;",
+    guard_notification_read: `BEGIN
+ IF (to_jsonb(NEW) - 'readAt') IS DISTINCT FROM (to_jsonb(OLD) - 'readAt') OR OLD."readAt" IS NOT NULL OR NEW."readAt" IS NULL THEN
+  RAISE EXCEPTION 'Notification history is immutable';
+ END IF;
+ RETURN NEW;
+END;`,
+  };
+  requireSafe(
+    funcs.rows.length === 2 &&
+      funcs.rows.every(
+        (r) =>
+          !r.prosecdef &&
+          Object.hasOwn(expected, r.proname) &&
+          r.prosrc.trim() === expected[r.proname],
+      ),
+  );
+  const notificationTriggers = await client.query(
+    `SELECT tgname,tgtype,tgenabled,tgqual,tgattr::text, tgfoid::regprocedure::text AS fn FROM pg_trigger WHERE tgrelid='public."Notification"'::regclass AND NOT tgisinternal ORDER BY tgname`,
   );
   requireSafe(
-    funcs.rows.length === 1 &&
-      !funcs.rows[0].prosecdef &&
-      funcs.rows[0].prosrc.trim() ===
-        "BEGIN RAISE EXCEPTION 'Audit history is immutable'; END;",
+    notificationTriggers.rows.length === 2 &&
+      notificationTriggers.rows.every(
+        (r) =>
+          r.tgenabled === "O" &&
+          r.tgqual === null &&
+          r.tgattr === "" &&
+          ((r.tgname === "notification_read_once" &&
+            r.tgtype === 19 &&
+            r.fn === "guard_notification_read()") ||
+            (r.tgname === "immutable_notification_delete" &&
+              r.tgtype === 11 &&
+              r.fn === "prevent_audit_mutation()")),
+      ),
   );
   for (const [table, trigger] of [
     ["AuditLog", "immutable_audit"],
@@ -163,7 +204,13 @@ export async function checkRuntimePrivileges(client) {
           `SELECT has_column_privilege($1,$2,$3,$4) AS value`,
           [runtimeRole, name, column.attname, privilege],
         );
-        requireSafe(result.rows[0].value === allowed.includes(privilege));
+        requireSafe(
+          result.rows[0].value ===
+            (allowed.includes(privilege) ||
+              (table === "Notification" &&
+                column.attname === "readAt" &&
+                privilege === "UPDATE")),
+        );
         const grant = await client.query(
           `SELECT has_column_privilege($1,$2,$3,$4) AS value`,
           [runtimeRole, name, column.attname, privilege + " WITH GRANT OPTION"],
@@ -171,6 +218,11 @@ export async function checkRuntimePrivileges(client) {
         requireSafe(!grant.rows[0].value);
       }
   }
+  const notificationFunction = await client.query(
+    `SELECT has_function_privilege($1,'public.guard_notification_read()','EXECUTE') AS execute`,
+    [runtimeRole],
+  );
+  requireSafe(!notificationFunction.rows[0].execute);
   const functions = await client.query(
     `SELECT has_function_privilege($1,'public.prevent_audit_mutation()','EXECUTE') AS execute`,
     [runtimeRole],
@@ -223,6 +275,9 @@ export async function grantRuntimePrivileges(client) {
         await client.query(
           `GRANT ${privileges.join(",")} ON public.${ident(table)} TO campus_runtime`,
         );
+    await client.query(
+      'GRANT UPDATE ("readAt") ON public."Notification" TO campus_runtime',
+    );
     await checkRuntimePrivileges(client);
     await client.query("COMMIT");
   } catch (error) {

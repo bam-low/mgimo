@@ -100,6 +100,9 @@ it("limited role cannot delete structure/history, read migrations, DDL, escalate
     'DELETE FROM "Application"',
     'DELETE FROM "ApplicationDocument"',
     'DELETE FROM "ApplicationEvent"',
+    'DELETE FROM "Notification"',
+    'UPDATE "Notification" SET "kind"="kind"',
+    'UPDATE "Notification" SET "recipientMembershipId"="recipientMembershipId"',
     'UPDATE "ApplicationDocument" SET "sha256"="sha256"',
     'UPDATE "ApplicationEvent" SET "eventType"="eventType"',
     'DELETE FROM "Semester"',
@@ -165,6 +168,7 @@ it("privilege audit fails closed on column grants, grant options, role membershi
     'ALTER TABLE "AuditLog" DISABLE TRIGGER immutable_audit',
     'ALTER TABLE "ApplicationDocument" DISABLE TRIGGER immutable_application_document',
     'ALTER TABLE "ApplicationEvent" DISABLE TRIGGER immutable_application_event',
+    'ALTER TABLE "Notification" DISABLE TRIGGER notification_read_once',
     'GRANT UPDATE ON "ApplicationDocument" TO campus_runtime',
     "CREATE TABLE public.unexpected_probe(id text)",
   ]) {

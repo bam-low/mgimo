@@ -9,6 +9,7 @@ export function proxy(request: NextRequest) {
   response.headers.set("Content-Security-Policy", csp);
   if (
     request.nextUrl.pathname.startsWith("/api/") ||
+    request.nextUrl.pathname.startsWith("/notifications") ||
     ["/cabinet", "/staff"].includes(request.nextUrl.pathname)
   )
     response.headers.set("Cache-Control", "private, no-store");

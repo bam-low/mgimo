@@ -1,0 +1,1 @@
+{"runtime":"standalone","method":"Сумма HMAC account buckets только source local-demo после единственного E2E-набора на свежей БД; integration используют отдельные источники, прямые auth fixtures не проходят route-limit. До build/tests нет UI-входов; все unexpired account buckets сохранены (окно15мин). Никаких ключей/адресов/секретов в результате.","attempts":18,"buckets":6}
