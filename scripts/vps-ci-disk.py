@@ -19,7 +19,13 @@ GIB = 1024 ** 3
 ROLES = {"runtime": "runtime", "tools": "tools", "db": "database"}
 PREFIXES = {"candidate-context": "campus-vps-context-", "candidate-runtime": "campus-runtime-",
             "baseline-archive": "campus-vps-baseline-", "baseline-context": "campus-vps-context-",
-            "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-"}
+            "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
+            "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-"}
+BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime"}
+REHEARSAL_IMAGES = (
+    "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
+    "nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609",
+)
 REPORTS = ("campus24-runtime.json", "campus24-tools.json", "campus24-db.json", "scanner-metadata.json",
            "npm-all.json", "npm-production.json", "vps-upgrade.json")
 
@@ -74,12 +80,75 @@ class Disk:
         self.diag.mkdir(mode=0o700)
         self.metrics.mkdir(mode=0o700)
         data = {"job": self.identity(), "workspace": str(self.root), "started": time.time(), "paths": [],
-                "projects": [], "candidate": {}}
+                "projects": [], "candidate": {}, "rehearsalImages": [],
+                "initialImageIDs": self.docker(["image", "ls", "--all", "--quiet", "--no-trunc"]).decode().splitlines()}
         data["filesystemPaths"] = {"workspace": str(self.root), "tmp": "/tmp", "runnerTemp": self.env.get("RUNNER_TEMP", "/tmp")}
         data["filesystemPaths"]["dockerRoot"] = self.docker(["info", "--format", "{{.DockerRootDir}}"] ).decode().strip()
         self.save(data)
         (self.diag / "status.json").write_text(json.dumps({"upgradeProofAvailable": False, "scan": "NOT_STARTED"}) + "\n")
         self.snapshot("initial")
+
+    def reserve_disk_test(self, ceiling):
+        """Keep a job-owned allocation through packaging to reproduce a tight runner."""
+        require(ceiling == 12, "Only the reviewed 12 GiB regression envelope is supported")
+        self.guard()
+        free = self.filesystem(self.root)["available"]
+        require(os.stat(self.root).st_dev == os.stat("/tmp").st_dev, "Disk test needs workspace and tmp on the same filesystem")
+        path = Path(tempfile.mkdtemp(prefix=PREFIXES["disk-pressure"], dir="/tmp"))
+        self.register_path("disk-pressure", str(path))
+        amount = max(0, free - ceiling * GIB)
+        with (path / "reserved").open("xb") as handle:
+            if amount:
+                os.posix_fallocate(handle.fileno(), 0, amount)
+        (self.metrics / "disk-regression.json").write_text(json.dumps({"ceilingGiB": ceiling,
+            "nativeInitialAvailable": free, "reservedBytes": amount,
+            "retainedThroughPackaging": True}, indent=2) + "\n")
+        self.snapshot("disk-regression-start")
+
+    def register_rehearsal_images(self):
+        data = self.load()
+        require(not data["rehearsalImages"], "Rehearsal images already registered")
+        protected = {x["id"] for x in data["candidate"].values()}
+        require(len(protected) == 3, "Freeze release images first")
+        for ref in REHEARSAL_IMAGES:
+            image = json.loads(self.docker(["image", "inspect", ref]))[0]
+            data["rehearsalImages"].append({"ref": ref, "id": image["Id"], "logicalBytes": image["Size"],
+                "createdByJob": image["Id"] not in data["initialImageIDs"], "protected": image["Id"] in protected})
+        self.save(data)
+
+    def cleanup_rehearsal(self):
+        self.verify_images()
+        data = self.load()
+        require(data.get("testsCleaned") and data.get("proofHash") == hashlib.sha256(
+            (self.evidence / "vps-upgrade.json").read_bytes()).hexdigest(), "Both rehearsals and saved proof required")
+        require({x["ref"] for x in data["rehearsalImages"]} == set(REHEARSAL_IMAGES), "Exact rehearsal inventory required")
+        protected = {x["id"] for x in data["candidate"].values()}
+        browser = [x for x in data["paths"] if x["role"] == "rehearsal-browsers" and not x.get("removed")]
+        require(len(browser) == 1, "Job-owned browser path required")
+        resources = {"images": data["rehearsalImages"], "browserAllocatedBytes": int(subprocess.check_output(
+            ["du", "-s", "-B1", browser[0]["path"]]).split()[0]), "imageSizeIsLogicalNotReclaimed": True}
+        (self.metrics / "rehearsal-resources.json").write_text(json.dumps(resources, indent=2) + "\n")
+        # Validate the whole image plan before removing anything, including browser files.
+        plan = []
+        for item in data["rehearsalImages"]:
+            require(item["ref"] in REHEARSAL_IMAGES, "Unknown rehearsal image")
+            image = json.loads(self.docker(["image", "inspect", item["ref"]]))[0]
+            require(image["Id"] == item["id"], "Rehearsal image identity changed")
+            if not item["createdByJob"] or item["id"] in data["initialImageIDs"] or item["id"] in protected:
+                continue
+            require(not self.docker(["ps", "-aq", "--filter", "ancestor=" + item["id"]]).strip(), "Rehearsal image still in use")
+            plan.append(item["ref"])
+        self.snapshot("rehearsal-resources-before")
+        self.remove_paths({"rehearsal-browsers"})
+        self.snapshot("rehearsal-browsers-cleaned")
+        for number, ref in enumerate(plan):
+            self.docker(["image", "rm", ref])  # Exact newly pulled reference, no force or global prune.
+            self.verify_images()
+            self.snapshot("rehearsal-image-" + str(number + 1) + "-cleaned")
+        self.verify_images()
+        data = self.load()
+        data["rehearsalCleaned"] = True
+        self.save(data)
 
     def temp_roots(self):
         return {p.resolve() for p in (Path("/tmp"), Path(tempfile.gettempdir()), Path(self.env.get("RUNNER_TEMP", "/tmp")))
@@ -250,7 +319,7 @@ class Disk:
             # This hosted VM belongs to this one job. Cache only, never images/system/volumes prune.
             require(self.load().get("testsCleaned"), "Measured deficit must follow addressed success cleanup")
             removed = {x["role"] for x in self.load()["paths"] if x.get("removed")}
-            require((set(PREFIXES) - {"trivy-work"}).issubset(removed), "Build scratch cleanup must precede cache GC")
+            require(BUILD_ROLES.issubset(removed) and self.load().get("rehearsalCleaned"), "Build and rehearsal scratch cleanup must precede cache GC")
             self.docker(["builder", "prune", "--all", "--force"])
             self.verify_images()
             self.snapshot("trivy-after-conditional-buildkit-gc")
@@ -347,9 +416,12 @@ if __name__ == "__main__":
         elif command == "capture": disk.capture()
         elif command == "register-project": disk.register_project(args[0])
         elif command == "cleanup-build":
-            require(set(args).issubset(set(PREFIXES) - {"trivy-work"}), "Not a build scratch role")
+            require(set(args).issubset(BUILD_ROLES), "Not a build scratch role")
             disk.verify_images(); disk.remove_paths(set(args)); disk.verify_images()
         elif command == "cleanup-tests": disk.cleanup_tests()
+        elif command == "reserve-disk-test": disk.reserve_disk_test(int(args[0]))
+        elif command == "register-rehearsal-images": disk.register_rehearsal_images()
+        elif command == "cleanup-rehearsal": disk.cleanup_rehearsal()
         elif command == "budget": disk.budget(int(args[0]), args[1])
         elif command == "seal-scan": disk.seal_scan()
         elif command == "cleanup-trivy": disk.cleanup_trivy()
