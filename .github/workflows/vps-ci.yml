@@ -19,12 +19,19 @@ jobs:
     timeout-minutes: 30
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      CAMPUS_CI_DISK_CLEANUP: "1"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Start bounded disk telemetry and job ownership registry
+        run: |
+          python3 scripts/vps-ci-disk.py init
+          nohup python3 scripts/vps-ci-disk.py sample >/dev/null 2>&1 &
+      - name: Dependencies disk baseline
+        run: python3 scripts/vps-ci-disk.py snapshot dependencies-before
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
@@ -34,6 +41,9 @@ jobs:
       - run: npm run db:generate
       - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs
       - run: python3 tests/vps_release_test.py
+      - run: python3 tests/vps_ci_disk_test.py
+      - run: python3 scripts/vps-ci-disk.py snapshot dependencies-after
+      - run: python3 scripts/vps-ci-disk.py snapshot candidate-build-running
       - run: node scripts/prepare-vps-context.mjs
       - name: Build isolated pinned images without network
         run: |
@@ -45,6 +55,12 @@ jobs:
           docker pull postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
           docker build --network=none -t campus24-db "$context/database"
           docker build --network=none -t campus24-tools "$context/tools"
+      - name: Freeze final images and remove candidate build scratch
+        run: |
+          python3 scripts/vps-ci-disk.py freeze
+          python3 scripts/vps-ci-disk.py snapshot candidate-built
+          python3 scripts/vps-ci-disk.py cleanup-build candidate-context candidate-runtime
+          python3 scripts/vps-ci-disk.py snapshot candidate-scratch-cleaned
       - name: Local rehearsal prerequisites
         run: |
           sudo apt-get update
@@ -52,48 +68,89 @@ jobs:
           npx --no-install playwright install --with-deps chromium
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
           docker pull nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609
+      - run: python3 scripts/vps-ci-disk.py snapshot baseline-before
       - run: node scripts/prepare-vps-baseline.mjs
       - name: Candidate VPS regression and fresh restore
-        run: node scripts/test-vps.mjs
+        run: |
+          python3 scripts/vps-ci-disk.py snapshot candidate-rehearsal-before
+          node scripts/test-vps.mjs
+          python3 scripts/vps-ci-disk.py snapshot candidate-rehearsal-after
       - name: Historical upgrade, compatible rollback and restored-app smoke
         env:
           CAMPUS_VPS_UPGRADE_REHEARSAL: "1"
-        run: node scripts/test-vps.mjs
+        run: |
+          python3 scripts/vps-ci-disk.py snapshot historical-rehearsal-before
+          node scripts/test-vps.mjs
+          python3 scripts/vps-ci-disk.py snapshot historical-rehearsal-after
+      - name: Preserve upgrade proof and final image inventory before scanner
+        run: python3 scripts/vps-ci-disk.py capture
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: vps-pre-scan-evidence
+          path: .runtime-evidence/vps-pre-scan-evidence/
+          retention-days: 7
+      - name: Addressed successful test cleanup and measured Trivy budget
+        run: |
+          python3 scripts/vps-ci-disk.py snapshot tests-cleanup-before
+          python3 scripts/vps-ci-disk.py cleanup-tests
+          python3 scripts/vps-ci-disk.py snapshot tests-cleanup-after
+          python3 scripts/vps-ci-disk.py budget 8 trivy
       - name: Scan all delivered images (full reports, all CRITICAL and fixable HIGH gate)
         run: |
-          curl --fail --location --silent --show-error https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o /tmp/trivy.tar.gz
-          echo 'bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  /tmp/trivy.tar.gz' | sha256sum -c -
-          tar -xf /tmp/trivy.tar.gz -C /tmp trivy
+          python3 scripts/vps-ci-disk.py snapshot trivy-running
+          TRIVY_WORK_DIR=$(mktemp -d /tmp/campus-trivy-work-XXXXXX)
+          python3 scripts/vps-ci-disk.py register-path trivy-work "$TRIVY_WORK_DIR"
+          mkdir "$TRIVY_WORK_DIR/tmp"
+          export TMPDIR="$TRIVY_WORK_DIR/tmp"
+          curl --fail --location --silent --show-error https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o "$TRIVY_WORK_DIR/trivy.tar.gz"
+          echo 'bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  '"$TRIVY_WORK_DIR/trivy.tar.gz" | sha256sum -c -
+          tar -xf "$TRIVY_WORK_DIR/trivy.tar.gz" -C "$TRIVY_WORK_DIR" trivy
           mkdir -p /tmp/vps-security
-          export TRIVY_CACHE_DIR=/tmp/campus-trivy-cache
+          export TRIVY_CACHE_DIR="$TRIVY_WORK_DIR/cache"
           scan_failed=0
           for image in campus24-runtime campus24-tools campus24-db; do
-            /tmp/trivy image --image-src docker --scanners vuln --format json --output "/tmp/vps-security/$image.json" "$image"
-            /tmp/trivy image --image-src docker --scanners vuln --severity CRITICAL --exit-code 1 "$image" || scan_failed=1
-            /tmp/trivy image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH --exit-code 1 "$image" || scan_failed=1
+            "$TRIVY_WORK_DIR/trivy" image --image-src docker --scanners vuln --format json --output "/tmp/vps-security/$image.json" "$image"
+            "$TRIVY_WORK_DIR/trivy" image --image-src docker --scanners vuln --severity CRITICAL --exit-code 1 "$image" || scan_failed=1
+            "$TRIVY_WORK_DIR/trivy" image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH --exit-code 1 "$image" || scan_failed=1
           done
-          /tmp/trivy --version --format json > /tmp/trivy-version.json
+          "$TRIVY_WORK_DIR/trivy" --version --format json > /tmp/trivy-version.json
           python3 - <<'PYSCAN'
-          import hashlib, json
+          import hashlib, json, os
           from pathlib import Path
-          db=Path('/tmp/campus-trivy-cache/db/trivy.db')
-          metadata={'scanner':json.loads(Path('/tmp/trivy-version.json').read_text()),'databaseFileSHA256':hashlib.sha256(db.read_bytes()).hexdigest()}
+          db=Path(os.environ['TRIVY_CACHE_DIR'])/'db/trivy.db'
+          with db.open('rb') as handle:
+              digest=hashlib.file_digest(handle, 'sha256').hexdigest()
+          metadata={'scanner':json.loads(Path('/tmp/trivy-version.json').read_text()),'databaseFileSHA256':digest}
           Path('/tmp/vps-security/scanner-metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
           PYSCAN
           npm audit --package-lock-only --ignore-scripts --json > /tmp/vps-security/npm-all.json || test "$?" = 1
           npm audit --omit=dev --package-lock-only --ignore-scripts --json > /tmp/vps-security/npm-production.json
           cp .runtime-evidence/vps-upgrade.json /tmp/vps-security/vps-upgrade.json
           test "$scan_failed" = 0
+          python3 scripts/vps-ci-disk.py seal-scan
+          python3 scripts/vps-ci-disk.py snapshot trivy-complete
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: vps-security-report
           path: /tmp/vps-security/*.json
           retention-days: 7
+      - name: Remove scanner scratch only after full success and enforce package budget
+        run: |
+          python3 scripts/vps-ci-disk.py cleanup-trivy
+          python3 scripts/vps-ci-disk.py snapshot trivy-scratch-cleaned
+          python3 scripts/vps-ci-disk.py budget 6 package
       - name: Package only verified release files, no secrets
         env:
           CAMPUS_SECURITY_DIR: /tmp/vps-security
-        run: bash scripts/package-vps-release.sh /tmp/campus-vps-release
+        run: |
+          python3 scripts/vps-ci-disk.py snapshot package-running
+          bash scripts/package-vps-release.sh /tmp/campus-vps-release
+          (cd /tmp/campus-vps-release && sha256sum --check --strict SHA256SUMS)
+          gzip -t /tmp/campus-vps-release/runtime.tar.gz /tmp/campus-vps-release/tools.tar.gz /tmp/campus-vps-release/database.tar.gz
+          python3 scripts/vps-ci-disk.py verify-images
+          python3 scripts/vps-ci-disk.py snapshot package-complete
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: vps-release-manifest
@@ -107,4 +164,13 @@ jobs:
           name: campus-vps-v1.0.0-rc.1-unsigned-${{ github.event.pull_request.head.sha || github.sha }}-linux-amd64
           path: /tmp/campus-vps-release/*
           compression-level: 0
+          retention-days: 7
+      - name: Final disk telemetry (including failures)
+        if: always()
+        run: python3 scripts/vps-ci-disk.py finish
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: vps-disk-telemetry
+          path: .runtime-evidence/vps-disk-telemetry/
           retention-days: 7
