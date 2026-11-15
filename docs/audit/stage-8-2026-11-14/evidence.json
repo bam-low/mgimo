@@ -1,0 +1,33 @@
+{
+  "baseline": "df58c104ab998c93a934cee4b64a7ea73431241d",
+  "local": {
+    "unit": 20,
+    "postgresqlIntegration": 79,
+    "standaloneChromiumE2E": 18,
+    "migrationSeedBuildRuntime": "PASS"
+  },
+  "ci": {
+    "node": {
+      "run": 43593863344,
+      "status": "success",
+      "standalone": 18,
+      "functions": 19,
+      "coldStart": "PASS"
+    },
+    "documentation": {
+      "run": 43593863618,
+      "status": "success"
+    },
+    "vps": {
+      "run": 43593863298,
+      "status": "success",
+      "e2e": 18,
+      "encryptedFreshRestore": "PASS"
+    }
+  },
+  "screenshots": 110,
+  "contrastSamples": 3207,
+  "contrastFailuresInSample": 0,
+  "keyboardSamples": 3,
+  "limits": "See UNVERIFIED.md; not full WCAG or physical-server acceptance"
+}

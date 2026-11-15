@@ -1,0 +1,21 @@
+id,scenario,role,method,result,screenshot_ids
+A1,"Регистрация, группа, credentials, отказ/повтор/подтверждение",STUDENT/STAFF,Локальные79PG/18E2E + реальные UI/API,PASS,registration;pending;enrollment-rejected;approved
+A2,"Перевод, отзыв, разрешение новой подачи, восстановление",STUDENT/STAFF,Локальные E2E и независимые API; старые gradeIDs сохранены,PASS,transferred;revoked-notification;restored
+B1,"Кабинет/профиль, сегодня/неделя, пустой день",STUDENT,"Реальный UI и API, четыре ширины",PASS,today;schedule;profile
+B2,"Текущая пара, растущий progress, перемена, конец",STUDENT,"Отдельные PG seed + clock fixture, настоящий API без fulfill",PASS,today-current-real-api;today-break-real-api;today-finished-real-api
+B3,"Создание/изменение/отмена/удаление, невозможная дата, pre-JS guard",STAFF/STUDENT,Локальный18E2E + invalid-date writes0; delayed JS в штатном E2E,PASS,invalid-date;schedule
+C1,"Faculty→Program→Group, активность, управления студентами",STAFF,E2E schedule/foundation + PG; реальные UI всех разделов,PASS,structure;students
+C2,"Семестры, A/B/weekly/once, исключения, независимость",STAFF,10 PG semester-builder + E2E semester-builder,PASS,semesters;builder-all;builder-one
+C3,Общая лекция/отделение/будущие изменения/конфликты ресурсов,STAFF,PG semester-builder и E2E; транзакционные негативные случаи,PASS,builder-all;builder-one;resources
+D1,"Оценки/зачёт, исправление/аннулирование, Subject/история/права",STUDENT/STAFF,8 PG grades + E2E grades; независимая оценка/transfer check,PASS,grades
+E1,"Обычные заявки, фильтры, TAKE/COMMENT/COMPLETE/REJECT/история",STUDENT/STAFF,9 PG applications + E2E + реальные API/UI,PASS,applications;request-submitted;request-completed
+E2,"Справка, COMPLETE без файла409, PDF/JPG/PNG/лимиты/квоты",STUDENT/STAFF,PG и штатный E2E; реальная доп. PDF/PNG загрузка/409,PASS,certificate-upload;certificate-completed
+E3,Неизменяемые версии/замена/скачивание/bytes/права,STUDENT/STAFF,SHA256/bytes реального файла; PG/CI restore всех версий,PASS,certificate-versions;certificate-completed
+F1,"Уведомления, счётчик/фильтр/read/target/recovery",STUDENT,8 PG notifications + E2E + реальные revoke/recovery API,PASS,notifications;notification-detail;revoked-notification;restored
+F2,Атомарность/rollback/dedup/concurrent read/lost response,STUDENT,"PG/E2E;4 read одновременно,1 distinct readAt/1 audit",PASS,notification-detail
+G1,IDOR/университет/CSRF/session/revoke/rates/audit/concurrency,Обе роли,Полный PG/E2E; Functions security CI; без снижения лимитов,PASS,not-found;revoked-notification
+H1,"Encrypted backup/fresh restore, bytes/версии/notifications/history",Система,"Exact merge VPS CI, отдельная fresh DB; не внешний host",PASS (CI),certificate-versions
+I1,360/390/768/1280 и переполнения,Обе роли,110 viewport PNG + layout.json; наборы различаются,PASS в выборке,today;schedule;students;applications
+I2,Контраст и клавиатура,Обе роли,3207 text samples;3×10Tab; полный WCAG не выполнен,PARTIAL,login;notifications;schedule
+I3,Увеличение текста/длинные формы/ошибки/пустые состояния,Обе роли,"8 text200 PNG, обычные формы; UX-01; нет full-page всех страниц",PARTIAL,student-text200;staff-text200;invalid-date
+J1,Физические устройства/реальный сервер/РФ/TLS renewal/offsite,Система,Не выполнялось: отсутствует разрешённый внешний стенд,NOT VERIFIED,

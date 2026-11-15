@@ -1,0 +1,56 @@
+{
+  "sourceCommit": "df58c104ab998c93a934cee4b64a7ea73431241d",
+  "sourceRun": "https://github.com/bam-low/mgimo/actions/runs/43593863298",
+  "images": {
+    "campus24-runtime": {
+      "createdAt": "2026-11-14T12:21:15.093061401Z",
+      "imageIDs": "sha256:64e4ccd61134e8458dd5a5467b9af2733823bc6a77351ae7b29b1b5b488baa24",
+      "repoDigests": [],
+      "severity": {
+        "MEDIUM": 39,
+        "LOW": 12,
+        "UNKNOWN": 2
+      },
+      "fixableHigh": 0
+    },
+    "campus24-db": {
+      "createdAt": "2026-11-14T12:21:40.300732026Z",
+      "imageIDs": "sha256:162e819045b71f670e4968dd85736fb735b3ddecdd145ab19015d21fb2d4f213",
+      "repoDigests": [],
+      "severity": {
+        "MEDIUM": 1
+      },
+      "fixableHigh": 0
+    },
+    "campus24-tools": {
+      "createdAt": "2026-11-14T12:21:37.252857704Z",
+      "imageIDs": "sha256:377281304dadf0e6e6257833cde6733cad61fe89a80c3d8c636db946efb0da3b",
+      "repoDigests": [],
+      "severity": {
+        "LOW": 45,
+        "UNKNOWN": 5,
+        "MEDIUM": 68,
+        "HIGH": 6
+      },
+      "fixableHigh": 0
+    }
+  },
+  "npm": {
+    "all": {
+      "info": 0,
+      "low": 0,
+      "moderate": 15,
+      "high": 0,
+      "critical": 0,
+      "total": 15
+    },
+    "production": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  }
+}

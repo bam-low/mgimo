@@ -1,0 +1,290 @@
+[
+  {
+    "id": "login",
+    "width": 360,
+    "steps": [
+      {
+        "tag": "A",
+        "name": "КампусЦИФРОВОЙ ДЕКАНАТ",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 22,
+        "bottom": 62.0625,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "INPUT",
+        "name": "",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 481.328125,
+        "bottom": 529.703125,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "INPUT",
+        "name": "",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 594.078125,
+        "bottom": 642.453125,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Войти",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 680.453125,
+        "bottom": 725.34375,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "A",
+        "name": "Регистрация студента",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 787.34375,
+        "bottom": 831.34375,
+        "left": 22,
+        "right": 162.5625
+      },
+      {
+        "tag": "BODY",
+        "name": "КампусЦИФРОВОЙ ДЕКАНАТУчёба. Люди. Возможности.Ваш университет.Ваш ритм.Расписан",
+        "outline": "rgb(37, 40, 59) none 3px",
+        "top": 0,
+        "bottom": 900,
+        "left": 0,
+        "right": 360
+      },
+      {
+        "tag": "A",
+        "name": "КампусЦИФРОВОЙ ДЕКАНАТ",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 22,
+        "bottom": 62.0625,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "INPUT",
+        "name": "",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 481.328125,
+        "bottom": 529.703125,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "INPUT",
+        "name": "",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 594.078125,
+        "bottom": 642.453125,
+        "left": 22,
+        "right": 338
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Войти",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 680.453125,
+        "bottom": 725.34375,
+        "left": 22,
+        "right": 338
+      }
+    ]
+  },
+  {
+    "id": "notifications",
+    "width": 360,
+    "steps": [
+      {
+        "tag": "A",
+        "name": "К содержанию",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 8,
+        "bottom": 55.28125,
+        "left": 8,
+        "right": 138.59375
+      },
+      {
+        "tag": "A",
+        "name": "КампусЦИФРОВОЙ ДЕКАНАТ",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 24.0625,
+        "bottom": 46.9375,
+        "left": 16,
+        "right": 92.46875
+      },
+      {
+        "tag": "A",
+        "name": "Уведомления, непрочитанных: 6",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 13.5,
+        "bottom": 57.5,
+        "left": 220.875,
+        "right": 264.875
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Выйти",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 13.5,
+        "bottom": 57.5,
+        "left": 272.875,
+        "right": 336
+      },
+      {
+        "tag": "A",
+        "name": "Главная",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 4,
+        "right": 72.796875
+      },
+      {
+        "tag": "A",
+        "name": "Расписание",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 74.796875,
+        "right": 143.609375
+      },
+      {
+        "tag": "A",
+        "name": "Успеваемость",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 145.609375,
+        "right": 214.40625
+      },
+      {
+        "tag": "A",
+        "name": "Заявки",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 216.40625,
+        "right": 285.203125
+      },
+      {
+        "tag": "A",
+        "name": "Профиль",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 287.203125,
+        "right": 356
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Обновить уведомления",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 97.421875,
+        "bottom": 142.3125,
+        "left": 16,
+        "right": 214.59375
+      }
+    ]
+  },
+  {
+    "id": "staff-schedule",
+    "width": 360,
+    "steps": [
+      {
+        "tag": "A",
+        "name": "К содержанию",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 8,
+        "bottom": 55.28125,
+        "left": 8,
+        "right": 138.59375
+      },
+      {
+        "tag": "A",
+        "name": "КампусЦИФРОВОЙ ДЕКАНАТ",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 24.0625,
+        "bottom": 46.9375,
+        "left": 16,
+        "right": 92.46875
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Выйти",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 13.5,
+        "bottom": 57.5,
+        "left": 272.875,
+        "right": 336
+      },
+      {
+        "tag": "A",
+        "name": "Учебная структура",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 4,
+        "right": 72.796875
+      },
+      {
+        "tag": "A",
+        "name": "Расписание",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 74.796875,
+        "right": 143.609375
+      },
+      {
+        "tag": "A",
+        "name": "Успеваемость",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 145.609375,
+        "right": 214.40625
+      },
+      {
+        "tag": "A",
+        "name": "Прикрепления",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 216.40625,
+        "right": 285.203125
+      },
+      {
+        "tag": "A",
+        "name": "Заявки",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 831.640625,
+        "bottom": 890,
+        "left": 287.203125,
+        "right": 356
+      },
+      {
+        "tag": "SUMMARY",
+        "name": "Управление расписанием",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 304.53125,
+        "bottom": 352.53125,
+        "left": 17,
+        "right": 343
+      },
+      {
+        "tag": "SELECT",
+        "name": "Демо другое направлениеДемо К-1Демо К-2Демо К-3Демо новая группаДемо повторДемо ",
+        "outline": "rgb(117, 58, 74) solid 3px",
+        "top": 410.90625,
+        "bottom": 458.28125,
+        "left": 35,
+        "right": 325
+      }
+    ]
+  }
+]
