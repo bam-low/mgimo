@@ -177,3 +177,7 @@ Production NO-GO2app/8tools HIGH и реальные host/cloud gates сохра
 ## A48 — уведомления STUDENT, утверждено владельцем 14.11.2026
 
 Владелец утвердил Issue #48 и рекомендованные Q1–Q8; контракт и границы — [NOTIFICATIONS](NOTIFICATIONS.md). Только STUDENT in-app, без STAFF/внешних каналов/backfill/polling. Доменное действие/Notification/аудит атомарны, readAt идемпотентно; общая собственная лента доступна без прикрепления, но заявки и файлы после отзыва остаются закрыты. История на UniversityMembership, без TTL/удаления/сброса прочтения. Реализация в отдельной ветке от main `131b3675` для одного Draft PR; до ручного merge не считать принятой в main. Все три runtime, negative permissions и encrypted fresh restore обязательны. Production NO-GO сохраняется; дальше отдельный финальный аудит этапа8, не автоматический deploy.
+
+## A54 — VPS Release Candidate, утверждено15.11.2026
+
+Владелец утвердил Issue#54/Q1–Q7 и разрешил только техническое maintenance в отдельной ветке/одном Draft PR: устранение HIGH/tools и проверенных security inputs, versioned manifestv1.0.0-rc.1, baseline287912fe→RC/совместимый app rollback/fresh restore, актуализация инструкций. Новых функций/редизайна/PG major upgrade нет. Все SQL-миграции baseline сохраняются; приватные роли/TLS/CSRF/rate gates не ослабляются. Подпись ключом владельца, большой artifact export/квота, tag/release и любой VPS/deploy — отдельно. Нет безопасного доказательства — BLOCKED. [Разбор](VPS_RC_SECURITY.md), [обновление/restore](VPS_UPDATE_RUNBOOK.md). Production NO-GO.

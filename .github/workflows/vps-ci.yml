@@ -18,11 +18,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -32,6 +33,7 @@ jobs:
       - run: npm audit --omit=dev
       - run: npm run db:generate
       - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs
+      - run: python3 tests/vps_release_test.py
       - run: node scripts/prepare-vps-context.mjs
       - name: Build isolated pinned images without network
         run: |
@@ -40,7 +42,6 @@ jobs:
           docker pull gcr.io/distroless/cc-debian13:nonroot@sha256:cc66d222f0a7ec996b78a99fe76a969bc80b539a5016ad866c14d1949bc6d0ab
           docker build --network=none -t campus24-runtime "$context/runtime"
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
-          docker pull node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
           docker pull postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
           docker build --network=none -t campus24-db "$context/database"
           docker build --network=none -t campus24-tools "$context/tools"
@@ -51,19 +52,37 @@ jobs:
           npx --no-install playwright install --with-deps chromium
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
           docker pull nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609
-      - run: node scripts/test-vps.mjs
+      - run: node scripts/prepare-vps-baseline.mjs
+      - name: Candidate VPS regression and fresh restore
+        run: node scripts/test-vps.mjs
+      - name: Historical upgrade, compatible rollback and restored-app smoke
+        env:
+          CAMPUS_VPS_UPGRADE_REHEARSAL: "1"
+        run: node scripts/test-vps.mjs
       - name: Scan all delivered images (full reports, all CRITICAL and fixable HIGH gate)
         run: |
           curl --fail --location --silent --show-error https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o /tmp/trivy.tar.gz
           echo 'bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  /tmp/trivy.tar.gz' | sha256sum -c -
           tar -xf /tmp/trivy.tar.gz -C /tmp trivy
           mkdir -p /tmp/vps-security
+          export TRIVY_CACHE_DIR=/tmp/campus-trivy-cache
           scan_failed=0
           for image in campus24-runtime campus24-tools campus24-db; do
             /tmp/trivy image --image-src docker --scanners vuln --format json --output "/tmp/vps-security/$image.json" "$image"
             /tmp/trivy image --image-src docker --scanners vuln --severity CRITICAL --exit-code 1 "$image" || scan_failed=1
             /tmp/trivy image --image-src docker --scanners vuln --ignore-unfixed --severity HIGH --exit-code 1 "$image" || scan_failed=1
           done
+          /tmp/trivy --version --format json > /tmp/trivy-version.json
+          python3 - <<'PYSCAN'
+          import hashlib, json
+          from pathlib import Path
+          db=Path('/tmp/campus-trivy-cache/db/trivy.db')
+          metadata={'scanner':json.loads(Path('/tmp/trivy-version.json').read_text()),'databaseFileSHA256':hashlib.sha256(db.read_bytes()).hexdigest()}
+          Path('/tmp/vps-security/scanner-metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
+          PYSCAN
+          npm audit --package-lock-only --ignore-scripts --json > /tmp/vps-security/npm-all.json || test "$?" = 1
+          npm audit --omit=dev --package-lock-only --ignore-scripts --json > /tmp/vps-security/npm-production.json
+          cp .runtime-evidence/vps-upgrade.json /tmp/vps-security/vps-upgrade.json
           test "$scan_failed" = 0
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
@@ -72,6 +91,8 @@ jobs:
           path: /tmp/vps-security/*.json
           retention-days: 7
       - name: Package only verified release files, no secrets
+        env:
+          CAMPUS_SECURITY_DIR: /tmp/vps-security
         run: bash scripts/package-vps-release.sh /tmp/campus-vps-release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -83,7 +104,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: github.event_name == 'workflow_dispatch' && inputs.store_release_artifact
         with:
-          name: campus-vps-unsigned-${{ github.event.pull_request.head.sha || github.sha }}
+          name: campus-vps-v1.0.0-rc.1-unsigned-${{ github.event.pull_request.head.sha || github.sha }}-linux-amd64
           path: /tmp/campus-vps-release/*
           compression-level: 0
           retention-days: 7

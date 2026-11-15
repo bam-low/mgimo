@@ -14,6 +14,7 @@ import console from "node:console";
 import https from "node:https";
 import http from "node:http";
 import assert from "node:assert/strict";
+import { rehearsal } from "./vps-upgrade-rehearsal.mjs";
 import { validate } from "../ops/vps/check-release.mjs";
 const env = { ...process.env };
 for (const k of [
@@ -37,9 +38,29 @@ const nginx =
   "nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609";
 const root = await mkdtemp("/tmp/campus-vps-test-"),
   project = "campus24-test-" + process.pid;
-const runtime = JSON.parse(docker(["image", "inspect", "campus24-runtime"]))[0],
-  tools = JSON.parse(docker(["image", "inspect", "campus24-tools"]))[0],
-  database = JSON.parse(docker(["image", "inspect", "campus24-db"]))[0];
+const inspect = (name) => JSON.parse(docker(["image", "inspect", name]))[0];
+const candidate = {
+  runtime: inspect("campus24-runtime"),
+  tools: inspect("campus24-tools"),
+  database: inspect("campus24-db"),
+};
+const upgradeMode = process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1";
+const baselineData = upgradeMode
+  ? JSON.parse(await readFile(".runtime-evidence/vps-baseline.json", "utf8"))
+  : null;
+if (baselineData)
+  assert.equal(
+    baselineData.sourceCommit,
+    "287912fe19df75404b81dd36ea1df5bb62187c71",
+  );
+const baseline = baselineData
+  ? {
+      runtime: inspect(baselineData.runtime),
+      tools: inspect(baselineData.tools),
+      database: inspect(baselineData.db),
+    }
+  : candidate;
+const { runtime, tools, database } = baseline;
 const compose = [
   "compose",
   "--project-name",
@@ -375,11 +396,29 @@ try {
         DATABASE_URL: "postgresql://synthetic.invalid/campus_vps_test",
         BETTER_AUTH_URL: "https://localhost:18443",
         CAMPUS_VPS_GATE_PASSWORD: gate,
+        ...(upgradeMode
+          ? { CAMPUS_VPS_UPGRADE_SESSION_DIR: root + "/upgrade-sessions" }
+          : {}),
       },
       stdio: "inherit",
     },
   );
   if (r.status !== 0) throw Error("VPS E2E failed");
+  const upgradeProof = rehearsal({
+    dc,
+    docker,
+    root,
+    project,
+    ca,
+    gate,
+    candidate,
+    baseline,
+    runActions,
+    secret,
+    fixture,
+  });
+  if (upgradeMode) await upgradeProof.freeze();
+  else dc(["stop", "app"]);
   stage = "encrypted backup and restore";
   const dump = dc([
     "exec",
@@ -414,6 +453,8 @@ try {
       .status,
     0,
   );
+  if (upgradeMode) await upgradeProof.upgrade();
+  if (upgradeMode) upgradeProof.beginRestore();
   dc([
     "exec",
     "-T",
@@ -437,7 +478,7 @@ try {
     ],
     restored,
   );
-  const compare = `import {createHash} from 'node:crypto';import pg from 'pg';import {grantRuntimePrivileges,checkRuntimePrivileges} from './scripts/launch-db-policy.mjs'; const url=new URL(process.env.DATABASE_URL);const a=new pg.Client({connectionString:url.href});url.pathname='/campus_restore_test';const b=new pg.Client({connectionString:url.href});await a.connect();await b.connect();await grantRuntimePrivileges(b);await checkRuntimePrivileges(b);for(const table of ['User','Session','AuditLog','GroupMembership','EnrollmentRequest','Faculty','Program','StudentGroup','ScheduleEntry','Subject','Grade','Application','ApplicationDocument','ApplicationEvent','Notification','Semester','Teacher','Room','TeacherSubject','ScheduleTemplate','TemplateGroup','ScheduleGroup']){const q='SELECT count(*)::int AS n FROM "'+table+'"';if((await a.query(q)).rows[0].n!==(await b.query(q)).rows[0].n)throw Error('Restore mismatch');}const noticesA=(await a.query('SELECT * FROM "Notification" ORDER BY id')).rows;const noticesB=(await b.query('SELECT * FROM "Notification" ORDER BY id')).rows;if(!noticesA.length||JSON.stringify(noticesA)!==JSON.stringify(noticesB)||!noticesB.some(n=>n.readAt))throw Error('Notification restore mismatch');let duplicateDenied=false;try{await b.query('INSERT INTO "Notification" SELECT $probe$restore-probe-$probe$||id,"universityId","recipientMembershipId",kind,"schemaVersion","sourceKey","enrollmentRequestId","applicationId","applicationEventId","createdAt","readAt" FROM "Notification" LIMIT 1');}catch(e){if(e.code!=='23505')throw e;duplicateDenied=true;}if(!duplicateDenied)throw Error('Notification restore dedup missing');for(const row of (await a.query('SELECT id,content,sha256 FROM "ApplicationDocument"')).rows){const copy=(await b.query('SELECT content,sha256 FROM "ApplicationDocument" WHERE id=$1',[row.id])).rows[0];if(!copy||!row.content.equals(copy.content)||row.sha256!==copy.sha256||createHash('sha256').update(copy.content).digest('hex')!==copy.sha256)throw Error('Document restore bytes mismatch');}const t=await b.query("SELECT count(*)::int AS n FROM pg_trigger WHERE tgname='immutable_audit'");if(t.rows[0].n!==1)throw Error('Audit trigger missing');await a.end();await b.end();`;
+  const compare = `import {createHash} from 'node:crypto';import pg from 'pg';import {grantRuntimePrivileges,checkRuntimePrivileges} from './scripts/launch-db-policy.mjs'; const url=new URL(process.env.DATABASE_URL);const a=new pg.Client({connectionString:url.href});url.pathname='/campus_restore_test';const b=new pg.Client({connectionString:url.href});await a.connect();await b.connect();await grantRuntimePrivileges(b);await checkRuntimePrivileges(b);for(const table of ['User','Session','AuditLog','GroupMembership','EnrollmentRequest','Faculty','Program','StudentGroup','ScheduleEntry','Subject','Grade','Application','ApplicationDocument','ApplicationEvent','Notification','Semester','Teacher','Room','TeacherSubject','ScheduleTemplate','TemplateGroup','ScheduleGroup']){const q='SELECT count(*)::int AS n FROM "'+table+'"';if((await a.query(q)).rows[0].n!==(await b.query(q)).rows[0].n+(table==='AuditLog'&&${upgradeMode}?2:0))throw Error('Restore mismatch');}const noticesA=(await a.query('SELECT * FROM "Notification" ORDER BY id')).rows;const noticesB=(await b.query('SELECT * FROM "Notification" ORDER BY id')).rows;if(!noticesA.length||JSON.stringify(noticesA)!==JSON.stringify(noticesB)||!noticesB.some(n=>n.readAt))throw Error('Notification restore mismatch');let duplicateDenied=false;try{await b.query('INSERT INTO "Notification" SELECT $probe$restore-probe-$probe$||id,"universityId","recipientMembershipId",kind,"schemaVersion","sourceKey","enrollmentRequestId","applicationId","applicationEventId","createdAt","readAt" FROM "Notification" LIMIT 1');}catch(e){if(e.code!=='23505')throw e;duplicateDenied=true;}if(!duplicateDenied)throw Error('Notification restore dedup missing');for(const row of (await a.query('SELECT id,content,sha256 FROM "ApplicationDocument"')).rows){const copy=(await b.query('SELECT content,sha256 FROM "ApplicationDocument" WHERE id=$1',[row.id])).rows[0];if(!copy||!row.content.equals(copy.content)||row.sha256!==copy.sha256||createHash('sha256').update(copy.content).digest('hex')!==copy.sha256)throw Error('Document restore bytes mismatch');}const t=await b.query("SELECT count(*)::int AS n FROM pg_trigger WHERE tgname='immutable_audit'");if(t.rows[0].n!==1)throw Error('Audit trigger missing');await a.end();await b.end();`;
   dc([
     "run",
     "--rm",
@@ -449,6 +490,7 @@ try {
     "-e",
     compare,
   ]);
+  if (upgradeMode) await upgradeProof.restored();
   await mkdir(".runtime-evidence", { recursive: true });
   await writeFile(
     ".runtime-evidence/vps-test.txt",
@@ -466,6 +508,11 @@ try {
   );
   throw e;
 } finally {
+  try {
+    docker(["rm", "-f", project + "-restore-app"]);
+  } catch {
+    /* Disposable container may not exist. */
+  }
   try {
     docker(["rm", "-f", project + "-nginx"]);
   } catch {

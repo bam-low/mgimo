@@ -1,4 +1,8 @@
-# VPS: результаты проверки образов и оставшийся NO-GO
+# RC v1.0.0-rc.1 — актуальная техническая подготовка
+
+15.11.2026 / Issue #54. Текущий разбор шести HIGH, смена tools на vendor distroless без shell и обновление database zlib — [RC security review](VPS_RC_SECURITY.md). Актуальные evidence/image IDs берутся из полного VPS CI отчёта **того же build**, не из исторических таблиц ниже. Подпись и сохранение большого artifact требуют отдельного review владельца; Production NO-GO сохраняется.
+
+# Исторические результаты проверки образов и оставшийся NO-GO
 
 06.11.2026, Issue #24 / PR #26 merged владельцем; Issue #27 сохраняет результаты и gates. Это техническая подготовка, **не разрешение первого deploy**. [Runbook](VPS_DEPLOY_RUNBOOK.md) и [checklist](VPS_LAUNCH_CHECKLIST.md) сохраняют gates A–F. Scan — Trivy **0.76.2**, официальный archive checksum закреплён в VPS CI; vulnerability DB изменяется. Числа ниже относятся к локальному scan этой итерации, актуальный remote report находится в Actions `vps-security-report`.
 
