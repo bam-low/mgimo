@@ -1,3 +1,4 @@
+import { disk } from "./vps-ci-lifecycle.mjs";
 // No image publication or deployment. Build using only verified local inputs.
 import { mkdtemp, cp, readFile, writeFile, mkdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
@@ -31,6 +32,12 @@ for (const [command, args] of [
   if (r.status !== 0) throw Error("VPS artifact preparation failed");
 }
 const root = await mkdtemp("/tmp/campus-vps-context-");
+disk("register-path", "candidate-context", root);
+disk(
+  "register-path",
+  "candidate-runtime",
+  (await readFile(".runtime-evidence/runtime-root.txt", "utf8")).trim(),
+);
 await mkdir(path.join(root, "runtime"));
 await mkdir(path.join(root, "tools/payload"), { recursive: true });
 await mkdir(path.join(root, "database/security"), { recursive: true });

@@ -1,3 +1,4 @@
+import { disk } from "./vps-ci-lifecycle.mjs";
 import { Buffer } from "node:buffer";
 import { setTimeout } from "node:timers";
 // Disposable local-only rehearsal. Never SSH, deploy, push or use owner secrets.
@@ -38,6 +39,7 @@ const nginx =
   "nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609";
 const root = await mkdtemp("/tmp/campus-vps-test-"),
   project = "campus24-test-" + process.pid;
+disk("register-project", project);
 const inspect = (name) => JSON.parse(docker(["image", "inspect", name]))[0];
 const candidate = {
   runtime: inspect("campus24-runtime"),

@@ -1,5 +1,7 @@
 # Первый закрытый запуск на VPS — инструкция владельцу
 
+**VPS CI / Issue #56:** [дисковый бюджет и pre-scan evidence](VPS_CI_DISK.md); ENOSPC не разрешает использовать старый scan или загружать непроверенный архив. Большой upload по-прежнему отдельное разрешение.
+
 **RC v1.0.0-rc.1 / Issue #54:** техническая подготовка после функционального MVP; не разрешение deploy. Обновление существующей БД и recovery — [отдельная инструкция](VPS_UPDATE_RUNBOOK.md). Manifest имеет версию, schema compatibility и hashes встроенных scanner/upgrade evidence; подпись владельца и большой artifact export остаются отдельным решением после review/квоты.
 
 **Подготовка, не разрешение deploy.** [Issue #24](https://github.com/bam-low/mgimo/issues/24), решение и угрозы — [VPS architecture](VPS_ARCHITECTURE.md). Не выполняйте команды с `YOUR_…` до замены на свои значения. Не присылайте пароли, адреса, SSH/age keys или env в чат, Issue, Git и screenshots. Все данные приложения только вымышленные. Обычная регистрация не создаёт STAFF.

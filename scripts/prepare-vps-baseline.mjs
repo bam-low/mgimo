@@ -1,3 +1,4 @@
+import { disk } from "./vps-ci-lifecycle.mjs";
 import process from "node:process";
 import console from "node:console";
 // Build a fixed historical fixture in a disposable archive, never a worktree or deploy.
@@ -8,6 +9,7 @@ import path from "node:path";
 const source = "287912fe19df75404b81dd36ea1df5bb62187c71";
 execFileSync("git", ["cat-file", "-e", source + "^{commit}"]);
 const directory = await mkdtemp(path.join(tmpdir(), "campus-vps-baseline-"));
+disk("register-path", "baseline-archive", directory);
 const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
 for (const key of [
   "DOCKER_HOST",
@@ -41,6 +43,17 @@ const context = (
     "utf8",
   )
 ).trim();
+disk("register-path", "baseline-context", context);
+disk(
+  "register-path",
+  "baseline-runtime",
+  (
+    await readFile(
+      path.join(directory, ".runtime-evidence/runtime-root.txt"),
+      "utf8",
+    )
+  ).trim(),
+);
 const images = { sourceCommit: source };
 for (const [role, subdir] of [
   ["runtime", "runtime"],
@@ -67,6 +80,14 @@ await writeFile(
   ".runtime-evidence/vps-baseline.json",
   JSON.stringify(images, null, 2) + "\n",
 );
+disk("snapshot", "baseline-built");
+disk(
+  "cleanup-build",
+  "baseline-archive",
+  "baseline-context",
+  "baseline-runtime",
+);
+disk("snapshot", "baseline-scratch-cleaned");
 console.log(
   "PASS fixed baseline archive/images prepared; fixture only, not delivered",
 );
