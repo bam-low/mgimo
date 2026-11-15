@@ -62,6 +62,7 @@ jobs:
       - name: Freeze final images and remove candidate build scratch
         run: |
           python3 scripts/vps-ci-disk.py freeze
+          python3 scripts/vps-ci-disk.py register-path candidate-build-output "$GITHUB_WORKSPACE/.next"
           python3 scripts/vps-ci-disk.py snapshot candidate-built
           python3 scripts/vps-ci-disk.py cleanup-build candidate-context candidate-runtime
           python3 scripts/vps-ci-disk.py snapshot candidate-scratch-cleaned

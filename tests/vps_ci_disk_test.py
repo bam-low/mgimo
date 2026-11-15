@@ -186,6 +186,9 @@ class DiskTests(unittest.TestCase):
         self.disk.cleanup_tests()
         browser = self.scratch("rehearsal-browsers")
         (browser / "synthetic-browser").write_bytes(b"test browser bytes")
+        (self.root / ".next").mkdir()
+        (self.root / ".next/build-output").write_bytes(b"test build output")
+        self.disk.register_path("candidate-build-output", str(self.root / ".next"))
         data = self.disk.load()
         data["initialImageIDs"] = list(initial)
         self.disk.save(data)
@@ -206,6 +209,7 @@ class DiskTests(unittest.TestCase):
         browser, _ = self.rehearsal_resources()
         self.disk.cleanup_rehearsal()
         self.assertFalse(browser.exists())
+        self.assertFalse((self.root / ".next").exists())
         self.assertEqual([c for c in self.calls if c[:2] == ["image", "rm"]],
                          [["image", "rm", ref] for ref in module.REHEARSAL_IMAGES])
         self.assertTrue(self.disk.load()["rehearsalCleaned"])
@@ -213,6 +217,27 @@ class DiskTests(unittest.TestCase):
         receipt = json.loads((self.disk.metrics / "rehearsal-resources.json").read_text())
         self.assertGreater(receipt["browserAllocatedBytes"], 0)
         self.assertTrue(receipt["imageSizeIsLogicalNotReclaimed"])
+        self.assertGreater(receipt["buildOutputAllocatedBytes"], 0)
+
+    def test_preexisting_build_output_or_wrong_workspace_path_refused(self):
+        path = self.root / ".next"
+        path.mkdir()
+        data = self.disk.load()
+        data["buildOutputInitiallyAbsent"] = False
+        self.disk.save(data)
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", str(path))
+        self.assertTrue(path.exists())
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", str(self.root))
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", "/tmp/.next")
+
+    def test_owned_build_output_inode_swap_refused(self):
+        path = self.root / ".next"
+        path.mkdir()
+        self.disk.register_path("candidate-build-output", str(path))
+        path.rename(self.root / ".next-old")
+        path.mkdir()
+        with self.assertRaises(ValueError): self.disk.remove_paths({"candidate-build-output"})
+        self.assertTrue(path.exists())
 
     def test_preexisting_and_protected_rehearsal_images_are_retained(self):
         browser, _ = self.rehearsal_resources(initial=["sha256:" + "b" * 64], protected=True)

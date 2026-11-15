@@ -20,7 +20,8 @@ ROLES = {"runtime": "runtime", "tools": "tools", "db": "database"}
 PREFIXES = {"candidate-context": "campus-vps-context-", "candidate-runtime": "campus-runtime-",
             "baseline-archive": "campus-vps-baseline-", "baseline-context": "campus-vps-context-",
             "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
-            "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-"}
+            "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-",
+            "candidate-build-output": ".next"}
 BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime"}
 REHEARSAL_IMAGES = (
     "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
@@ -81,6 +82,7 @@ class Disk:
         self.metrics.mkdir(mode=0o700)
         data = {"job": self.identity(), "workspace": str(self.root), "started": time.time(), "paths": [],
                 "projects": [], "candidate": {}, "rehearsalImages": [],
+                "buildOutputInitiallyAbsent": not os.path.lexists(self.root / ".next"),
                 "initialImageIDs": self.docker(["image", "ls", "--all", "--quiet", "--no-trunc"]).decode().splitlines()}
         data["filesystemPaths"] = {"workspace": str(self.root), "tmp": "/tmp", "runnerTemp": self.env.get("RUNNER_TEMP", "/tmp")}
         data["filesystemPaths"]["dockerRoot"] = self.docker(["info", "--format", "{{.DockerRootDir}}"] ).decode().strip()
@@ -125,8 +127,11 @@ class Disk:
         protected = {x["id"] for x in data["candidate"].values()}
         browser = [x for x in data["paths"] if x["role"] == "rehearsal-browsers" and not x.get("removed")]
         require(len(browser) == 1, "Job-owned browser path required")
+        build = [x for x in data["paths"] if x["role"] == "candidate-build-output" and not x.get("removed")]
+        require(len(build) == 1, "Fresh job-owned build output required")
         resources = {"images": data["rehearsalImages"], "browserAllocatedBytes": int(subprocess.check_output(
-            ["du", "-s", "-B1", browser[0]["path"]]).split()[0]), "imageSizeIsLogicalNotReclaimed": True}
+            ["du", "-s", "-B1", browser[0]["path"]]).split()[0]), "buildOutputAllocatedBytes": int(subprocess.check_output(
+            ["du", "-s", "-B1", build[0]["path"]]).split()[0]), "imageSizeIsLogicalNotReclaimed": True}
         (self.metrics / "rehearsal-resources.json").write_text(json.dumps(resources, indent=2) + "\n")
         # Validate the whole image plan before removing anything, including browser files.
         plan = []
@@ -141,6 +146,8 @@ class Disk:
         self.snapshot("rehearsal-resources-before")
         self.remove_paths({"rehearsal-browsers"})
         self.snapshot("rehearsal-browsers-cleaned")
+        self.remove_paths({"candidate-build-output"})
+        self.snapshot("rehearsal-build-output-cleaned")
         for number, ref in enumerate(plan):
             self.docker(["image", "rm", ref])  # Exact newly pulled reference, no force or global prune.
             self.verify_images()
@@ -159,13 +166,18 @@ class Disk:
         require(role in PREFIXES, "Unknown scratch role")
         path = Path(raw)
         require(path.is_absolute() and not path.is_symlink() and path.resolve() == path
-                and path.parent in self.temp_roots() and path.name.startswith(PREFIXES[role])
+                and self.scratch_location(data, role, path)
                 and path.is_dir() and not self.root.is_relative_to(path), "Unsafe scratch path")
         info = path.stat()
         require(info.st_uid == os.getuid() and info.st_ctime >= data["started"], "Scratch not created by this job")
         require(not any(x["path"] == str(path) or x["role"] == role for x in data["paths"]), "Duplicate scratch registration")
         data["paths"].append({"role": role, "path": str(path), "dev": info.st_dev, "ino": info.st_ino})
         self.save(data)
+
+    def scratch_location(self, data, role, path):
+        if role == "candidate-build-output":
+            return path == self.root / ".next" and data.get("buildOutputInitiallyAbsent") is True
+        return path.parent in self.temp_roots() and path.name.startswith(PREFIXES[role])
 
     def remove_paths(self, roles):
         data = self.load()
@@ -176,8 +188,8 @@ class Disk:
             if item["role"] not in roles or item.get("removed"):
                 continue
             path = Path(item["path"])
-            require(not path.is_symlink() and path.resolve() == path and path.parent in self.temp_roots()
-                    and path.name.startswith(PREFIXES[item["role"]]) and not self.root.is_relative_to(path), "Scratch boundary changed")
+            require(not path.is_symlink() and path.resolve() == path and self.scratch_location(data, item["role"], path)
+                    and not self.root.is_relative_to(path), "Scratch boundary changed")
             info = path.stat()
             require((info.st_dev, info.st_ino) == (item["dev"], item["ino"]), "Scratch identity changed")
             shutil.rmtree(path)  # stdlib fd-based traversal does not follow nested symlinks.

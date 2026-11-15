@@ -127,6 +127,7 @@ PY
 Отдельный release key создаёт владелец **только на своём доверенном компьютере**, с passphrase. Если утверждённый ключ уже существует, использовать его, не перезаписывать. Ни private key, ни passphrase не присылать:
 
 ```sh
+install -d -m 700 "$HOME/.ssh"
 ssh-keygen -t ed25519 -a 64 -f "$HOME/.ssh/campus_release" -C campus-release-owner
 ssh-keygen -lf "$HOME/.ssh/campus_release.pub"
 (cd "$DELIVERY/release" && ssh-keygen -Y sign \
