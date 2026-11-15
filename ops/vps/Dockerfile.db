@@ -3,7 +3,7 @@ FROM postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f0217
 # Official signed security packages, checksum-pinned by prepare-vps-context.
 # apk retains signature verification; builds need no network or relaxed trust.
 COPY security/ /tmp/security/
-RUN apk add --no-network /tmp/security/krb5-libs.apk /tmp/security/libxslt.apk && rm -rf /tmp/security
+RUN apk add --no-network /tmp/security/krb5-libs.apk /tmp/security/libxslt.apk /tmp/security/zlib.apk && rm -rf /tmp/security
 # Non-root entrypoint does not call gosu. Remove its vulnerable Go TLS binary,
 # rather than suppressing its CVEs. Root override intentionally cannot bootstrap.
 RUN rm /usr/local/bin/gosu

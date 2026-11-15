@@ -33,41 +33,15 @@ for (const [command, args] of [
 const root = await mkdtemp("/tmp/campus-vps-context-");
 await mkdir(path.join(root, "runtime"));
 await mkdir(path.join(root, "tools/payload"), { recursive: true });
-// Debian trixie-security zlib1g 1:1.3.dfsg+really1.3.1-1+deb13u1 amd64.
-// Hash independently verified using apt's signed security index and download.
-// Final Docker builds remain --network=none; never bypass TLS or checksums.
-await mkdir(path.join(root, "tools/security"));
-const zlibPackage = path.join(root, "tools/security/zlib1g.deb");
-const download = spawnSync(
-  "curl",
-  [
-    "--fail",
-    "--location",
-    "--silent",
-    "--show-error",
-    "--proto",
-    "=https",
-    "https://deb.debian.org/debian-security/pool/updates/main/z/zlib/zlib1g_1.3.dfsg+really1.3.1-1+deb13u1_amd64.deb",
-    "-o",
-    zlibPackage,
-  ],
-  { stdio: "inherit" },
-);
-if (
-  download.status !== 0 ||
-  createHash("sha256")
-    .update(await readFile(zlibPackage))
-    .digest("hex") !==
-    "8c27c342230503b73dfde629642c3b352e87b554e06d60cf58772f236a305ceb"
-)
-  throw Error(
-    "Verified Debian security package unavailable or checksum mismatch",
-  );
-
 await mkdir(path.join(root, "database/security"), { recursive: true });
 await cp("ops/vps/Dockerfile.db", path.join(root, "database/Dockerfile"));
 // Official Alpine v3.24 packages. Signatures are also checked by apk at install.
 for (const [name, version, checksum] of [
+  [
+    "zlib",
+    "1.4-r0",
+    "7b05bc778b8b25cd880835b40114182bd4d1581717504d0129c810c0a14291cb",
+  ],
   [
     "krb5-libs",
     "1.22.3-r0",
@@ -136,10 +110,9 @@ await cp(
   path.join(root, "tools/payload/scripts/launch-db-policy.mjs"),
 );
 await mkdir(path.join(root, "tools/payload/ops/vps"), { recursive: true });
-await cp(
-  "ops/vps/admin.mjs",
-  path.join(root, "tools/payload/ops/vps/admin.mjs"),
-);
+for (const name of ["admin.mjs", "tools-check.mjs"]) {
+  await cp("ops/vps/" + name, path.join(root, "tools/payload/ops/vps", name));
+}
 await writeFile(".runtime-evidence/vps-context.txt", root);
 console.log(
   "PASS isolated Docker contexts ready; no checkout secrets or deployment requested",

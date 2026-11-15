@@ -1,0 +1,42 @@
+{
+  "scope": "Локальные development images до итогового CI; не подписанный RC и не результаты main",
+  "baselineSource": "287912fe19df75404b81dd36ea1df5bb62187c71",
+  "images": {
+    "campus24-db": {
+      "createdAt": "2026-11-15T15:24:44.054979291Z",
+      "imageID": "sha256:7d51a9bedd02b11ab8cea0faf153782e40da947d7c3349345e3fc3f7f9c86850",
+      "severity": {},
+      "reportSHA256": "cfcc57c2833526afb290d14c2cc290b60837deec96bd20daf70ef436cc63e49d"
+    },
+    "campus24-runtime": {
+      "createdAt": "2026-11-15T15:24:46.053968013Z",
+      "imageID": "sha256:32dcb5fdff0916103533fd1f9a6ae9f2fe8cfda95e37e43c05049a1053e8f5c9",
+      "severity": {
+        "MEDIUM": 39,
+        "LOW": 12,
+        "UNKNOWN": 2
+      },
+      "reportSHA256": "c45b7ab93782e5dd9f2570197d9e6e5726cf20fb8822a35e746664b8076d9bd6"
+    },
+    "campus24-tools": {
+      "createdAt": "2026-11-15T15:30:24.224778302Z",
+      "imageID": "sha256:5f84facc8203a46a7bc518595511b54e43b30dd913e4a43def9effa2688bd738",
+      "severity": {
+        "MEDIUM": 41,
+        "LOW": 12,
+        "UNKNOWN": 2
+      },
+      "reportSHA256": "935b667ce5f32d17a5f2357dedbfae7e7d3bc7478d07be36db014d96e51221ef"
+    }
+  },
+  "scanner": {
+    "Version": "0.76.2",
+    "VulnerabilityDB": {
+      "Version": 2,
+      "NextUpdate": "2026-11-16T12:50:30.599817752Z",
+      "UpdatedAt": "2026-11-15T12:50:30.599818283Z",
+      "DownloadedAt": "2026-11-15T15:02:21.121344227Z"
+    }
+  },
+  "databaseFileSHA256": "b8cff2a35aee0810de27de75ba87298da3f40575dca0f0e7d088ca6026986eb6"
+}

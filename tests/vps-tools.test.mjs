@@ -73,6 +73,7 @@ test("delivery needs independently pinned signer and rejects tampered payload/ma
   ]);
   const pub = await readFile(dir + "/key.pub", "utf8");
   await writeFile(dir + "/allowed_signers", "campus-release-owner " + pub);
+  execFileSync("python3", ["tests/vps_release_test.py", "--fixture", dir]);
   let manifest = "";
   for (const name of [
     "runtime.tar.gz",
@@ -81,9 +82,12 @@ test("delivery needs independently pinned signer and rejects tampered payload/ma
     "config.tar",
     "release.json",
   ]) {
-    await writeFile(dir + "/" + name, "synthetic-test-only");
+    if (name.endsWith(".gz"))
+      await writeFile(dir + "/" + name, "synthetic-test-only");
     manifest +=
-      createHash("sha256").update("synthetic-test-only").digest("hex") +
+      createHash("sha256")
+        .update(await readFile(dir + "/" + name))
+        .digest("hex") +
       "  " +
       name +
       "\n";

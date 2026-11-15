@@ -1,6 +1,6 @@
 // Test fixtures only: reuse sessions obtained by real UI sign-in. Never forge
 // sessions, reset rate buckets, change source headers, or package these cookies.
-import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { expect, type Page, type Cookie } from "@playwright/test";
@@ -9,6 +9,25 @@ export default async function setup() {
   const directory = await mkdtemp(path.join(tmpdir(), "campus-e2e-sessions-"));
   process.env[variable] = directory;
   return async () => {
+    const upgrade = process.env.CAMPUS_VPS_UPGRADE_SESSION_DIR;
+    if (upgrade) {
+      if (
+        !path
+          .resolve(upgrade)
+          .startsWith(path.join(tmpdir(), "campus-vps-test-")) ||
+        path.basename(upgrade) !== "upgrade-sessions"
+      )
+        throw Error(
+          "Only a private disposable VPS rehearsal may retain sessions",
+        );
+      await mkdir(upgrade, { mode: 0o700 });
+      for (const account of ["staff", "student1"]) {
+        const data = await readFile(path.join(directory, account + ".json"));
+        await writeFile(path.join(upgrade, account + ".json"), data, {
+          mode: 0o600,
+        });
+      }
+    }
     await rm(directory, { recursive: true, force: true });
   };
 }
