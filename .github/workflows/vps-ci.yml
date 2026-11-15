@@ -31,6 +31,10 @@ jobs:
           python3 scripts/vps-ci-disk.py init
           nohup python3 scripts/vps-ci-disk.py sample >/dev/null 2>&1 &
       - name: Dependencies disk baseline
+        # Reproduce <= the failed main's 12.484 GiB start even on roomier hosts.
+        # The private job-owned reservation remains allocated through packaging.
+        run: python3 scripts/vps-ci-disk.py reserve-disk-test 12
+      - name: Dependencies disk measurement
         run: python3 scripts/vps-ci-disk.py snapshot dependencies-before
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -58,16 +62,21 @@ jobs:
       - name: Freeze final images and remove candidate build scratch
         run: |
           python3 scripts/vps-ci-disk.py freeze
+          python3 scripts/vps-ci-disk.py register-path candidate-build-output "$GITHUB_WORKSPACE/.next"
           python3 scripts/vps-ci-disk.py snapshot candidate-built
           python3 scripts/vps-ci-disk.py cleanup-build candidate-context candidate-runtime
           python3 scripts/vps-ci-disk.py snapshot candidate-scratch-cleaned
       - name: Local rehearsal prerequisites
         run: |
+          BROWSER_DIR=$(mktemp -d /tmp/campus-vps-browsers-XXXXXX)
+          python3 scripts/vps-ci-disk.py register-path rehearsal-browsers "$BROWSER_DIR"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$BROWSER_DIR" >> "$GITHUB_ENV"
           sudo apt-get update
           sudo apt-get install --no-install-recommends age
-          npx --no-install playwright install --with-deps chromium
+          PLAYWRIGHT_BROWSERS_PATH="$BROWSER_DIR" npx --no-install playwright install --with-deps chromium
           docker pull postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
           docker pull nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609
+          python3 scripts/vps-ci-disk.py register-rehearsal-images
       - run: python3 scripts/vps-ci-disk.py snapshot baseline-before
       - run: node scripts/prepare-vps-baseline.mjs
       - name: Candidate VPS regression and fresh restore
@@ -95,6 +104,8 @@ jobs:
           python3 scripts/vps-ci-disk.py snapshot tests-cleanup-before
           python3 scripts/vps-ci-disk.py cleanup-tests
           python3 scripts/vps-ci-disk.py snapshot tests-cleanup-after
+          python3 scripts/vps-ci-disk.py cleanup-rehearsal
+          python3 scripts/vps-ci-disk.py snapshot rehearsal-resources-after
           python3 scripts/vps-ci-disk.py budget 8 trivy
       - name: Scan all delivered images (full reports, all CRITICAL and fixable HIGH gate)
         run: |

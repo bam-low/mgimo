@@ -169,6 +169,7 @@ class DiskTests(unittest.TestCase):
         self.proof(); self.disk.cleanup_tests()
         data = self.disk.load()
         data["paths"] = [{"role": role, "removed": True} for role in module.PREFIXES if role != "trivy-work"]
+        data["rehearsalCleaned"] = True
         self.disk.save(data)
         original = self.disk.docker
         def gc(args):
@@ -179,6 +180,132 @@ class DiskTests(unittest.TestCase):
         self.disk.budget(8, "trivy")
         self.assertIn(["builder", "prune", "--all", "--force"], self.calls)
         self.assertFalse(any(c[:2] == ["system", "prune"] for c in self.calls))
+
+    def rehearsal_resources(self, initial=(), protected=False):
+        self.proof()
+        self.disk.cleanup_tests()
+        browser = self.scratch("rehearsal-browsers")
+        (browser / "synthetic-browser").write_bytes(b"test browser bytes")
+        (self.root / ".next").mkdir()
+        (self.root / ".next/build-output").write_bytes(b"test build output")
+        self.disk.register_path("candidate-build-output", str(self.root / ".next"))
+        data = self.disk.load()
+        data["initialImageIDs"] = list(initial)
+        self.disk.save(data)
+        ids = [self.images["db"]["id"] if protected else "sha256:" + "a" * 64, "sha256:" + "b" * 64]
+        fixtures = {ref: {"Id": key, "Size": 123456} for ref, key in zip(module.REHEARSAL_IMAGES, ids)}
+        original = self.disk.docker
+        def fixture_docker(args):
+            if args[:2] == ["image", "inspect"] and args[2] in fixtures:
+                self.calls.append(args)
+                return json.dumps([fixtures[args[2]]]).encode()
+            return original(args)
+        self.disk.docker = fixture_docker
+        self.disk.register_rehearsal_images()
+        self.calls.clear()
+        return browser, fixtures
+
+    def test_owned_browsers_and_exact_unused_rehearsal_images_removed_after_proof(self):
+        browser, _ = self.rehearsal_resources()
+        self.disk.cleanup_rehearsal()
+        self.assertFalse(browser.exists())
+        self.assertFalse((self.root / ".next").exists())
+        self.assertEqual([c for c in self.calls if c[:2] == ["image", "rm"]],
+                         [["image", "rm", ref] for ref in module.REHEARSAL_IMAGES])
+        self.assertTrue(self.disk.load()["rehearsalCleaned"])
+        self.assertTrue((self.disk.diag / "vps-upgrade.json").exists())
+        receipt = json.loads((self.disk.metrics / "rehearsal-resources.json").read_text())
+        self.assertGreater(receipt["browserAllocatedBytes"], 0)
+        self.assertTrue(receipt["imageSizeIsLogicalNotReclaimed"])
+        self.assertGreater(receipt["buildOutputAllocatedBytes"], 0)
+
+    def test_preexisting_build_output_or_wrong_workspace_path_refused(self):
+        path = self.root / ".next"
+        path.mkdir()
+        data = self.disk.load()
+        data["buildOutputInitiallyAbsent"] = False
+        self.disk.save(data)
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", str(path))
+        self.assertTrue(path.exists())
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", str(self.root))
+        with self.assertRaises(ValueError): self.disk.register_path("candidate-build-output", "/tmp/.next")
+
+    def test_owned_build_output_inode_swap_refused(self):
+        path = self.root / ".next"
+        path.mkdir()
+        self.disk.register_path("candidate-build-output", str(path))
+        path.rename(self.root / ".next-old")
+        path.mkdir()
+        with self.assertRaises(ValueError): self.disk.remove_paths({"candidate-build-output"})
+        self.assertTrue(path.exists())
+
+    def test_preexisting_and_protected_rehearsal_images_are_retained(self):
+        browser, _ = self.rehearsal_resources(initial=["sha256:" + "b" * 64], protected=True)
+        self.disk.cleanup_rehearsal()
+        self.assertFalse(browser.exists())
+        self.assertFalse(any(c[:2] == ["image", "rm"] for c in self.calls))
+
+    def test_changed_or_in_use_rehearsal_image_blocks_whole_cleanup(self):
+        browser, fixtures = self.rehearsal_resources()
+        ref = module.REHEARSAL_IMAGES[0]
+        before = fixtures[ref]["Id"]
+        fixtures[ref]["Id"] = "sha256:" + "9" * 64
+        with self.assertRaises(ValueError): self.disk.cleanup_rehearsal()
+        self.assertTrue(browser.exists())
+        self.assertFalse(any(c[:2] == ["image", "rm"] for c in self.calls))
+        fixtures[ref]["Id"] = before
+        original = self.disk.docker
+        self.disk.docker = lambda args: b"active-container" if args[:2] == ["ps", "-aq"] else original(args)
+        with self.assertRaises(ValueError): self.disk.cleanup_rehearsal()
+        self.assertTrue(browser.exists())
+        self.assertFalse(any(c[:2] == ["image", "rm"] for c in self.calls))
+
+    def test_rehearsal_cleanup_requires_completed_tests_and_unchanged_proof(self):
+        browser, _ = self.rehearsal_resources()
+        data = self.disk.load()
+        data["testsCleaned"] = False
+        self.disk.save(data)
+        with self.assertRaises(ValueError): self.disk.cleanup_rehearsal()
+        self.assertTrue(browser.exists())
+        data["testsCleaned"] = True
+        self.disk.save(data)
+        (self.disk.evidence / "vps-upgrade.json").write_text("changed proof")
+        with self.assertRaises(ValueError): self.disk.cleanup_rehearsal()
+        self.assertTrue(browser.exists())
+
+    def test_disk_pressure_reservation_is_owned_and_not_removed_with_build_scratch(self):
+        fs = self.disk.filesystem(self.root)
+        self.disk.filesystem = lambda p: {**fs, "available": 13 * module.GIB}
+        with patch.object(os, "posix_fallocate") as allocate:
+            self.disk.reserve_disk_test(12)
+        self.assertEqual(allocate.call_args.args[1:], (0, module.GIB))
+        receipt = json.loads((self.disk.metrics / "disk-regression.json").read_text())
+        self.assertEqual(receipt["reservedBytes"], module.GIB)
+        path = Path(self.disk.load()["paths"][-1]["path"])
+        self.addCleanup(lambda: __import__('shutil').rmtree(path, ignore_errors=True))
+        self.disk.remove_paths(module.BUILD_ROLES)
+        self.assertTrue((path / "reserved").exists())
+        with self.assertRaises(ValueError): self.disk.reserve_disk_test(8)
+
+    def test_disk_pressure_does_not_allocate_when_start_already_lower(self):
+        fs = self.disk.filesystem(self.root)
+        self.disk.filesystem = lambda p: {**fs, "available": 11 * module.GIB}
+        with patch.object(os, "posix_fallocate") as allocate:
+            self.disk.reserve_disk_test(12)
+        allocate.assert_not_called()
+        self.assertEqual(json.loads((self.disk.metrics / "disk-regression.json").read_text())["reservedBytes"], 0)
+        path = Path(self.disk.load()["paths"][-1]["path"])
+        self.addCleanup(lambda: __import__('shutil').rmtree(path, ignore_errors=True))
+
+    def test_cache_gc_cannot_precede_rehearsal_cleanup(self):
+        fs = self.disk.filesystem(self.root)
+        self.disk.filesystem = lambda p: {**fs, "available": module.GIB}
+        self.proof(); self.disk.cleanup_tests()
+        data = self.disk.load()
+        data["paths"] = [{"role": role, "removed": True} for role in module.BUILD_ROLES]
+        self.disk.save(data)
+        with self.assertRaises(ValueError): self.disk.budget(8, "trivy")
+        self.assertFalse(any(c[0] == "builder" for c in self.calls))
 
     def test_trivy_cache_cleanup_requires_full_seal_and_unchanged_reports(self):
         path = self.scratch("trivy-work")
