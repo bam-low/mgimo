@@ -203,7 +203,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               setCredentials(result.credentials);
             setTicket("");
           } else {
-            router.push("/cabinet");
+            router.push("/cabinet?entry=1");
             router.refresh();
           }
         } catch {

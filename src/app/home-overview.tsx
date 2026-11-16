@@ -93,16 +93,6 @@ export function HomeOverview({
           </span>
           <Icon name="chevron" />
         </Link>
-        <Link href="/schedule">
-          <span className="link-icon lavender">
-            <Icon name="calendar" />
-          </span>
-          <span>
-            <strong>Расписание недели</strong>
-            <small>Все занятия вашей группы</small>
-          </span>
-          <Icon name="chevron" />
-        </Link>
       </section>
       <section className="home-note">
         <Icon name="building" />

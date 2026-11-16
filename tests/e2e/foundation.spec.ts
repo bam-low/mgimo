@@ -1,3 +1,4 @@
+import { expectSignInLanding } from "./ui-sign-in";
 import { findPagedCard } from "./paging";
 import { test, expect } from "@playwright/test";
 test("STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px", async ({
@@ -33,7 +34,7 @@ test("STAFF transfer, revoke and controlled resubmission use real guards and ref
         element.dispatchEvent(new Event("input", { bubbles: true }));
       }, pass);
     await page.getByRole("button", { name: "Войти", exact: true }).click();
-    await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+    await expectSignInLanding(page, user);
   }
   async function logout() {
     await page.getByRole("button", { name: "Выйти", exact: true }).click();
@@ -74,8 +75,15 @@ test("STAFF transfer, revoke and controlled resubmission use real guards and ref
     "Подтверждено",
   );
   await expect(
-    page.getByText("Группа: Демо-группа 2", { exact: true }),
-  ).toBeVisible();
+    process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+      ? page.getByText("Группа: Демо-группа 2", { exact: true })
+      : page.getByTestId("profile-group"),
+  ).toHaveText(
+    process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+      ? "Группа: Демо-группа 2"
+      : "Демо-группа 2",
+  );
+  await expect(process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1" ? page.getByText("Группа: Демо-группа 2", {exact:true}) : page.getByTestId("profile-group")).toBeVisible();
   expect(
     await page.evaluate(() =>
       fetch("/api/group?id=group-1").then((r) => r.status),

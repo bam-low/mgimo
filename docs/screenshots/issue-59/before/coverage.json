@@ -1,0 +1,522 @@
+[
+  {
+    "headerOverlap": false,
+    "screen": "landing",
+    "state": "default",
+    "width": 360,
+    "height": 900,
+    "file": "before/landing-default-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "login",
+    "state": "default",
+    "width": 360,
+    "height": 900,
+    "file": "before/login-default-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "landing",
+    "state": "default",
+    "width": 390,
+    "height": 900,
+    "file": "before/landing-default-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "login",
+    "state": "default",
+    "width": 390,
+    "height": 900,
+    "file": "before/login-default-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "landing",
+    "state": "default",
+    "width": 768,
+    "height": 900,
+    "file": "before/landing-default-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "login",
+    "state": "default",
+    "width": 768,
+    "height": 900,
+    "file": "before/login-default-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "landing",
+    "state": "default",
+    "width": 1280,
+    "height": 900,
+    "file": "before/landing-default-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "login",
+    "state": "default",
+    "width": 1280,
+    "height": 900,
+    "file": "before/login-default-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-ended-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-ended-360-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "day",
+    "width": 360,
+    "height": 900,
+    "file": "before/schedule-day-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 360,
+    "height": 900,
+    "file": "before/schedule-week-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 360,
+    "height": 900,
+    "file": "before/schedule-week-360-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "profile",
+    "state": "default",
+    "width": 360,
+    "height": 900,
+    "file": "before/profile-default-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "before",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-before-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "current",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-current-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "break",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-break-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "empty",
+    "width": 360,
+    "height": 900,
+    "file": "before/today-empty-360.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 390,
+    "height": 900,
+    "file": "before/today-ended-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 390,
+    "height": 900,
+    "file": "before/today-ended-390-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "day",
+    "width": 390,
+    "height": 900,
+    "file": "before/schedule-day-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 390,
+    "height": 900,
+    "file": "before/schedule-week-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 390,
+    "height": 900,
+    "file": "before/schedule-week-390-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "profile",
+    "state": "default",
+    "width": 390,
+    "height": 900,
+    "file": "before/profile-default-390.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 768,
+    "height": 900,
+    "file": "before/today-ended-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 768,
+    "height": 900,
+    "file": "before/today-ended-768-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "day",
+    "width": 768,
+    "height": 900,
+    "file": "before/schedule-day-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 768,
+    "height": 900,
+    "file": "before/schedule-week-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 768,
+    "height": 900,
+    "file": "before/schedule-week-768-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "profile",
+    "state": "default",
+    "width": 768,
+    "height": 900,
+    "file": "before/profile-default-768.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": true,
+    "screen": "today",
+    "state": "ended",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-ended-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "today",
+    "state": "ended",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-ended-1280-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "day",
+    "width": 1280,
+    "height": 900,
+    "file": "before/schedule-day-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 1280,
+    "height": 900,
+    "file": "before/schedule-week-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": false,
+    "screen": "schedule",
+    "state": "week",
+    "width": 1280,
+    "height": 900,
+    "file": "before/schedule-week-1280-lower.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": true
+  },
+  {
+    "headerOverlap": false,
+    "screen": "profile",
+    "state": "default",
+    "width": 1280,
+    "height": 900,
+    "file": "before/profile-default-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": true,
+    "screen": "today",
+    "state": "before",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-before-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": true,
+    "screen": "today",
+    "state": "current",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-current-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": true,
+    "screen": "today",
+    "state": "break",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-break-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  },
+  {
+    "headerOverlap": true,
+    "screen": "today",
+    "state": "empty",
+    "width": 1280,
+    "height": 900,
+    "file": "before/today-empty-1280.png",
+    "overflow": {
+      "document": false,
+      "workspace": false
+    },
+    "scroll": false
+  }
+]

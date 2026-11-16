@@ -181,3 +181,7 @@ Production NO-GO2app/8tools HIGH и реальные host/cloud gates сохра
 ## A54 — VPS Release Candidate, утверждено15.11.2026
 
 Владелец утвердил Issue#54/Q1–Q7 и разрешил только техническое maintenance в отдельной ветке/одном Draft PR: устранение HIGH/tools и проверенных security inputs, versioned manifestv1.0.0-rc.1, baseline287912fe→RC/совместимый app rollback/fresh restore, актуализация инструкций. Новых функций/редизайна/PG major upgrade нет. Все SQL-миграции baseline сохраняются; приватные роли/TLS/CSRF/rate gates не ослабляются. Подпись ключом владельца, большой artifact export/квота, tag/release и любой VPS/deploy — отдельно. Нет безопасного доказательства — BLOCKED. [Разбор](VPS_RC_SECURITY.md), [обновление/restore](VPS_UPDATE_RUNBOOK.md). Production NO-GO.
+
+## A59 — студенческая визуальная доводка по DOCX,16.11.2026
+
+APPROVED владельцем: Issue #59 и «Разбор MVP кампуса.docx» — главный визуальный источник. Приветствие/входной маршрут APPROVED→today/главная/день-неделя/профиль, четыре ширины, настоящий Chromium и Draft PR без deploy. Существующие разрешения и закрытые статусы сохраняются. Отдельный ответ владельца разрешает прежнюю либо новую самостоятельную иллюстрацию; логотип не создавать. Новая акварельная архитектура — декоративный asset, не screenshot background. Средний балл/Subject/преподаватели/фото-storage из исторических заметок DOCX не входят в это Issue. [Реализация и ограничения](design/STUDENT_POLISH_59.md), [реальные кадры](screenshots/issue-59/README.md). Визуальная ручная приёмка/merge отдельно, Production NO-GO сохраняется.

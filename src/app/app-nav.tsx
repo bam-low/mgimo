@@ -36,7 +36,7 @@ export function AppNav({
       <a className="skip-link" href="#workspace">
         К содержанию
       </a>
-      <header className="campus-masthead">
+      <header className="campus-masthead" data-role={role}>
         <Link
           className="wordmark"
           href={
@@ -106,10 +106,18 @@ export function AppNav({
           ))}
         <span className="nav-context">
           {role === "STAFF" ? "Рабочее пространство" : "Ваш учебный день"}
-          <small>Кампус</small>
+          <small>
+            {role === "STAFF"
+              ? "Кампус"
+              : "Конкурсный концепт · Вымышленные данные"}
+          </small>
         </span>
       </nav>
-      <p className="concept-note">Вымышленные данные</p>
+      <p className="concept-note">
+        {role === "STUDENT"
+          ? "Конкурсный концепт · Вымышленные данные"
+          : "Вымышленные данные"}
+      </p>
     </>
   );
 }

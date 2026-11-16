@@ -56,7 +56,13 @@ export async function signInWithSession(
   diagnostic.body = Buffer.from(JSON.stringify(safe));
   console.info("Результат входа E2E", safe);
   expect(status, "HTTP-ответ входа E2E").toBe(200);
-  await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+  await expect(page).toHaveURL(
+    email === "staff@example.test"
+      ? /\/staff$/
+      : process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+        ? /\/cabinet$/
+        : /\/today$/,
+  );
   const protectedResponse = await page.request.get(
     email === "staff@example.test"
       ? "/api/staff/schedule/builder"
@@ -67,4 +73,21 @@ export async function signInWithSession(
   test
     .info()
     .attachments.splice(test.info().attachments.indexOf(diagnostic), 1);
+}
+
+// Legacy journeys inspect the profile after verifying the new, status-aware entry.
+export async function expectSignInLanding(page: Page, email: string) {
+  await page.waitForURL(/\/(today|cabinet|staff)$/);
+  if (email === "staff@example.test") {
+    await expect(page).toHaveURL(/\/staff$/);
+    return;
+  }
+  const group = await page.request.get("/api/group");
+  expect([200, 403]).toContain(group.status());
+  await expect(page).toHaveURL(
+    group.status() === 200 && process.env.CAMPUS_VPS_UPGRADE_REHEARSAL !== "1"
+      ? /\/today$/
+      : /\/cabinet$/,
+  );
+  if (group.status() === 200) await page.goto("/cabinet");
 }

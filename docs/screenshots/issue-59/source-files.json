@@ -1,0 +1,55 @@
+{
+  "baseline": "54ec540fffdad2ae3310781adf001b705c0ffe25",
+  "afterBranch": "design/student-polish-59",
+  "note": "Reviewed HEAD is in PR; these hashes bind the app inputs without a self-referential commit field",
+  "files": {
+    "public/design/campus-watercolor.png": {
+      "before": null,
+      "after": "d010b81281e1868f58ff44e6f0a26fcf95e4ba4895ef1b9f2b47fe19f16b8194"
+    },
+    "src/app/app-nav.tsx": {
+      "before": "ac83d8e9bcfef52314cf5d642b656125ae8558565a0775a89784d44dab205a89",
+      "after": "34a576dae9ef7bf6a1cf70c4987f9579a83879ff7fcf18ff984c91d59ec1f1e9"
+    },
+    "src/app/cabinet/page.tsx": {
+      "before": "dc8b3104e8387e681380a862257dccc3791c02ca930b7ceb8b4725e419a493af",
+      "after": "8302b1521d664ce7dd01fbb8208ff203f855dc853759171ae670b8d0ca221ec4"
+    },
+    "src/app/forms.tsx": {
+      "before": "9b1af1d0f5ea9b81a7979723b428cd2374c772aef7566a58fa10c31a6e7c53a2",
+      "after": "708500c13a104d99db2f8968472ce3c81490619a82c12bf41d79fa55c75d7eb3"
+    },
+    "src/app/home-overview.tsx": {
+      "before": "053511af018e5ca5355e841ec79cf2a9ee1ab8b7ca52292c5988e69cbe7e86ee",
+      "after": "781033bdd2e4c564105fa124d0c773c291ce18af37977075f7532193b37bcdc0"
+    },
+    "src/app/layout.tsx": {
+      "before": "cd22de51b355c0fa41950f006c10ee63dcce8ab48d8861b19d5fd3cc0962dd9b",
+      "after": "5b3225ff4085aa0b0c69be45adfea0d72f5f0a7d63a05e724ee3ab2258b7f2b7"
+    },
+    "src/app/page.tsx": {
+      "before": "d1286c44d78f312dd1cf5d20ce07e4ee2b1860398b597435b7d2b4094c3b347f",
+      "after": "52bed94838de54292ea489b68c7b4810465f0795cf3c84d6b1a34a05337b4e10"
+    },
+    "src/app/public-shell.tsx": {
+      "before": "0a0baa5850b7bc2304571a9ed1bd25e5abe43a0935cc3ffbfecaf601934acbd0",
+      "after": "8b35da4e0884fc73286441fc71992cf8f9c8f3482fd4f7532c0ac16e7a100619"
+    },
+    "src/app/schedule-view.tsx": {
+      "before": "a340b6e4dde46adde3bdc8fc29557d412c4a84741d8f03082216808b85cf8e8e",
+      "after": "9e5209055e9dad370e8f019f4e1da51b411f067854172ef253c003880422c567"
+    },
+    "src/app/schedule/page.tsx": {
+      "before": "0c47d37eaa778ef67f1ee20f86b049d3bd3a95d4a03f8b5f2bb115c233d9256b",
+      "after": "265e34fac55bd4a02a57639771278ef443ad7dcbf9d249cd0e841a47fc38a708"
+    },
+    "src/app/student-polish.css": {
+      "before": null,
+      "after": "083747f17ace198a7e3fa4f4284b179dc479ce16dac6812af133cdc4ed9a2fff"
+    },
+    "src/app/today/page.tsx": {
+      "before": "c8afcbd36b57900743f3cffd19451a799b4e9ce0b2e8f97d31fbace48c6609a2",
+      "after": "18af862d7337a544fb80910ae810dd2d5a7ad41e0e1eef1e293ac5688d397c7c"
+    }
+  }
+}

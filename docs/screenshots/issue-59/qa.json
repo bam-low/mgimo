@@ -1,0 +1,53 @@
+{
+  "screenshots": 84,
+  "before": 40,
+  "after": 44,
+  "widths": [
+    360,
+    390,
+    768,
+    1280
+  ],
+  "afterHorizontalOverflow": [],
+  "beforeHeaderOverlap": [
+    "before/today-ended-1280.png",
+    "before/today-before-1280.png",
+    "before/today-current-1280.png",
+    "before/today-break-1280.png",
+    "before/today-empty-1280.png"
+  ],
+  "afterHeaderOverlap": [],
+  "baseline": "54ec540fffdad2ae3310781adf001b705c0ffe25",
+  "clockFixture": "Genuine authorized HTTP200 lessons, controlled response clock/empty rendering only; server time and DB not altered",
+  "limitations": [
+    "Chromium only; physical devices/Safari/screenreader and full WCAG not claimed",
+    "Frames at 900px viewport height; lower frames only when actual scrolling exists"
+  ],
+  "specifiedColorContrast": [
+    {
+      "foreground": "#365339",
+      "background": "#e8f1e5",
+      "ratio": 7.4
+    },
+    {
+      "foreground": "#75572d",
+      "background": "#f5eee4",
+      "ratio": 5.77
+    },
+    {
+      "foreground": "#8a3239",
+      "background": "#fae9e9",
+      "ratio": 6.89
+    },
+    {
+      "foreground": "#753a4a",
+      "background": "#f7f4ee",
+      "ratio": 7.77
+    },
+    {
+      "foreground": "#25283b",
+      "background": "#ffffff",
+      "ratio": 14.53
+    }
+  ]
+}

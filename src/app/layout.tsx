@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
 import { platformMetadata } from "@/lib/platform";
 import "./globals.css";
+import "./student-polish.css";
 import { RussianValidation } from "./russian-validation";
 
 export const metadata: Metadata = platformMetadata;
