@@ -296,6 +296,11 @@
 }
 .public-landing {
   background: #faf7f3;
+  position: relative;
+  isolation: isolate;
+}
+.landing-watercolor {
+  display: none;
 }
 .public-landing .public-story {
   background: transparent;
@@ -453,6 +458,51 @@
     grid-template-columns: 1.1fr 1fr;
     min-height: 100dvh;
   }
+  .landing-watercolor {
+    display: block;
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto auto;
+    width: 190px;
+    height: 140px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .landing-watercolor span {
+    position: absolute;
+    width: 60px;
+    height: 24px;
+    border-radius: 85% 12% 82% 16%;
+    background:
+      radial-gradient(ellipse at 35% 38%, #d7a3a66b, transparent 78%),
+      radial-gradient(ellipse at 77% 65%, #e3bca966, transparent 85%);
+    box-shadow: inset 0 1px 4px #be8b9633;
+  }
+  .landing-watercolor span:nth-child(1) {
+    top: 10px;
+    right: 30px;
+    transform: rotate(26deg) scale(1.1);
+  }
+  .landing-watercolor span:nth-child(2) {
+    top: 31px;
+    right: 88px;
+    transform: rotate(8deg) scale(0.86);
+  }
+  .landing-watercolor span:nth-child(3) {
+    top: 54px;
+    right: 37px;
+    transform: rotate(-26deg);
+  }
+  .landing-watercolor span:nth-child(4) {
+    top: 62px;
+    right: 0;
+    transform: rotate(74deg) scale(1.02);
+  }
+  .landing-watercolor span:nth-child(5) {
+    top: 99px;
+    right: 19px;
+    transform: rotate(120deg) scale(0.71);
+  }
   .public-landing .public-story-copy {
     padding-top: 50px;
   }
@@ -489,17 +539,6 @@
     grid-template-columns: 85px minmax(0, 1fr);
     gap: 10px;
   }
-  .student-schedule .week-days .lesson {
-    flex-wrap: wrap;
-  }
-  .student-schedule .week-days .lesson-detail {
-    flex: 1;
-    min-width: 160px;
-  }
-  .student-schedule .week-days .badge,
-  .student-schedule .week-days .lesson-state {
-    margin-left: 50px;
-  }
   .student-greeting > div > p:last-child {
     margin-top: 10px;
   }
@@ -510,23 +549,23 @@
 }
 @media (max-width: 499px) {
   .student-home .lesson,
-  .student-schedule .week-days .lesson {
+  .student-schedule .lesson-list .lesson {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);
     gap: 6px 10px;
   }
   .student-home .lesson-time,
-  .student-schedule .week-days .lesson-time {
+  .student-schedule .lesson-list .lesson-time {
     grid-row: 1 / span 2;
   }
   .student-home .lesson-detail,
-  .student-schedule .week-days .lesson-detail {
+  .student-schedule .lesson-list .lesson-detail {
     min-width: 0;
   }
   .student-home .lesson-state,
   .student-home .lesson > .badge,
-  .student-schedule .week-days .lesson-state,
-  .student-schedule .week-days .lesson > .badge {
+  .student-schedule .lesson-list .lesson-state,
+  .student-schedule .lesson-list .lesson > .badge {
     grid-column: 2;
     justify-self: start;
     margin-left: 0;

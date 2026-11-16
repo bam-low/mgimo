@@ -13,6 +13,15 @@ export function PublicShell({
   const Heading = landing ? "h1" : "h2";
   return (
     <main className={`public-shell ${landing ? "public-landing" : ""}`}>
+      {landing && (
+        <div className="landing-watercolor" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
       <section className="public-story" aria-label="О Кампусе">
         <Link className="wordmark" href="/">
           <span className="brand-building">

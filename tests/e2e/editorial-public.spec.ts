@@ -11,6 +11,20 @@ test("Русские публичные экраны сохраняют форм
       exact: true,
     });
     await expect(entry).toBeVisible();
+    if (width === 1280 && process.env.CAMPUS_VPS_UPGRADE_REHEARSAL !== "1") {
+      await expect(page.locator(".landing-watercolor")).toBeVisible();
+      await page.locator(".public-story-copy img").evaluate((img: HTMLImageElement) => img.decode());
+      await page.evaluate(() => document.fonts.ready);
+      const screenshot = await page.screenshot({
+        path: "test-results/issue59-landing-default-1280.png",
+      });
+      if (process.env.GITHUB_WORKFLOW === "Node CI") {
+        for (const [index, chunk] of (screenshot.toString("base64").match(/.{1,4096}/g) ?? []).entries()) {
+          console.log(`CAMPUS59_IMAGE landing-default-1280 ${index} ${chunk}`);
+        }
+        console.log(`CAMPUS59_END landing-default-1280 ${screenshot.length}`);
+      }
+    }
     const bounds = await entry.boundingBox();
     expect(bounds && bounds.y + bounds.height <= 900).toBe(true);
     await entry.focus();

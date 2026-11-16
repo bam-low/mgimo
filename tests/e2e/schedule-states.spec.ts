@@ -48,6 +48,7 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
   // UI state coverage only: actual seeded lessons, controlled serverNow response.
   // This does not write records, change server clocks, or prove backend auth.
   let instant = Date.parse(actual.lessons[0].startsAt) - 60000;
+  let mixedDay = false;
   await page.route("**/api/schedule?*", (route) =>
     route.fulfill({
       status: 200,
@@ -58,6 +59,13 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
         from: first,
         view: "today",
         serverNow: new Date(instant).toISOString(),
+        lessons: mixedDay
+          ? [
+              actual.lessons[0],
+              { ...actual.lessons[1], status: "CANCELLED" },
+              { ...actual.lessons[2], title: "Практикум проектирования" },
+            ]
+          : actual.lessons,
       }),
     }),
   );
@@ -143,5 +151,58 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
   await expect(
     page.getByRole("heading", { name: "Сейчас перемена", exact: true }),
   ).toBeVisible({ timeout: 10000 });
+  if (!historical) {
+    mixedDay = true;
+    instant = Date.parse(actual.lessons[0].endsAt) + 1000;
+    for (const width of [360, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/schedule");
+      await expect(
+        page.getByRole("button", { name: "День", exact: true }),
+      ).toHaveAttribute("aria-pressed", "true");
+      for (const label of ["Завершено", "Отменено", "Следующее"]) {
+        const status = page.getByText(label, { exact: true });
+        await expect(status).toHaveCount(1);
+        const lesson = page
+          .locator(".student-schedule .lesson")
+          .filter({ has: status });
+        const time = await lesson.locator(".lesson-time").boundingBox();
+        const detail = await lesson.locator(".lesson-detail").boundingBox();
+        const badge = await lesson.locator(".lesson-state, .badge").boundingBox();
+        if (!time || !detail || !badge) throw Error(`Missing lesson layout: ${label}`);
+        expect(time.x).toBeLessThan(detail.x);
+        expect(Math.abs(badge.x - detail.x)).toBeLessThanOrEqual(1);
+        expect(badge.y).toBeGreaterThanOrEqual(detail.y + detail.height - 1);
+      }
+      await page.evaluate(() => document.fonts.ready);
+      const title = page.getByRole("heading", {
+        name: "Практикум проектирования",
+        exact: true,
+      });
+      await expect(title).toBeVisible();
+      expect(
+        await title.evaluate((heading) => {
+          const text = heading.firstChild as Text;
+          const last = text.length - 1;
+          const range = document.createRange();
+          range.setStart(text, last - 1);
+          range.setEnd(text, last);
+          const previousTop = range.getBoundingClientRect().top;
+          range.setStart(text, last);
+          range.setEnd(text, last + 1);
+          return Math.abs(range.getBoundingClientRect().top - previousTop);
+        }),
+      ).toBeLessThanOrEqual(1);
+      const screenshot = await page.screenshot({
+        path: `test-results/issue59-schedule-day-${width}.png`,
+      });
+      if (process.env.GITHUB_WORKFLOW === "Node CI") {
+        for (const [index, chunk] of (screenshot.toString("base64").match(/.{1,4096}/g) ?? []).entries()) {
+          console.log(`CAMPUS59_IMAGE schedule-day-${width} ${index} ${chunk}`);
+        }
+        console.log(`CAMPUS59_END schedule-day-${width} ${screenshot.length}`);
+      }
+    }
+  }
   await page.unroute("**/api/schedule?*");
 });
