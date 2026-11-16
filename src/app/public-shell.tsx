@@ -48,6 +48,7 @@ export function PublicShell({
             width={768}
             height={512}
             priority
+            unoptimized={landing}
           />
         </div>
       </section>

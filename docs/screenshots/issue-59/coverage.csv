@@ -45,11 +45,11 @@ after,landing,default,390,900,False,after/landing-default-390.png,False,False,Fa
 after,login,default,390,900,False,after/login-default-390.png,False,False,False,0b0201d415e9e146e9eee477e28adac1a8344ef5af742e7b94bbda837c778fbb
 after,landing,default,768,900,False,after/landing-default-768.png,False,False,False,c3d7976f3e34bd659d661d56efaeb407fda375ff407b66a4ae5a6e5048dab70d
 after,login,default,768,900,False,after/login-default-768.png,False,False,False,31c08228ce1e9b9ec4cb52c2c2301f124255cafa32fa225f1051408891124204
-after,landing,default,1280,900,False,after/landing-default-1280.png,False,False,False,a0fa8a9be51a32adae93167b261957269557c2619e968e2ef4913128e7e4cffe
+after,landing,default,1280,900,False,after/landing-default-1280.png,False,False,False,9717732b2b8fcd06d9ae4def3b44f7414d649267f7f477162d2e1cf7fb5f800e
 after,login,default,1280,900,False,after/login-default-1280.png,False,False,False,4f0361b69088e1540e530077ff9694252d81fe835f87f94f72885eb9705930dd
 after,today,ended,360,900,False,after/today-ended-360.png,False,False,False,26f99f384338cbce4b7a592440c47bddf5e5cecc9b499d6b9f6b5d9773a01a46
 after,today,ended,360,900,True,after/today-ended-360-lower.png,False,False,False,3e60f89a8e8cf6d125d7478c0565c911b8b7f2e3d352212d5def78a33f274a10
-after,schedule,day,360,900,False,after/schedule-day-360.png,False,False,False,601639768b3707536df49dbd94802999e55edd7b6ac2017a90db74b8483fb140
+after,schedule,day,360,900,False,after/schedule-day-360.png,False,False,False,e23c7ba1f62624d1652c48c562d7227fd4fc09b09fd782162291ca459a9cc747
 after,schedule,week,360,900,False,after/schedule-week-360.png,False,False,False,7f044f55113075fab2fd3a77984c5c5a55137a6428209ad06aea7e9c8f916e61
 after,schedule,week,360,900,True,after/schedule-week-360-lower.png,False,False,False,9eb29e66558f50c641e35b9f4e1087b1b29469bbd96069c149c729ad34f5f43a
 after,profile,default,360,900,False,after/profile-default-360.png,False,False,False,87d016dc415c80b931d4abb85a263f4ad3bb68872b40284c508fe3182ee643d6
@@ -60,7 +60,7 @@ after,today,break,360,900,False,after/today-break-360.png,False,False,False,7def
 after,today,empty,360,900,False,after/today-empty-360.png,False,False,False,1854b086689119a4942c30c3d9c9d12a7d9e6746c05e45dd95f1999c15ef12b6
 after,today,ended,390,900,False,after/today-ended-390.png,False,False,False,d7005a61d103c2b6d928d46879ec31f460b09a1b43b89d4f0e83d82ba2115e1f
 after,today,ended,390,900,True,after/today-ended-390-lower.png,False,False,False,212862bfdd75ecefa1562423d28f7b59f1d650674ce2060273a6bd69a0291ad5
-after,schedule,day,390,900,False,after/schedule-day-390.png,False,False,False,bb598c7b67297636edb98069350395debb43ad92e9572170112881990e800df5
+after,schedule,day,390,900,False,after/schedule-day-390.png,False,False,False,c0c7b6ece229d60563ad01fbee662a6d79bc77ee719e6e335cd3371f197dcf3e
 after,schedule,week,390,900,False,after/schedule-week-390.png,False,False,False,ff7aa22963b6b69d27b426d7c9252c622f139508cb68c22d8048bce38c10a428
 after,schedule,week,390,900,True,after/schedule-week-390-lower.png,False,False,False,cb1841858da46c5b983bc135ecf1dbd53d4e46700ec55b08d396b0fcb4a445d5
 after,profile,default,390,900,False,after/profile-default-390.png,False,False,False,b6ebd1654d404b1d8938e1335a90c1f048bf1013a5b94c44845532fce8797855

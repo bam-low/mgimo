@@ -63,7 +63,7 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
           ? [
               actual.lessons[0],
               { ...actual.lessons[1], status: "CANCELLED" },
-              { ...actual.lessons[2], title: "Практикум проектирования" },
+              actual.lessons[2],
             ]
           : actual.lessons,
       }),
@@ -168,8 +168,11 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
           .filter({ has: status });
         const time = await lesson.locator(".lesson-time").boundingBox();
         const detail = await lesson.locator(".lesson-detail").boundingBox();
-        const badge = await lesson.locator(".lesson-state, .badge").boundingBox();
-        if (!time || !detail || !badge) throw Error(`Missing lesson layout: ${label}`);
+        const badge = await lesson
+          .locator(".lesson-state, .badge")
+          .boundingBox();
+        if (!time || !detail || !badge)
+          throw Error(`Missing lesson layout: ${label}`);
         expect(time.x).toBeLessThan(detail.x);
         expect(Math.abs(badge.x - detail.x)).toBeLessThanOrEqual(1);
         expect(badge.y).toBeGreaterThanOrEqual(detail.y + detail.height - 1);
@@ -193,15 +196,9 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
           return Math.abs(range.getBoundingClientRect().top - previousTop);
         }),
       ).toBeLessThanOrEqual(1);
-      const screenshot = await page.screenshot({
+      await page.screenshot({
         path: `test-results/issue59-schedule-day-${width}.png`,
       });
-      if (process.env.GITHUB_WORKFLOW === "Node CI") {
-        for (const [index, chunk] of (screenshot.toString("base64").match(/.{1,4096}/g) ?? []).entries()) {
-          console.log(`CAMPUS59_IMAGE schedule-day-${width} ${index} ${chunk}`);
-        }
-        console.log(`CAMPUS59_END schedule-day-${width} ${screenshot.length}`);
-      }
     }
   }
   await page.unroute("**/api/schedule?*");

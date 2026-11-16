@@ -6,7 +6,11 @@
 
 GitHub показывает пары ниже. HTML — только галерея этих PNG, не макет приложения; скачать с каталогами before/after и открыть локально. PNG кликабельны в полном разрешении. Мобильная/desktop прокрутка снята отдельно только там, где содержимое действительно длиннее viewport.
 
-## Контактные листы
+## Повторное ревью PR #60
+
+Переснято в Chromium: [schedule-day-360](after/schedule-day-360.png) · [schedule-day-390](after/schedule-day-390.png) · [landing-default-1280](after/landing-default-1280.png). В мобильном режиме «День» один кадр показывает все три статуса с контролируемым временем и тестовой отменой второй пары. [Запуск Node CI](https://github.com/bam-low/mgimo/actions/runs/43952805863).
+
+## Контактные листы до повторного ревью
 
 - [360px](contact-sheets/compare-360.jpg)
 - [390px](contact-sheets/compare-390.jpg)
