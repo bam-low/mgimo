@@ -611,3 +611,10 @@
   background: #f1e6e8;
   color: var(--brand);
 }
+/* The selected mode is explicit in the owner reference, including on hover. */
+.student-schedule .segmented button[aria-pressed="true"],
+.student-schedule .segmented button[aria-pressed="true"]:hover {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: none;
+}
