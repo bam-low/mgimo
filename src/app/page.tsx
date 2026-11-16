@@ -3,17 +3,10 @@ import { PublicShell } from "./public-shell";
 import { Icon } from "./ui-icon";
 export default function Home() {
   return (
-    <PublicShell>
-      <p className="eyebrow">Цифровой деканат будущего</p>
-      <h1>
-        Всё для вашего
-        <br />
-        <em>учебного дня.</em>
-      </h1>
-      <p className="public-intro">
-        Расписание, успеваемость, заявки и демонстрационные справки — в одном
-        Кампусе.
-      </p>
+    <PublicShell landing>
+      <p className="eyebrow">Знакомство с Кампусом</p>
+      <h2 className="landing-title">Посмотрите, как работает Кампус</h2>
+
       <ul className="public-features">
         <li>
           <Icon name="calendar" />
@@ -28,17 +21,18 @@ export default function Home() {
           <span>Обращения и ответы вашего деканата.</span>
         </li>
       </ul>
-      <p className="demo-disclaimer">
-        Используйте только вымышленные данные.
-      </p>
       <nav aria-label="Доступ к платформе">
         <Link className="card-action" href="/login">
           Войти в Кампус <Icon name="arrow" />
         </Link>
-        <Link className="public-switch" href="/register">
+        <Link className="landing-register" href="/register">
           Регистрация студента
         </Link>
       </nav>
+      <p className="demo-disclaimer">
+        Конкурсный концепт «Цифровой деканат будущего». Только вымышленные
+        данные.
+      </p>
     </PublicShell>
   );
 }

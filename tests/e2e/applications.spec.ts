@@ -1,3 +1,4 @@
+import { expectSignInLanding } from "./ui-sign-in";
 import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
@@ -12,7 +13,7 @@ async function login(page: Page, email: string, password: string) {
     .getByLabel("Демонстрационный пароль", { exact: true })
     .fill(password);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page).toHaveURL(/\/(staff|cabinet)$/);
+  await expectSignInLanding(page, email);
   await rememberSession(page, email);
 }
 async function loseCommittedResponse(page: Page, pathname: string) {

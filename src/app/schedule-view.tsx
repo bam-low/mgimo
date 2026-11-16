@@ -25,12 +25,16 @@ export function ScheduleView({
   home = false,
   name = "",
   overview,
+  study,
+  initialView = "today",
 }: {
   home?: boolean;
   name?: string;
   overview?: ReactNode;
+  study?: { faculty: string; program: string; group: string };
+  initialView?: "today" | "week";
 }) {
-  const [view, V] = useState("today"),
+  const [view, V] = useState(initialView),
     [day, D] = useState("");
   const [data, S] = useState<Data | null>(null),
     [now, N] = useState(0),
@@ -141,6 +145,9 @@ export function ScheduleView({
       )
     : null;
   const planned = data?.lessons.filter((l) => l.status === "SCHEDULED") ?? [];
+  const nextId = planned
+    .filter((l) => Date.parse(l.startsAt) > now)
+    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))[0]?.id;
   return (
     <section
       aria-label="Расписание студента"
@@ -156,11 +163,14 @@ export function ScheduleView({
               Добрый день,
               <br /> <em>{name || "студент"}!</em>
             </h1>
-            <p>
-              {data
-                ? `${data.groupName} · Занятий сегодня: ${planned.length}`
-                : "Загружаем ваш университетский день"}
-            </p>
+            {study && (
+              <p className="study-context">
+                <span>{study.faculty}</span>
+                <span>{study.program}</span>
+                <strong>{study.group}</strong>
+              </p>
+            )}
+            {!data && <p>Загружаем ваш университетский день</p>}
           </div>
           <Image
             src="/design/campus-garden.svg"
@@ -175,11 +185,7 @@ export function ScheduleView({
         <header className="editorial-heading">
           <p className="eyebrow">Мой кампус / Учёба</p>
           <h1>Расписание</h1>
-          <p>
-            {data
-              ? `${data.groupName} · Время университета: ${data.timezone}`
-              : "Групповой учебный день и неделя"}
-          </p>
+          <p>{data ? data.groupName : "Групповой учебный день и неделя"}</p>
         </header>
       )}
       {!home && (
@@ -192,7 +198,7 @@ export function ScheduleView({
                 V("today");
               }}
             >
-              Сегодня / день
+              День
             </button>
             <button
               aria-pressed={view === "week"}
@@ -224,7 +230,8 @@ export function ScheduleView({
                 }
               }}
             >
-              Назад
+              <span aria-hidden="true">‹</span>
+              <span className="sr-only">Назад</span>
             </button>
             <button
               className="secondary"
@@ -246,7 +253,8 @@ export function ScheduleView({
                 }
               }}
             >
-              Вперёд
+              <span aria-hidden="true">›</span>
+              <span className="sr-only">Вперёд</span>
             </button>
           </div>
         </div>
@@ -355,7 +363,7 @@ export function ScheduleView({
                         ? "Посвятите время самостоятельной работе и отдыху."
                         : "Все занятия дня остаются в списке ниже."}
                     </p>
-                    <Link className="card-action" href="/schedule">
+                    <Link className="card-action" href="/schedule?view=week">
                       <Icon name="calendar" />
                       Посмотреть неделю
                       <Icon name="arrow" />
@@ -377,17 +385,11 @@ export function ScheduleView({
                   <section className="schedule-day" key={date}>
                     <header>
                       <div>
-                        {home && <p className="eyebrow">Повестка дня</p>}
                         <h2>
                           {home ? "Сегодня в расписании" : formatDate(date)}
                         </h2>
-                        {home && <p className="day-date">{formatDate(date)}</p>}
                       </div>
-                      {home ? (
-                        <Link href="/schedule">
-                          Все занятия <Icon name="arrow" />
-                        </Link>
-                      ) : date === data.today ? (
+                      {!home && date === data.today ? (
                         <span className="badge">Сегодня</span>
                       ) : null}
                     </header>
@@ -435,18 +437,15 @@ export function ScheduleView({
                                   <Icon name="check" />
                                   <span>Завершено</span>
                                 </span>
-                              ) : (
-                                <span className="badge badge-muted">Далее</span>
-                              )}
+                              ) : l.id === nextId ? (
+                                <span className="badge badge-muted">
+                                  Следующее
+                                </span>
+                              ) : null}
                             </li>
                           );
                         })}
                       </ol>
-                    )}
-                    {home && (
-                      <Link className="agenda-footer" href="/schedule">
-                        Полное расписание недели <Icon name="arrow" />
-                      </Link>
                     )}
                   </section>
                 );

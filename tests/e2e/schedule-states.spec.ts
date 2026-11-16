@@ -28,7 +28,7 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
   );
   expect(response.status()).toBe(200);
   const actual = await response.json();
-  for (const width of [360, 390, 1280]) {
+  for (const width of [360, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     expect(
       await page
@@ -65,6 +65,16 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
   await expect(
     page.getByRole("heading", { name: "Учебный день впереди", exact: true }),
   ).toBeVisible();
+  const historical = process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1";
+  await expect(
+    page.getByText(historical ? "Далее" : "Следующее", { exact: true }),
+  ).toHaveCount(
+    historical
+      ? actual.lessons.filter(
+          (l: { status: string }) => l.status === "SCHEDULED",
+        ).length
+      : 1,
+  );
   instant = Date.parse(actual.lessons[0].startsAt) + 300000;
   await page.goto("/today");
   await expect(page.getByRole("progressbar")).toBeVisible();
@@ -81,6 +91,52 @@ test("Russian fields, real multi-lesson/empty days, and isolated clock boundary 
       exact: true,
     }),
   ).toBeVisible();
+  await expect(
+    page
+      .locator(".student-home")
+      .getByRole("link")
+      .filter({ hasText: /недел|Все занятия/ }),
+  ).toHaveCount(historical ? 4 : 1);
+  await expect(
+    page.getByRole("link", { name: "Посмотреть неделю", exact: true }),
+  ).toHaveAttribute("href", historical ? "/schedule" : "/schedule?view=week");
+  await expect(
+    page.locator(".lesson.is-completed .lesson-detail h3").first(),
+  ).toHaveCSS("text-decoration-line", historical ? "line-through" : "none");
+  if (!historical)
+    await expect(page.locator(".lesson-state > span").first()).toBeVisible();
+  if (!historical) {
+    await page
+      .getByRole("link", { name: "Посмотреть неделю", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Неделя", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    const dayButton = page.getByRole("button", { name: "День", exact: true });
+    await dayButton.hover();
+    const contrast = () =>
+      dayButton.evaluate((el) => {
+        const style = getComputedStyle(el);
+        const luminance = (color: string) => {
+          const channels = color
+            .match(/\d+(?:\.\d+)?/g)!
+            .slice(0, 3)
+            .map(Number)
+            .map((v) => v / 255)
+            .map((v) =>
+              v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4,
+            );
+          return (
+            channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+          );
+        };
+        const a = luminance(style.color),
+          b = luminance(style.backgroundColor);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      });
+    await expect.poll(contrast).toBeGreaterThanOrEqual(4.5);
+    expect((await dayButton.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  }
   instant = Date.parse(actual.lessons[0].endsAt) - 4000;
   await page.goto("/today");
   await expect(page.getByRole("progressbar")).toBeVisible();

@@ -10,15 +10,26 @@ import { ScheduleView } from "../schedule-view";
 import { RefreshContext } from "../forms";
 export const dynamic = "force-dynamic";
 export default async function Page() {
-  const { name, grades, applications } = await protectedPage(async () => {
-    const a = await actor(await headers());
-    studentAccess(a);
-    const [grades, applications] = await Promise.all([
-      readGrades(a),
-      listApplications(a),
-    ]);
-    return { name: a.user.name, grades, applications };
-  });
+  const { name, grades, applications, study } = await protectedPage(
+    async () => {
+      const a = await actor(await headers());
+      const enrollment = studentAccess(a);
+      const [grades, applications] = await Promise.all([
+        readGrades(a),
+        listApplications(a),
+      ]);
+      return {
+        name: a.user.name,
+        grades,
+        applications,
+        study: {
+          faculty: enrollment.group.program.faculty.name,
+          program: enrollment.group.program.name,
+          group: enrollment.group.name,
+        },
+      };
+    },
+  );
   return (
     <main className="campus-shell">
       <AppNav role="STUDENT" active="/today" />
@@ -28,6 +39,7 @@ export default async function Page() {
           <ScheduleView
             home
             name={name}
+            study={study}
             overview={
               <HomeOverview grades={grades} applications={applications} />
             }

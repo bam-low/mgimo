@@ -6,18 +6,19 @@ import { AppNav } from "../app-nav";
 import { ScheduleView } from "../schedule-view";
 import { RefreshContext } from "../forms";
 export const dynamic = "force-dynamic";
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const initialView = (await searchParams).view === "week" ? "week" : "today";
   await protectedPage(async () => studentAccess(await actor(await headers())));
   return (
     <main className="campus-shell">
       <AppNav role="STUDENT" active="/schedule" />
       <Workspace>
-        <div className="account-line">
-          <p>Ваше групповое расписание</p>
-        </div>
-
         <RefreshContext />
-        <ScheduleView />
+        <ScheduleView key={initialView} initialView={initialView} />
       </Workspace>
     </main>
   );

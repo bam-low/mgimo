@@ -1,3 +1,4 @@
+import { expectSignInLanding } from "./ui-sign-in";
 import { findPagedCard } from "./paging";
 import { test, expect } from "@playwright/test";
 for (const width of [360, 1280])
@@ -77,7 +78,7 @@ for (const width of [360, 1280])
         element.dispatchEvent(new Event("input", { bubbles: true }));
       }, pass);
       await page.getByRole("button", { name: "Войти", exact: true }).click();
-      await expect(page).toHaveURL(/\/(?:cabinet|staff)$/);
+      await expectSignInLanding(page, user);
     }
     await login(email, password);
     await expect(page.getByTestId("membership-status")).toHaveText(

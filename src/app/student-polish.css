@@ -1,0 +1,613 @@
+/* Issue 59: student editorial polish. Staff workspaces keep their own layout. */
+.study-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+.study-context span + span::before,
+.study-context strong::before {
+  content: "·";
+  margin-right: 10px;
+  color: var(--brand);
+}
+.student-greeting {
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #f1e9e4, #f8f4ef);
+}
+.student-greeting .campus-illustration {
+  right: 8px;
+  bottom: 0;
+  opacity: 0.23;
+  pointer-events: none;
+}
+.student-greeting h1 {
+  max-width: 100%;
+}
+.student-greeting .study-context {
+  max-width: 90%;
+}
+.student-home .lesson.is-completed .lesson-detail h3,
+.student-schedule .lesson.is-completed .lesson-detail h3 {
+  text-decoration: none;
+  color: var(--ink);
+}
+.student-home .lesson.is-completed,
+.student-schedule .lesson.is-completed {
+  opacity: 1;
+}
+.student-home .lesson-detail h3,
+.student-schedule .lesson-detail h3 {
+  font-family: var(--display);
+  line-height: 1.4;
+}
+.student-home .schedule-day > header h2 {
+  text-transform: none;
+}
+.student-home .schedule-day > header {
+  padding-bottom: 14px;
+}
+.student-home .schedule-day {
+  background: var(--card);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.student-home .lesson {
+  border: 0;
+  background: #f7f4ee;
+  border-radius: 8px;
+}
+.student-home .home-overview {
+  grid-template-columns: minmax(0, 1fr);
+}
+.student-home .home-quick-links {
+  order: -1;
+}
+.student-home .home-note {
+  background: #f3e9ec;
+  box-shadow: none;
+  padding: 16px;
+}
+.student-home .home-note h2 {
+  font-size: 1rem;
+}
+.student-home .home-note p {
+  font-size: 0.75rem;
+}
+.student-home .day-status {
+  background: linear-gradient(120deg, #fff, #faf3f1);
+  border: 1px solid #e9dfd8;
+  box-shadow: none;
+}
+.student-home .day-status h2 {
+  margin-block: 12px 10px;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.23;
+}
+.student-home .day-status .card-action {
+  margin-top: 18px;
+}
+.student-home .lesson-list {
+  gap: 8px;
+}
+.student-home .lesson-time {
+  font-size: 0.8rem;
+}
+.student-schedule .student-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 12px 0 18px;
+}
+.student-schedule .student-controls .segmented {
+  flex-shrink: 0;
+}
+.student-schedule .student-controls label {
+  width: 152px;
+  min-width: 0;
+}
+.student-schedule .date-arrows {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.student-schedule .date-arrows button:first-child,
+.student-schedule .date-arrows button:last-child {
+  min-width: 44px;
+  font-size: 1.3rem;
+  padding: 6px;
+}
+.student-schedule .date-arrows button {
+  min-height: 44px;
+}
+.student-schedule .week-days {
+  gap: 12px;
+}
+.student-schedule .week-days .schedule-day {
+  padding: 14px;
+  background: #fffdfb;
+  min-height: 0;
+}
+.student-schedule .week-days .schedule-day > header {
+  margin: 0;
+  padding: 0 0 12px;
+}
+.student-schedule .week-days .schedule-day h2 {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.student-schedule .week-days .lesson {
+  padding: 10px 8px;
+  gap: 10px;
+  min-height: 0;
+}
+.student-schedule .week-days .lesson-list {
+  gap: 6px;
+}
+.student-schedule .week-days .lesson-detail h3 {
+  font-size: 0.85rem;
+}
+.student-schedule .week-days .lesson-detail p {
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.student-schedule .week-days .empty-day {
+  padding: 10px 0;
+  font-size: 0.8rem;
+}
+.student-schedule .week-days .lesson-time {
+  min-width: 40px;
+  font-size: 0.75rem;
+}
+.student-schedule .lesson-state {
+  color: #375949;
+  font-size: 0.65rem;
+}
+.student-schedule .badge {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(110deg, #f0e6e2, #faf6f0);
+  border: 1px solid #e9dfd8;
+  border-radius: 12px;
+  margin-block: 12px 20px;
+}
+.profile-identity h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+.profile-identity > div {
+  min-width: 0;
+}
+.profile-identity p:last-child {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.profile-avatar {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: #e9d7d6;
+  color: var(--brand);
+  font: 500 1.65rem var(--display);
+}
+.profile-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.profile-grid .paper-card {
+  padding: 22px;
+  min-width: 0;
+}
+.profile-grid h2 {
+  font-size: 1.25rem;
+  margin: 0 0 18px;
+}
+.profile-data dl {
+  display: grid;
+  gap: 14px;
+}
+.profile-data dl > div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.profile-data dt {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.profile-data dd {
+  margin: 0;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.profile-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #edf3eb;
+  color: #365339;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.profile-access > p:not(.profile-status),
+.profile-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  margin-top: 16px;
+}
+.profile-hint {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.profile-timeline {
+  padding-left: 18px;
+  border-left: 1px solid #e4d3d4;
+  list-style: none;
+  display: grid;
+  gap: 18px;
+  margin-left: 4px;
+}
+.profile-timeline li {
+  position: relative;
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+.profile-timeline li::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.profile-links a {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+.profile-links a .ui-icon:last-child {
+  margin-left: auto;
+}
+.public-landing {
+  background: #faf7f3;
+}
+.public-landing .public-story {
+  background: transparent;
+}
+.public-landing .public-story-copy {
+  display: block;
+  padding: 26px 0 0;
+}
+.public-landing .public-story-copy > .eyebrow {
+  display: none;
+}
+.public-landing .public-story-copy h1 {
+  font-weight: 500;
+  font-size: clamp(2.15rem, 4vw, 3.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.055em;
+  margin: 0 0 16px;
+}
+.public-landing .public-story-copy h1 em {
+  color: var(--brand);
+}
+.public-landing .public-story-copy p {
+  max-width: 350px;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.public-landing .public-story-copy img {
+  display: none;
+}
+.public-landing .public-content {
+  padding-top: 4px;
+}
+.landing-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  margin: 10px 0 18px;
+}
+.public-landing .public-content > .eyebrow {
+  margin-top: 10px;
+}
+.public-landing .public-content nav {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+.landing-register {
+  border: 1px solid #bfa4ad;
+  border-radius: 8px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.public-landing .demo-disclaimer {
+  margin: 20px 0 0;
+  font-size: 0.72rem;
+  background: #f0e6ec;
+}
+@media (min-width: 700px) {
+  .public-landing .public-story {
+    padding: 32px 36px 0;
+  }
+  .public-landing .public-story-copy {
+    margin-bottom: 0;
+    padding-top: 54px;
+  }
+  .public-landing .public-story-copy img {
+    display: block;
+    width: calc(100% + 60px);
+    max-width: none;
+    margin: 22px -30px 0;
+  }
+  .public-landing .public-content {
+    padding: 80px 36px;
+  }
+  .landing-title {
+    font-size: 2rem;
+  }
+  .public-landing .public-content > .eyebrow {
+    margin-top: 0;
+  }
+  .profile-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .student-schedule .week-days {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .campus-masthead[data-role="STUDENT"] {
+    width: 100%;
+    height: 76px;
+    padding: 14px 24px;
+    background: #f7f4ee;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+  .campus-masthead[data-role="STUDENT"] .masthead-actions {
+    position: static;
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 0;
+    margin-left: auto;
+  }
+  .campus-shell:has(> .campus-masthead[data-role="STUDENT"])
+    > .workspace-scroll {
+    padding-top: 88px;
+  }
+  .campus-shell:has(> .campus-masthead[data-role="STUDENT"]) > .campus-nav {
+    top: 76px;
+  }
+  .student-greeting {
+    min-height: 110px;
+    padding: 20px 24px;
+    margin-top: 0;
+  }
+  .student-greeting h1 {
+    font-size: 1.7rem;
+  }
+  .student-greeting .campus-illustration {
+    width: 220px;
+    opacity: 0.45;
+  }
+  .student-greeting > div {
+    padding-right: 170px;
+  }
+  .student-greeting .study-context {
+    max-width: 100%;
+  }
+  .student-layout {
+    grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+    gap: 20px;
+  }
+  .student-home .day-status {
+    padding: 24px;
+  }
+  .student-home .student-aside .paper-card {
+    padding: 18px;
+  }
+  .student-home .overview-value {
+    font-size: 1.8rem;
+  }
+  .student-schedule .week-days {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .public-landing {
+    grid-template-columns: 1.1fr 1fr;
+    min-height: 100dvh;
+  }
+  .public-landing .public-story-copy {
+    padding-top: 50px;
+  }
+  .public-landing .public-story-copy h1 {
+    max-width: 560px;
+  }
+  .public-landing .public-story-copy img {
+    width: calc(100% + 76px);
+    margin-inline: -38px;
+  }
+  .public-landing .public-content {
+    max-width: 480px;
+    padding: 80px 26px;
+  }
+  .public-landing .public-features {
+    gap: 22px;
+  }
+}
+@media (max-width: 499px) {
+  .profile-identity {
+    padding: 18px;
+    gap: 14px;
+  }
+  .profile-avatar {
+    flex-basis: 48px;
+    width: 48px;
+    height: 54px;
+    font-size: 1.35rem;
+  }
+  .profile-grid .paper-card {
+    padding: 18px;
+  }
+  .profile-data dl > div {
+    grid-template-columns: 85px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .student-schedule .week-days .lesson {
+    flex-wrap: wrap;
+  }
+  .student-schedule .week-days .lesson-detail {
+    flex: 1;
+    min-width: 160px;
+  }
+  .student-schedule .week-days .badge,
+  .student-schedule .week-days .lesson-state {
+    margin-left: 50px;
+  }
+  .student-greeting > div > p:last-child {
+    margin-top: 10px;
+  }
+}
+.student-home .lesson-state > span,
+.student-schedule .lesson-state > span {
+  display: inline;
+}
+@media (max-width: 499px) {
+  .student-home .lesson,
+  .student-schedule .week-days .lesson {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 6px 10px;
+  }
+  .student-home .lesson-time,
+  .student-schedule .week-days .lesson-time {
+    grid-row: 1 / span 2;
+  }
+  .student-home .lesson-detail,
+  .student-schedule .week-days .lesson-detail {
+    min-width: 0;
+  }
+  .student-home .lesson-state,
+  .student-home .lesson > .badge,
+  .student-schedule .week-days .lesson-state,
+  .student-schedule .week-days .lesson > .badge {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 0;
+  }
+}
+/* Keep headings and controls compact; dedicated class specificity beats legacy panels. */
+.student-home .lesson-list {
+  margin: 0;
+}
+.student-schedule .student-controls {
+  margin: 8px 0 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.student-schedule .student-controls .localized-field {
+  flex: 0 0 176px;
+  max-width: 176px;
+}
+.student-schedule .student-controls .localized-field label {
+  width: auto;
+}
+.student-schedule .editorial-heading {
+  margin-bottom: 8px;
+  padding-bottom: 16px;
+}
+.student-profile.campus-shell > .workspace-scroll > header.editorial-heading {
+  padding: 12px 0 18px;
+  margin-bottom: 8px;
+}
+.student-profile.campus-shell > .workspace-scroll > section.profile-identity {
+  background: linear-gradient(110deg, #f0e6e2, #faf6f0);
+  padding: 22px;
+  margin: 0 0 18px;
+}
+.student-profile .profile-identity > div {
+  margin-top: 0;
+}
+@media (max-width: 699px) {
+  .public-landing {
+    display: block;
+  }
+  .public-landing .public-story {
+    padding: 22px 22px 0;
+  }
+  .public-landing .public-story-copy {
+    padding: 24px 0 12px;
+  }
+  .public-landing .public-content {
+    padding: 10px 22px 30px;
+  }
+}
+@media (min-width: 1100px) {
+  .campus-shell:has(> .campus-masthead[data-role="STUDENT"]) > .concept-note {
+    display: none;
+  }
+  .student-home .student-greeting {
+    margin-top: 4px;
+  }
+  .student-home {
+    padding-top: 0;
+  }
+}
+.student-profile .profile-identity[data-access="active"] .badge {
+  color: #365339;
+  background: #e8f1e5;
+}
+.student-profile .profile-access[data-access="closed"] .profile-status {
+  color: #75572d;
+  background: #f5eee4;
+}
+.student-profile .profile-access[data-status="REJECTED"] .profile-status {
+  color: #8a3239;
+  background: #fae9e9;
+}
+.student-schedule .segmented button,
+.student-profile .profile-links a {
+  min-height: 44px;
+}
+.student-schedule .segmented button:hover:not(:disabled) {
+  background: #f1e6e8;
+  color: var(--brand);
+}

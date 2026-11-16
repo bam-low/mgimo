@@ -1,3 +1,4 @@
+import { expectSignInLanding } from "./ui-sign-in";
 import { reuseSession } from "./session-cache";
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import { displayDate } from "../../src/app/schedule-input-values";
@@ -266,7 +267,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
           e.dispatchEvent(new Event("input", { bubbles: true }));
         }, password);
       await page.getByRole("button", { name: "Войти", exact: true }).click();
-      await expect(page).toHaveURL(/\/(cabinet|staff)$/);
+      await expectSignInLanding(page, email);
     }
     async function logout() {
       await page.getByRole("button", { name: "Выйти", exact: true }).click();
