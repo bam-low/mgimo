@@ -618,3 +618,18 @@
   color: #fff;
   box-shadow: none;
 }
+.student-schedule .schedule-day h2 {
+  text-transform: none;
+}
+.student-schedule .schedule-day h2::first-letter {
+  text-transform: uppercase;
+}
+@media (min-width: 700px) and (max-width: 1099px) {
+  .public-landing .public-story-copy {
+    margin-block: auto;
+    padding-block: 32px;
+  }
+  .public-landing .public-story-copy h1 {
+    font-size: 1.8rem;
+  }
+}
