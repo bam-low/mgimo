@@ -34,16 +34,23 @@ target получается с работающей БД; ID образа зан
 2. Фактический ID работающего PostgreSQL совпадает с подписанным ID.
 3. Журнал `_prisma_migrations` совпадает по **именам и SQL checksums**; лишние,
    дублированные, незавершённые и rolled-back записи блокируют путь.
-4. Не изменились release.env references (кроме app ID), Compose, pg_hba и приватные
+4. Не изменились release.env references (кроме app ID), установленные ops/vps файлы и приватные
    runtime/DB env и CA. Их hashes остаются только в root-private state.
 5. Исходный контракт кандидата совпадает с базой: Prisma schema, все миграции,
-   Node/config/Dockerfiles, серверный код/API/security и используемые env expressions.
+   Node/dependency lockfiles/config/Dockerfiles и build inputs, серверный код/API/security и используемые env expressions.
    Это намеренно консервативная v1 для UI. Изменение backend или конфигурации — полный путь.
 
 Прямой DDL-дрейф при неизменном migration ledger не является полноценной проверкой
 Prisma drift; штатный runtime не имеет DDL-прав. Не использовать этот путь после
 ручных изменений БД или внеплановых административных изменений. Устаревшая базовая
 БД/tools требует отдельного security review и полного обновления, а не игнорирования CVE.
+
+## Короткая памятка
+
+Один раз после ручного принятия: установить reviewed helpers/настройки на сервер,
+проверить backup и сохранить target.json; на Windows заполнить локальный update.json
+путями к **существующим** ключам. Дальше: успешный app-only экспорт →
+`./ops/app-update/Update-Campus.ps1 НОМЕР_ЗАПУСКА`. Подробности ниже.
 
 ## Один раз: подготовка после ручного принятия PR
 
@@ -156,6 +163,10 @@ DB container ID, image ID, StartedAt и RestartCount сверяются до/п�
 ни migrate/grant/seed/bootstrap, ни pull, ни `down`/volume removal здесь нет.
 Короткое окно недоступности app допустимо; zero-downtime не обещается.
 
+После полного обновления сохранить старый state как историю, настроить новый
+root-private stateDir и source contract нового установленного выпуска, получить
+новый target. Старую цель не редактировать для обхода проверки.
+
 ## Отказ, откат и прерывание
 
 - Несовместимость: STOP с причиной и ссылкой на полный runbook **до остановки app**.
@@ -175,7 +186,7 @@ DB container ID, image ID, StartedAt и RestartCount сверяются до/п�
   sudo /usr/local/lib/campus-app-update/server.py recover
   ```
 
-  При изменении БД во время операции recovery блокируется для ручного разбора.
+  При изменении БД, схемы или конфигурации во время операции recovery блокируется для ручного разбора.
   Для ручного **совместимого** отката завершённого обновления:
 
   ```sh

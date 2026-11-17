@@ -81,7 +81,7 @@ class FormatTests(unittest.TestCase):
             r=Path(name); incoming=r/'incoming'; incoming.mkdir(); fixture(incoming); (incoming/'SHA256SUMS.sig').write_text('fixture')
             dest=r/'snapshot'; dest.mkdir()
             os.link(incoming/'app-release.json',r/'hardlink')
-            u=server.Updater({"stateDir":str(r),"envFile":str(r/'env'),"compose":str(r/'compose'),"project":"isolated"})
+            u=server.Updater({"stateDir":str(r),"envFile":str(r/'env'),"compose":str(r/'compose.yaml'),"project":"isolated"})
             with self.assertRaises(ValueError): u.snapshot(incoming,dest)
 
     def test_contract_changes_block_packaging(self):
@@ -92,11 +92,11 @@ class FormatTests(unittest.TestCase):
     def test_refuse_environment_shell_syntax(self):
         with tempfile.TemporaryDirectory() as name:
             r=Path(name); p=r/'env'; p.write_text('CAMPUS_APP_IMAGE=$(touch /tmp/never)\n')
-            u=server.Updater({"stateDir":str(r),"envFile":str(p),"compose":str(r/'compose'),"project":"isolated"})
+            u=server.Updater({"stateDir":str(r),"envFile":str(p),"compose":str(r/'compose.yaml'),"project":"isolated"})
             with self.assertRaises(ValueError): u.env()
 
     def test_compare_real_database_identity_ledger_and_configuration(self):
-        u=server.Updater({"stateDir":"/tmp","envFile":"/tmp/no","compose":"/tmp/no","project":"isolated"})
+        u=server.Updater({"stateDir":"/tmp","envFile":"/tmp/no","compose":"/tmp/compose.yaml","project":"isolated"})
         target={'databaseImage':'expected','contract':{'migrations':[{'name':'one'}]}}
         state={'target':target,'fingerprint':'config','runtimeImage':'runtime'}
         with patch.object(u,'fingerprint',return_value='config'), patch.object(u,'database',return_value={'image':'expected'}), patch.object(u,'ledger',return_value=[{'name':'one'}]), patch.object(u,'current_app',return_value={'Image':'runtime'}):
@@ -109,10 +109,10 @@ class RecoveryTests(unittest.TestCase):
     def test_recover_keeps_pending_if_previous_app_cannot_start(self):
         with tempfile.TemporaryDirectory() as name:
             root=Path(name)
-            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose'),"project":"isolated"})
-            previous={'runtimeImage':'sha256:'+'a'*64,'sourceCommit':'a'*40}
+            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose.yaml'),"project":"isolated"})
+            previous={'runtimeImage':'sha256:'+'a'*64,'sourceCommit':'a'*40,'fingerprint':'same','target':{'contract':{'migrations':[]}}}
             f.write(u.journal,{'previous':previous,'database':{'container':'same'},'timers':['campus-backup.timer']})
-            with patch.object(u,'database',return_value={'container':'same'}), patch.object(u,'set_image') as set_image, patch.object(u,'dc',side_effect=ValueError('start failed')):
+            with patch.object(u,'database',return_value={'container':'same'}), patch.object(u,'fingerprint',return_value='same'), patch.object(u,'ledger',return_value=[]), patch.object(u,'set_image') as set_image, patch.object(u,'dc',side_effect=ValueError('start failed')):
                 with self.assertRaises(ValueError): u.recover()
                 set_image.assert_called_once_with(previous['runtimeImage'])
             self.assertTrue(u.journal.exists())
@@ -121,20 +121,32 @@ class RecoveryTests(unittest.TestCase):
     def test_recover_refuses_changed_database_before_switch(self):
         with tempfile.TemporaryDirectory() as name:
             root=Path(name)
-            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose'),"project":"isolated"})
+            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose.yaml'),"project":"isolated"})
             f.write(u.journal,{'previous':{'runtimeImage':'sha256:'+'a'*64},'database':{'container':'old'},'timers':[]})
             with patch.object(u,'database',return_value={'container':'changed'}), patch.object(u,'set_image') as switch:
                 with self.assertRaises(ValueError): u.recover()
                 switch.assert_not_called()
             self.assertTrue(u.journal.exists())
 
+    def test_recover_refuses_schema_or_configuration_drift(self):
+        for fingerprint, ledger in [('changed', []), ('same', [{'name':'unexpected'}])]:
+            with self.subTest(fingerprint=fingerprint), tempfile.TemporaryDirectory() as name:
+                root=Path(name)
+                u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose.yaml'),"project":"isolated"})
+                previous={'runtimeImage':'sha256:'+'a'*64,'fingerprint':'same','target':{'contract':{'migrations':[]}}}
+                f.write(u.journal,{'previous':previous,'database':{'container':'same'},'timers':[]})
+                with patch.object(u,'database',return_value={'container':'same'}), patch.object(u,'fingerprint',return_value=fingerprint), patch.object(u,'ledger',return_value=ledger), patch.object(u,'set_image') as switch:
+                    with self.assertRaises(ValueError): u.recover()
+                    switch.assert_not_called()
+                self.assertTrue(u.journal.exists())
+
     def test_recover_restores_state_and_only_original_timers(self):
         with tempfile.TemporaryDirectory() as name:
             root=Path(name)
-            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose'),"project":"isolated"})
-            previous={'runtimeImage':'sha256:'+'a'*64,'sourceCommit':'a'*40}
+            u=server.Updater({"stateDir":str(root),"envFile":str(root/'env'),"compose":str(root/'compose.yaml'),"project":"isolated"})
+            previous={'runtimeImage':'sha256:'+'a'*64,'sourceCommit':'a'*40,'fingerprint':'same','target':{'contract':{'migrations':[]}}}
             f.write(u.journal,{'previous':previous,'database':{'container':'same'},'timers':['campus-cleanup.timer']})
-            with patch.object(u,'database',return_value={'container':'same'}), patch.object(u,'set_image'), patch.object(u,'dc') as dc, patch.object(u,'smoke'), patch.object(u,'timer_action') as timers:
+            with patch.object(u,'database',return_value={'container':'same'}), patch.object(u,'fingerprint',return_value='same'), patch.object(u,'ledger',return_value=[]), patch.object(u,'set_image'), patch.object(u,'dc') as dc, patch.object(u,'smoke'), patch.object(u,'timer_action') as timers:
                 self.assertEqual(u.recover()['status'],'ROLLED_BACK')
                 self.assertEqual(dc.call_args.args,('up','-d','--no-deps','--wait','--wait-timeout','120','app'))
                 timers.assert_called_once_with('start',['campus-cleanup.timer'])

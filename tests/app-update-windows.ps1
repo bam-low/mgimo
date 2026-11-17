@@ -6,6 +6,11 @@ function Must-Fail([scriptblock]$Code) {
     try { & $Code } catch { $failed = $true }
     if (-not $failed) { throw 'Ожидаемый отказ не получен.' }
 }
+$result = ConvertFrom-CampusResult "Запрос sudo без записи пароля`r`nCAMPUS_APP_RESULT={""status"":""UPDATED""}`r`n"
+if ($result.status -cne 'UPDATED') { throw 'Ошибка разбора протокола сервера.' }
+Must-Fail { ConvertFrom-CampusResult 'Нет подтверждения сервера' }
+Must-Fail { ConvertFrom-CampusResult "CAMPUS_APP_RESULT={}`nCAMPUS_APP_RESULT={}" }
+Must-Fail { ConvertFrom-CampusResult 'CAMPUS_APP_RESULT=не JSON' }
 $sha = 'a' * 40
 $run = @{ id = 123; repository = @{full_name = 'bam-low/mgimo'}; path = '.github/workflows/vps-ci.yml'; event = 'workflow_dispatch'; head_branch = 'main'; status = 'completed'; conclusion = 'success'; head_sha = $sha }
 Assert-CampusRun $run '123'
@@ -44,3 +49,6 @@ try {
     Must-Fail { Invoke-CampusNative 'python' @($validator,'verify',$release,'--signers',$signers) }
     Write-Host 'Windows: проверки источника/CI/артефакта, аргументов, реальной подписи и подмены пройдены.'
 } finally { Remove-Item -LiteralPath $temp -Recurse -Force }
+# The final negative native-command test intentionally left LASTEXITCODE=1.
+# Signal success only after every assertion and cleanup above has completed.
+exit 0

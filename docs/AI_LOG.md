@@ -503,3 +503,13 @@
   Свежая локальная сборка устранила несовпадение старого runtime с тестами main.
   Для root-mapped secret files изолированный non-root runner читает настоящие hashes
   через network-none fixture, не ослабляя режимы файлов. Итог повторяется на новом HEAD.
+- Предкоммитная локальная проверка: 13 format/security/recovery tests PASS;
+  18 VPS Chromium E2E на свежем runtime PASS. Отдельная реальная репетиция app-only:
+  success, automatic rollback, incompatible target/actual DB/ledger/config refusal,
+  идемпотентный повтор и manual rollback PASS. Все30table hashes совпали; DB container
+  ID/image/StartedAt/RestartCount неизменны (restartCount0); pg_dump/age decryption PASS.
+  После проверки остановлен только собственный disposable проект, volume сохранён.
+- Финальная проверка границ доверия по security-and-hardening и сокращения лишних
+  решений по ponytail: без новых зависимостей/сервисов, существующий OpenSSH/Compose/age
+  и stdlib; backup адресует точный проект, code из пакета не исполняется. CI результатов
+  предыдущих HEAD не переносим на новый; итоговые ссылки/артефакты — в Draft PR.

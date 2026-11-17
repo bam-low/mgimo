@@ -43,6 +43,13 @@ function Assert-CampusArtifact {
     }
 }
 
+function ConvertFrom-CampusResult {
+    param([string]$Output)
+    $lines = @($Output -split "`n" | Where-Object { $_.TrimStart().StartsWith('CAMPUS_APP_RESULT=') })
+    if ($lines.Count -ne 1) { throw 'Нет однозначного результата сервера. Проверьте состояние и recover по инструкции.' }
+    return $lines[0].Trim().Substring('CAMPUS_APP_RESULT='.Length) | ConvertFrom-Json
+}
+
 function Invoke-CampusUpdate {
     param([string]$Id, [string]$SettingsPath)
     if ($Id -cnotmatch '^[1-9][0-9]{0,19}$') { throw 'Укажите числовой номер запуска GitHub Actions.' }
@@ -72,10 +79,8 @@ function Invoke-CampusUpdate {
     $bundle = Join-Path $cache 'release'
     Invoke-CampusNative 'gh' @('run', 'download', $Id, '--repo', 'bam-low/mgimo', '--name', $name, '--dir', $bundle) | Out-Null
     $validator = Join-Path $PSScriptRoot 'package.py'
-    Invoke-CampusNative 'python' @($validator, 'verify', $bundle) | Out-Null
+    Invoke-CampusNative 'python' @($validator, 'verify', $bundle, '--target', $c.TargetFile) | Out-Null
     $manifest = Get-Content -LiteralPath (Join-Path $bundle 'app-release.json') -Raw | ConvertFrom-Json
-    # Python compares objects independent of JSON key order, using the reviewed helper.
-    Invoke-CampusNative 'python' @('-c', 'import json,sys; a=json.load(open(sys.argv[1],encoding="utf-8-sig")); b=json.load(open(sys.argv[2],encoding="utf-8-sig")); assert a["target"]==b, "Цель пакета не совпадает"', (Join-Path $bundle 'app-release.json'), $c.TargetFile) | Out-Null
     if ($manifest.sourceCommit -cne $run.head_sha -or $manifest.runId -cne $Id) { throw 'SHA или номер запуска не совпадает с пакетом.' }
     Write-Host "Проверен выпуск $($run.head_sha). Подпись существующим локальным ключом; PostgreSQL и tools не передаются."
     $sums = Join-Path $bundle 'SHA256SUMS'
@@ -89,10 +94,9 @@ function Invoke-CampusUpdate {
     # Fixed installed helper; no execution of scripts from the uploaded package. sudo may prompt.
     # TTY is for sudo only; do not print secrets or enable SSH debug logging.
     $result = (Invoke-CampusNative 'ssh' (@('-t', '-p', "$($c.Port)") + $sshArgs + @($destination, "sudo /usr/local/lib/campus-app-update/server.py apply $token")) -AllowedExitCodes @(0, 2)) -join "`n"
-    $jsonLine = @($result -split "`n" | Where-Object { $_.TrimStart().StartsWith('{') })
-    if ($jsonLine.Count -ne 1) { throw "Нет однозначного результата сервера. Пакет сохранён: $cache. Проверьте состояние и recover по инструкции." }
-    $outcome = $jsonLine[0] | ConvertFrom-Json
+    $outcome = ConvertFrom-CampusResult $result
     $outcome | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $cache 'receipt.json') -Encoding utf8NoBOM
+    if ($outcome.status -ceq 'ROLLED_BACK') { throw "Обновление не прошло, предыдущее приложение восстановлено. Квитанция: $cache" }
     if ($outcome.status -cnotin @('UPDATED', 'ALREADY_INSTALLED') -or -not $outcome.databaseUnchanged -or $outcome.sourceCommit -cne $run.head_sha) { throw 'Обновление не подтверждено; проверьте безопасный журнал сервера.' }
     if ($null -ne $outcome.PSObject.Properties['backup']) {
         if ($outcome.backup.file -cnotmatch '^campus-[0-9]{8}T[0-9]{6}Z.dump.age$' -or $outcome.backup.sha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Неверный результат backup.' }
@@ -101,7 +105,8 @@ function Invoke-CampusUpdate {
         if ((Get-FileHash -LiteralPath $backupPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $outcome.backup.sha256) { throw 'Приложение обновлено, но offsite-копия не проверена: SHA-256 не совпадает. Не повторяйте выкладку; сохраните серверную копию.' }
     }
     $outcome | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $cache 'receipt.json') -Encoding utf8NoBOM
-    Write-Host "Готово: $($outcome.status), SHA $($outcome.sourceCommit). PostgreSQL не перезапускался. Подписанный пакет и квитанция: $cache"
+    $label = if ($outcome.status -ceq 'UPDATED') { 'Обновлено' } else { 'Уже установлено' }
+    Write-Host "Готово: $label, SHA $($outcome.sourceCommit). PostgreSQL не перезапускался. Подписанный пакет и квитанция: $cache"
     Write-Host 'Закрытый ключ подписи остался на вашем компьютере. Production GO этой командой не объявляется.'
 }
 

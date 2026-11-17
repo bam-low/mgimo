@@ -66,6 +66,7 @@ class Updater:
         self.envfile = Path(cfg["envFile"])
         self.compose = Path(cfg["compose"])
         self.project = cfg["project"]
+        require(self.compose.name == "compose.yaml", "Нужен стандартный Compose-файл базового выпуска")
         require(re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,62}", self.project), "Неверный Compose project")
         self.command_env = {k: v for k, v in os.environ.items() if k not in {"DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "COMPOSE_FILE", "COMPOSE_PROJECT_NAME", "COMPOSE_PROFILES"} and not k.startswith("CAMPUS_")}
         self.command_env["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -102,7 +103,7 @@ class Updater:
         require(len(rows) == 1, "Не найдена единственная работающая БД")
         d = json.loads(self.docker("inspect", rows[0]))[0]
         require(d["State"]["Running"] and d["State"]["Health"]["Status"] == "healthy" and not d["HostConfig"].get("PortBindings"), "БД не healthy или опубликована наружу")
-        require(d["Config"]["Labels"]["com.docker.compose.project"] == self.project, "Чужой Compose project")
+        require(d["Config"]["Labels"]["com.docker.compose.project"] == self.project and d["Config"]["User"] == "70:70" and not d["HostConfig"]["Privileged"], "Чужой или небезопасный Compose project")
         return {"container": d["Id"], "image": d["Image"], "startedAt": d["State"]["StartedAt"], "restartCount": d["RestartCount"]}
 
     def ledger(self):
@@ -120,7 +121,9 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         env = self.env()
         env.pop("CAMPUS_APP_IMAGE")
         # Kept only in root-private state; no secret hashes in public target or logs.
-        files = [self.compose, self.compose.with_name("pg_hba.conf"), Path(self.c["backupRecipients"])]
+        source = fmt.loads(Path(self.c["sourceContract"]).read_bytes())
+        files = [self.compose.parent / n.removeprefix("ops/vps/") for n in source["contract"]["configuration"] if n.startswith("ops/vps/")]
+        files += [Path(self.c["backupRecipients"])]
         files += [Path(env["CAMPUS_SECRETS_DIR"]) / n for n in ("runtime.env", "runtime-db.env", "migration.env", "db-ca.pem")]
         return hashlib.sha256(json.dumps({"env": env, "files": self.file_digests(files)}, sort_keys=True).encode()).hexdigest()
 
@@ -129,6 +132,9 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         require(len(rows) == 1, "Приложение не запущено")
         app = json.loads(self.docker("inspect", rows[0]))[0]
         require(app["State"]["Running"] and app["Image"] == self.env()["CAMPUS_APP_IMAGE"], "Образ работающего приложения отличается от release.env")
+        require(app["Config"]["User"] == "1000:1000" and app["HostConfig"]["ReadonlyRootfs"] and not app["HostConfig"]["Privileged"], "Небезопасный runtime")
+        ports = app["HostConfig"].get("PortBindings", {}).get("3000/tcp", [])
+        require(len(ports) == 1 and ports[0]["HostIp"] == "127.0.0.1" and ports[0]["HostPort"] == self.env()["CAMPUS_APP_PORT"], "Приложение должно слушать только ожидаемый loopback-порт")
         return app
 
     def initialize(self):
@@ -136,7 +142,7 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         baseline = fmt.loads(Path(self.c["baselineManifest"]).read_bytes())
         source = fmt.loads(Path(self.c["sourceContract"]).read_bytes())
         require(source["sourceCommit"] == baseline["sourceCommit"], "Контракт относится к другому исходному выпуску")
-        require(fmt.sha(self.compose) == source["contract"]["configuration"]["ops/vps/compose.yaml"] and fmt.sha(self.compose.with_name("pg_hba.conf")) == source["contract"]["configuration"]["ops/vps/pg_hba.conf"], "Установленная конфигурация не совпадает с исходным контрактом")
+        require(all(fmt.sha(self.compose.parent / name.removeprefix("ops/vps/")) == value for name, value in source["contract"]["configuration"].items() if name.startswith("ops/vps/")), "Установленная конфигурация не совпадает с исходным контрактом")
         env = self.env()
         db = self.database()
         require(db["image"] == env["CAMPUS_DB_IMAGE"] == baseline["databaseImage"] and env["CAMPUS_TOOLS_IMAGE"] == baseline["toolsImage"], "Установленные образы не совпадают с базовым выпуском")
@@ -234,6 +240,7 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         require(self.journal.exists(), "Нет незавершённого обновления")
         j = fmt.loads(self.journal.read_bytes())
         require(self.database() == j["database"], "БД изменилась во время обновления; нужен ручной разбор")
+        require(self.fingerprint() == j["previous"]["fingerprint"] and self.ledger() == j["previous"]["target"]["contract"]["migrations"], "Схема или конфигурация изменились; автоматический откат приложения небезопасен")
         self.event("rollback-start", runtimeImage=j["previous"]["runtimeImage"])
         self.set_image(j["previous"]["runtimeImage"])
         self.dc("up", "-d", "--no-deps", "--wait", "--wait-timeout", str(self.WAIT_SECONDS), "app")
@@ -285,19 +292,24 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
             require(image["Id"] == manifest["runtimeImage"] and image["Config"]["User"] == "1000:1000" and image["Config"]["Labels"]["io.campus.role"] == "runtime", "Загружен другой образ")
             timers = self.timers()
             atomic(self.journal, {"previous": state, "database": db, "timers": timers})
+            phase = "PAUSE_TIMERS"
             try:
                 self.timer_action("stop", timers)
                 # Close timer/service race after stopping scheduling.
                 self.timers()
                 self.event("stop-app")
                 self.dc("stop", "app")
+                phase = "BACKUP"
                 backup = self.backup()
                 self.event("encrypted-backup", **backup)
+                phase = "RECHECK"
                 # No writers from this app; re-check before the first switch.
                 require(self.database() == db and self.ledger() == state["target"]["contract"]["migrations"] and self.fingerprint() == state["fingerprint"], "Цель изменилась после копирования")
+                phase = "START_APP"
                 self.event("switch-app", runtimeImage=manifest["runtimeImage"])
                 self.set_image(manifest["runtimeImage"])
                 self.dc("up", "-d", "--no-deps", "--wait", "--wait-timeout", str(self.WAIT_SECONDS), "app")
+                phase = "SMOKE"
                 self.smoke(manifest["runtimeImage"])
                 require(self.database() == db, "PostgreSQL изменился при обновлении")
                 updated = {**state, "sourceCommit": manifest["sourceCommit"], "runtimeImage": manifest["runtimeImage"], "previous": {k: v for k, v in state.items() if k != "previous"}, "backup": backup}
@@ -308,10 +320,12 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
                 self.journal.unlink()
                 self.event("update-healthy", sourceCommit=manifest["sourceCommit"])
                 return {"status": "UPDATED", "sourceCommit": manifest["sourceCommit"], "runtimeImage": manifest["runtimeImage"], "databaseUnchanged": True, "backup": backup}
-            except BaseException:
-                self.event("update-failed-recovering")
+            except BaseException as error:
+                self.event("update-failed-recovering", failurePhase=phase, errorCode=type(error).__name__)
                 result = self.recover()
                 result["updateFailed"] = True
+                result["failurePhase"] = phase
+                result["errorCode"] = type(error).__name__
                 return result
 
     def rollback(self):
@@ -339,6 +353,8 @@ def main():
     require(set(c) == {"stateDir", "envFile", "compose", "project", "baselineManifest", "sourceContract", "inbox", "signers", "backupDir", "exportDir", "backupRecipients"}, "Неверный состав настроек")
     for key in ("envFile", "compose", "baselineManifest", "sourceContract", "signers", "backupRecipients"): trusted(c[key])
     for key in ("stateDir", "backupDir", "exportDir"): trusted(c[key], True)
+    require(Path(c["exportDir"]).stat().st_gid == grp.getgrnam("campus-backup").gr_gid, "Нужна группа campus-backup для экспортного каталога")
+    require(shutil.which("age") is not None, "Не установлен age для encrypted backup")
     with (Path(c["stateDir"]) / "update.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         updater = Updater(c)
@@ -353,7 +369,8 @@ def main():
         else: result = updater.rollback()
         receipt = {"action": a.action, "time": int(time.time()), **result}
         atomic(updater.state_dir / "last-result.json", receipt)
-        print(json.dumps(result, ensure_ascii=False))
+        encoded = json.dumps(result, ensure_ascii=False)
+        print(encoded if a.action == "target" else "\nCAMPUS_APP_RESULT=" + encoded)
         return 2 if result.get("updateFailed") else 0
 
 

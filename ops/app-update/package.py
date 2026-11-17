@@ -49,11 +49,11 @@ def write(path, value):
 def contract(source):
     require(re.fullmatch(SHA, source), "Нужен полный SHA исходного кода")
     names = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", source], cwd=REPO, text=True).splitlines()
-    fixed = {".nvmrc", "next.config.ts", "prisma/schema.prisma", "prisma/migrations/migration_lock.toml",
+    fixed = {".nvmrc", "package.json", "package-lock.json", "prisma.config.ts", "scripts/prepare-vps-context.mjs", "next.config.ts", "prisma/schema.prisma", "prisma/migrations/migration_lock.toml",
              "ops/vps/compose.yaml", "ops/vps/Dockerfile", "ops/vps/Dockerfile.db", "ops/vps/Dockerfile.tools",
              "ops/vps/pg_hba.conf", "ops/vps/init-secrets.sh", "ops/vps/cleanup-client.mjs",
              "scripts/prepare-runtime.mjs", "scripts/launch-db-policy.mjs", "src/proxy.ts"}
-    selected = sorted(n for n in names if n in fixed or n.startswith(("src/server/", "src/app/api/", "prisma/migrations/")))
+    selected = sorted(n for n in names if n in fixed or n.startswith(("src/server/", "src/app/api/", "prisma/migrations/", "ops/vps/")))
     require(fixed.issubset(selected), "Неполный контракт конфигурации")
     values = {n: hashlib.sha256(subprocess.check_output(["git", "show", source + ":" + n], cwd=REPO)).hexdigest() for n in selected}
     migrations = [{"name": n.split("/")[2], "sha256": values[n]} for n in selected if re.fullmatch(r"prisma/migrations/[0-9]{14}_[a-z_]+/migration.sql", n)]
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     sub = parser.add_subparsers(dest="action", required=True)
     p = sub.add_parser("contract"); p.add_argument("source"); p.add_argument("output")
     p = sub.add_parser("create"); p.add_argument("full"); p.add_argument("target"); p.add_argument("output"); p.add_argument("run_id")
-    p = sub.add_parser("verify"); p.add_argument("directory"); p.add_argument("--signers")
+    p = sub.add_parser("verify"); p.add_argument("directory"); p.add_argument("--signers"); p.add_argument("--target")
     args = parser.parse_args()
     try:
         if args.action == "contract":
@@ -175,7 +175,9 @@ if __name__ == "__main__":
         elif args.action == "create":
             create(args.full, args.target, args.output, args.run_id)
         else:
-            verify(args.directory, bool(args.signers), args.signers)
+            manifest = verify(args.directory, bool(args.signers), args.signers)
+            if args.target:
+                require(manifest["target"] == loads(Path(args.target).read_bytes()), "Цель пакета не совпадает с закреплённой локальной целью")
         print("Проверка пакета приложения пройдена; это не разрешение Production GO")
     except Exception as e:
         print("СТОП: " + str(e), file=sys.stderr)

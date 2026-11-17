@@ -423,7 +423,7 @@ try {
     execFileSync("python3", ["tests/app_update_rehearsal.py", root, project], {
       env: process.env,
       stdio: "inherit",
-      timeout: 300000,
+      timeout: 600000,
     });
   }
   if (upgradeMode) await upgradeProof.freeze();

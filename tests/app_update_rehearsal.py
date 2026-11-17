@@ -76,7 +76,8 @@ def main(root, project):
     images=[]
     def build(failing):
         tag='campus-app-update-test-'+secrets.token_hex(8)
-        dockerfile='FROM '+env['CAMPUS_APP_IMAGE']+'\nLABEL io.campus.test="'+tag+'"\n'
+        assert json.loads(u.docker('image','inspect','campus24-runtime'))[0]['Id']==env['CAMPUS_APP_IMAGE']
+        dockerfile='FROM campus24-runtime\nLABEL io.campus.test="'+tag+'"\n'
         if failing: dockerfile+='CMD ["node","-e","process.exit(42)"]\n'
         u.docker('build','--network=none','-t',tag,'-',data=dockerfile.encode())
         image=json.loads(u.docker('image','inspect',tag))[0]['Id']; images.append(image)
