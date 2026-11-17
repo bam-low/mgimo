@@ -20,6 +20,8 @@ namespace **`campus-app-update`** покрывает SHA256SUMS трёх фай�
 установки в пакет не входят. Сервер исполняет только заранее установленный,
 просмотренный helper. Полученный пакет сначала копируется в root-private snapshot,
 затем проверяются подпись, точный состав, SHA-256, metadata и Docker archive.
+Ожидаемый хеш SHA256SUMS передаётся отдельным SSH-аргументом: подмена другим
+ранее подписанным пакетом во входящем каталоге также отклоняется.
 
 Два экспорта одного main `d5db6844` дали разные DB IDs: `b4b2f04d…` в run43962004120
 и `c3707648…` в run43957559969. Это **не эквивалентные разрешённые IDs**. App-only
@@ -131,7 +133,7 @@ monitor и cleanup используют эти ссылки, PostgreSQL/tools о
 запускается владельцем отдельно. Из reviewed checkout:
 
 ```powershell
-gh workflow run vps-ci.yml --repo bam-low/mgimo --ref main -f store_app_update_artifact=true -f "app_update_target=$(Get-Content -LiteralPath "$env:LOCALAPPDATA/Campus/target.json" -Raw)"
+gh workflow run vps-ci.yml --repo bam-low/mgimo --ref main -f store_app_update_artifact=true -f "app_update_target=$(Get-Content -LiteralPath (Get-Content "$env:LOCALAPPDATA/Campus/update.json" -Raw | ConvertFrom-Json).TargetFile -Raw)"
 ```
 
 `store_release_artifact` оставить false: большой полный комплект не нужен.

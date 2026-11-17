@@ -95,7 +95,7 @@ class Updater:
         result = dict(r.split("=", 1) for r in rows)
         require(set(result) == {"CAMPUS_APP_IMAGE", "CAMPUS_DB_IMAGE", "CAMPUS_TOOLS_IMAGE", "CAMPUS_SECRETS_DIR", "CAMPUS_APP_PORT"}, "Неверный release.env")
         require(all(re.fullmatch(fmt.ID, result[k]) for k in ("CAMPUS_APP_IMAGE", "CAMPUS_DB_IMAGE", "CAMPUS_TOOLS_IMAGE")), "Нужны точные image IDs")
-        require(re.fullmatch(r"/[A-Za-z0-9/_.-]+", result["CAMPUS_SECRETS_DIR"]) and 1024 <= int(result["CAMPUS_APP_PORT"]) <= 65535, "Неверные пути или порт")
+        require(re.fullmatch(r"/[A-Za-z0-9/_.-]+", result["CAMPUS_SECRETS_DIR"]) and re.fullmatch(r"[0-9]{4,5}", result["CAMPUS_APP_PORT"]) and 1024 <= int(result["CAMPUS_APP_PORT"]) <= 65535, "Неверные пути или порт")
         return result
 
     def database(self):
@@ -273,7 +273,8 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         finally:
             os.close(fd)
 
-    def apply(self, token):
+    def apply(self, token, expected_checksum):
+        require(re.fullmatch(fmt.HEX, expected_checksum), "Нужен хеш SHA256SUMS проверенного клиентом пакета")
         require(re.fullmatch(r"[0-9a-f]{32}", token), "Неверный идентификатор доставки")
         require(not self.journal.exists(), "Есть незавершённая операция; сначала recover")
         state = fmt.loads(self.state_path.read_bytes())
@@ -281,6 +282,7 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
             snapshot = Path(tmp)
             self.snapshot(Path(self.c["inbox"]) / token, snapshot)
             manifest = fmt.verify(snapshot, True, self.c["signers"])
+            require(fmt.sha(snapshot / "SHA256SUMS") == expected_checksum, "Входящий пакет отличается от выбранного владельцем экспорта")
             self.event("signature-verified", sourceCommit=manifest["sourceCommit"], runtimeImage=manifest["runtimeImage"])
             db = self.compatible(manifest, state)
             if manifest["sourceCommit"] == state["sourceCommit"] and manifest["runtimeImage"] == state["runtimeImage"]:
@@ -344,6 +346,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("action", choices=["target", "apply", "recover", "rollback"])
     p.add_argument("token", nargs="?")
+    p.add_argument("--expected-checksum")
     p.add_argument("--config", default="/etc/campus/app-update.json")
     a = p.parse_args()
     require(os.geteuid() == 0, "Нужен root через sudo")
@@ -364,7 +367,7 @@ def main():
             require(not updater.journal.exists(), "Сначала recover")
             result = fmt.loads(updater.state_path.read_bytes())["target"] if updater.state_path.exists() else updater.initialize()
             updater.compatible({"target": result}, fmt.loads(updater.state_path.read_bytes()))
-        elif a.action == "apply": result = updater.apply(a.token or "")
+        elif a.action == "apply": result = updater.apply(a.token or "", a.expected_checksum or "")
         elif a.action == "recover": result = updater.recover()
         else: result = updater.rollback()
         receipt = {"action": a.action, "time": int(time.time()), **result}

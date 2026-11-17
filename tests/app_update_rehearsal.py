@@ -94,21 +94,27 @@ def main(root, project):
         (path/'SHA256SUMS').write_text(''.join(f.sha(path/n)+'  '+n+'\n' for n in sorted(f.FILES)))
         subprocess.run(['ssh-keygen','-Y','sign','-f',str(key),'-n',f.NAMESPACE,str(path/'SHA256SUMS')],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
         return token
+    def apply(token):
+        # Expected checksum arrives over the authenticated command, independently
+        # of the writable upload directory, as in the real Windows client.
+        return u.apply(token,f.sha(inbox/token/'SHA256SUMS'))
     results=[]
     try:
         good=build(False); bad=build(True)
         good_token=bundle(good,target,'2'*40)
-        r=u.apply(good_token); assert r['status']=='UPDATED' and r['databaseUnchanged']
+        try: u.apply(good_token,'0'*64); raise AssertionError('Substituted signed package accepted')
+        except ValueError as error: assert 'выбранного владельцем экспорта' in str(error)
+        r=apply(good_token); assert r['status']=='UPDATED' and r['databaseUnchanged']
         assert u.database()==before and u.current_app()['Image']==good
         assert snapshot()==data_before
         backup=r['backup']; ciphertext=(export/backup['file']).read_bytes()
         plaintext=subprocess.check_output([age,'-d','-i',str(parent/'age.key')],input=ciphertext)
         assert plaintext.startswith(b'PGDMP') and hashlib.sha256(ciphertext).hexdigest()==backup['sha256']
-        assert u.apply(good_token)['status']=='ALREADY_INSTALLED'
+        assert apply(good_token)['status']=='ALREADY_INSTALLED'
         results.append({'case':'success','status':'PASS','database':u.database(),'encryptedBackupDecryption':'PASS','allTableHashesUnchanged':True})
         time.sleep(1.05)
         bad_token=bundle(bad,target,'3'*40)
-        r=u.apply(bad_token); assert r['status']=='ROLLED_BACK' and r['updateFailed']
+        r=apply(bad_token); assert r['status']=='ROLLED_BACK' and r['updateFailed']
         assert u.database()==before and u.current_app()['Image']==good
         assert snapshot()==data_before
         results.append({'case':'automatic-rollback','status':'PASS','database':u.database(),'allTableHashesUnchanged':True})
@@ -116,13 +122,13 @@ def main(root, project):
         changed=copy.deepcopy(target); changed['databaseImage']='sha256:'+'f'*64
         token=bundle(good,changed,'4'*40)
         app_before=u.current_app()['Id']
-        try: u.apply(token); raise AssertionError('Incompatible release accepted')
+        try: apply(token); raise AssertionError('Incompatible release accepted')
         except ValueError as error: assert 'полный сценарий' in str(error)
         assert u.database()==before and u.current_app()['Id']==app_before
         # Check actual image independently of the target equality check.
         saved=f.loads(u.state_path.read_bytes()); mutated=copy.deepcopy(saved); mutated['target']=changed; f.write(u.state_path,mutated)
         try:
-            try: u.apply(token); raise AssertionError('Actual DB ID mismatch accepted')
+            try: apply(token); raise AssertionError('Actual DB ID mismatch accepted')
             except ValueError as error: assert 'Фактический ID PostgreSQL' in str(error)
         finally: f.write(u.state_path,saved)
         # Actual migration ledger drift is detected before app stop.
@@ -130,12 +136,12 @@ def main(root, project):
         def query(sql): return u.dc('exec','-T','db','sh','-c','export PGPASSWORD="$(cat /run/secrets/pg-admin-pw)"; exec psql -X -v ON_ERROR_STOP=1 -U campus_admin -d campus',data=sql)
         query(sql)
         try:
-            try: u.apply(good_token); raise AssertionError('Migration drift accepted')
+            try: apply(good_token); raise AssertionError('Migration drift accepted')
             except ValueError as error: assert 'журнал применённых миграций' in str(error)
         finally: query(b'''DELETE FROM "_prisma_migrations" WHERE id='app-update-fixture';''')
         original=u.envfile.read_bytes(); u.envfile.write_bytes(original.replace(b'CAMPUS_APP_PORT=18300',b'CAMPUS_APP_PORT=18301'))
         try:
-            try: u.apply(good_token); raise AssertionError('Configuration drift accepted')
+            try: apply(good_token); raise AssertionError('Configuration drift accepted')
             except ValueError as error: assert 'конфигурация' in str(error)
         finally: u.envfile.write_bytes(original)
         assert u.database()==before and u.current_app()['Id']==app_before and snapshot()==data_before

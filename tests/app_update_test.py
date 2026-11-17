@@ -76,6 +76,17 @@ class FormatTests(unittest.TestCase):
             sums(r)
             with self.assertRaises(ValueError): f.verify(r)
 
+    def test_selected_checksum_is_independent_of_uploaded_signature(self):
+        with tempfile.TemporaryDirectory() as name:
+            root=Path(name); incoming=root/'inbox'/('a'*32)
+            incoming.mkdir(parents=True); m=fixture(incoming); (incoming/'SHA256SUMS.sig').write_text('synthetic signature fixture')
+            state=root/'state'; state.mkdir(); f.write(state/'state.json',{})
+            u=server.Updater({"stateDir":str(state),"inbox":str(root/'inbox'),"envFile":str(root/'env'),"compose":str(root/'compose.yaml'),"project":"isolated","signers":"unused"})
+            with patch.object(f,'verify',return_value=m), patch.object(u,'compatible') as check:
+                with self.assertRaisesRegex(ValueError,'выбранного владельцем экспорта'): u.apply('a'*32,'0'*64)
+                check.assert_not_called()
+            self.assertFalse(u.journal.exists())
+
     def test_server_snapshot_refuses_hardlinks_and_fifo(self):
         with tempfile.TemporaryDirectory() as name:
             r=Path(name); incoming=r/'incoming'; incoming.mkdir(); fixture(incoming); (incoming/'SHA256SUMS.sig').write_text('fixture')

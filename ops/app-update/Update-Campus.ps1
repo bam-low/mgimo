@@ -86,6 +86,7 @@ function Invoke-CampusUpdate {
     $sums = Join-Path $bundle 'SHA256SUMS'
     Invoke-CampusNative 'ssh-keygen' @('-Y', 'sign', '-f', $c.SigningKey, '-n', 'campus-app-update', $sums) | Out-Null
     Invoke-CampusNative 'python' @($validator, 'verify', $bundle, '--signers', $c.AllowedSigners) | Out-Null
+    $approvedChecksum = (Get-FileHash -LiteralPath $sums -Algorithm SHA256).Hash.ToLowerInvariant()
     $token = [guid]::NewGuid().ToString('N')
     $sshArgs = @('-o', 'StrictHostKeyChecking=yes', '-o', "UserKnownHostsFile=$($c.KnownHosts)", '-o', 'IdentitiesOnly=yes', '-i', $c.SshKey)
     $destination = "$($c.User)@$($c.Host)"
@@ -93,13 +94,13 @@ function Invoke-CampusUpdate {
     Invoke-CampusNative 'scp' (@('-P', "$($c.Port)") + $sshArgs + @('-r', $bundle, "${destination}:$remote")) | Out-Null
     # Fixed installed helper; no execution of scripts from the uploaded package. sudo may prompt.
     # TTY is for sudo only; do not print secrets or enable SSH debug logging.
-    $result = (Invoke-CampusNative 'ssh' (@('-t', '-p', "$($c.Port)") + $sshArgs + @($destination, "sudo /usr/local/lib/campus-app-update/server.py apply $token")) -AllowedExitCodes @(0, 2)) -join "`n"
+    $result = (Invoke-CampusNative 'ssh' (@('-t', '-p', "$($c.Port)") + $sshArgs + @($destination, "sudo /usr/local/lib/campus-app-update/server.py apply $token --expected-checksum $approvedChecksum")) -AllowedExitCodes @(0, 2)) -join "`n"
     $outcome = ConvertFrom-CampusResult $result
     $outcome | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $cache 'receipt.json') -Encoding utf8NoBOM
     if ($outcome.status -ceq 'ROLLED_BACK') { throw "Обновление не прошло, предыдущее приложение восстановлено. Квитанция: $cache" }
     if ($outcome.status -cnotin @('UPDATED', 'ALREADY_INSTALLED') -or -not $outcome.databaseUnchanged -or $outcome.sourceCommit -cne $run.head_sha) { throw 'Обновление не подтверждено; проверьте безопасный журнал сервера.' }
     if ($null -ne $outcome.PSObject.Properties['backup']) {
-        if ($outcome.backup.file -cnotmatch '^campus-[0-9]{8}T[0-9]{6}Z.dump.age$' -or $outcome.backup.sha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Неверный результат backup.' }
+        if ($outcome.backup.file -cnotmatch '^campus-[0-9]{8}T[0-9]{6}Z\.dump\.age$' -or $outcome.backup.sha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Неверный результат backup.' }
         $backupPath = Join-Path $cache $outcome.backup.file
         Invoke-CampusNative 'scp' (@('-P', "$($c.Port)") + $sshArgs + @("${destination}:$($c.BackupExport)/$($outcome.backup.file)", $backupPath)) | Out-Null
         if ((Get-FileHash -LiteralPath $backupPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $outcome.backup.sha256) { throw 'Приложение обновлено, но offsite-копия не проверена: SHA-256 не совпадает. Не повторяйте выкладку; сохраните серверную копию.' }
