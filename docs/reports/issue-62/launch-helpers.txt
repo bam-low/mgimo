@@ -1,0 +1,17 @@
+✔ psql CA export uses the existing trusted public ISRG Root X1, no network or TLS downgrade (2.846658ms)
+✔ private configuration has six independent random values and an exclusive outside-repo file (38.337484ms)
+✔ runtime file only contains limited pooled URL and five approved runtime variables (1.55687ms)
+✔ database entry rejects non-Neon, admin runtime, weak TLS and non-loopback local exceptions (0.479811ms)
+✔ Vercel create sends All Deployments atomically, no Git/env/deployment request (4.993949ms)
+✔ Vercel read-only gate requires all URLs, zero deployments, no bypass and verified origin (9.019069ms)
+✔ Vercel refuses paid/trial/API errors before project creation and does not echo response secrets (1.235583ms)
+✔ local demo init creates private independent credentials, refuses overwrites and rejects unsafe reset arguments (335.662451ms)
+✔ reset refuses remote or disguised database URLs and unrecognised containers before database commands (439.264235ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 850.984898

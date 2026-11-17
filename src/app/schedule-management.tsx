@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Icon } from "./ui-icon";
 
 const links = [
+  ["/staff/schedule/assignments", "Дисциплины и группы"],
   ["/staff/schedule/semesters", "Учебные семестры"],
   ["/staff/schedule/builder", "Конструктор расписания"],
   ["/staff/schedule/resources", "Преподаватели и аудитории"],

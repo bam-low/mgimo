@@ -66,3 +66,7 @@ PR #40 вручную merged в main `b784fb09`, #39 закрыта. Новая 
 ## Handoff этапа 7 / Issue #48
 
 Владелец утвердил Issue #48 и рекомендованные Q1–Q8; контракт и границы — [NOTIFICATIONS](NOTIFICATIONS.md). Только STUDENT in-app, без STAFF/внешних каналов/backfill/polling. Доменное действие/Notification/аудит атомарны, readAt идемпотентно; общая собственная лента доступна без прикрепления, но заявки и файлы после отзыва остаются закрыты. История на UniversityMembership, без TTL/удаления/сброса прочтения. Реализация в отдельной ветке от main `131b3675` для одного Draft PR; до ручного merge не считать принятой в main. Все три runtime, negative permissions и encrypted fresh restore обязательны. Production NO-GO сохраняется; дальше отдельный финальный аудит этапа8, не автоматический deploy.
+
+## Issue #62 — готовые лекции и семинары, ветка для ревью
+
+[Контракт](TEACHING_ASSIGNMENTS.md), [галерея и матрица](screenshots/issue-62/README.md). Настройки для новых размещений отделены от опубликованных снимков. Две additive таблицы, расширение существующего builder API/limited-role policy/restore-сравнения; общий Subject и история не меняются. Потребуется полный выпуск с миграцией после ручного принятия, не app-only. Зависимости/security gates сохранены, актуальный audit blocker — [#64](https://github.com/bam-low/mgimo/issues/64). Итоговые тесты/CI и точный SHA — в Draft PR. Приёмка новым человеком без инструкций остаётся владельцу; агент её не имитировал.

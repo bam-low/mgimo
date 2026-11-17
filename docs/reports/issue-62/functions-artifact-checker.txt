@@ -1,0 +1,28 @@
+
+> campus@0.1.0 test:vercel-checker
+> node tests/vercel-artifact.test.mjs
+
+✔ accepts a self-contained Node24 fixture and produces dependency evidence (20.043194ms)
+✔ rejects dev tools, Studio/alpha packages and test/env files (36.040026ms)
+✔ rejects a declared dev-only dependency even with an innocuous name (6.614516ms)
+✔ rejects unknown imports instead of ignoring trace warnings (7.38393ms)
+✔ rejects escaping symlinks (3.277687ms)
+✔ rejects filePathMap, environment injection and unknown runtimes (7.940797ms)
+✔ rejects build secret canaries in copied or bundled bytes (4.194434ms)
+✔ rejects dev-only modules in a server bundle before names can be minified away (0.533813ms)
+✔ standalone rejects env files and owner tools before tracing or packaging (164.239947ms)
+✔ standalone rejects secret canaries without printing values (53.202744ms)
+✔ standalone directory aliases cannot conceal secret-bearing files (51.734081ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 362.7885
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
