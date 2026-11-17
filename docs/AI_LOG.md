@@ -526,3 +526,19 @@
   и три final images не меняются. Локальная default retention сохраняется.
 - Для Linux helpers добавлен LF attribute при Windows checkout: shebang после
   передачи с Windows должен исполняться без CRLF. Windows проверяет это отдельно.
+
+## Уточнение однократной настройки PR #63 — 17.11.2026
+
+- По прямому запросу владельца проверенный блок установки манифеста перенесён
+  из описания PR в [VPS_APP_UPDATE](VPS_APP_UPDATE.md), внутрь шага2 однократной
+  настройки. Источник `~/campus-delivery-d5db6844`, канонический каталог через
+  current, root-private snapshot, прежняя подпись/пять hashes/metadata/SHA,
+  root:root0644, отказ перезаписывать отличный JSON. Команды не изменены.
+- Код приложения/updater/workflows и миграции не меняются. Привилегированный
+  блок повторно проверяется из самого Markdown в disposable root filesystem
+  с вымышленным подписанным комплектом; без сети, Docker socket и секретов VPS.
+  Новые CI относятся к новому HEAD; прежние зелёные60002b9 не подменяют их.
+  PR остаётся Draft, без merge/deploy. Production NO-GO.
+- Повтор из Markdown PASS: SSHSIG/5checksums/metadata/SHA, target trusted-path guard,
+  root:root0644, идемпотентность, отказ при подмене подписи/данных/отличном
+  назначении. Проверка Markdown/ссылок и bash syntax PASS. Действующий VPS не трогался.

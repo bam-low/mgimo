@@ -85,6 +85,88 @@ Prisma drift; штатный runtime не имеет DDL-прав. Не испо
    Baseline manifest — уже проверенный подписанный установленный выпуск; его SHA
    должен совпадать с source contract, три image IDs — с установленными.
 
+   **Для нашей установки d5db6844: установка проверенного release.json.**
+
+   Выполняется владельцем **после отдельного разрешения настройки VPS**. Проверенный
+   полный комплект находится в `~/campus-delivery-d5db6844`; это источник доставки,
+   а не доверенный root-owned путь для `target`. Нужны все пять payloads, SHA256SUMS и
+   существующая SHA256SUMS.sig. Новый ключ или новую подпись на сервере не создавать.
+   Понадобится свободное место для одной временной копии полного комплекта.
+
+   Команды запускаются в обычной SSH-сессии оператора: `~` сначала раскрывается в его
+   домашний каталог. Каталог установленного выпуска определяется через `current`,
+   после чего используется **канонический путь без symlink**. Проверяющий код берётся
+   из уже установленного доверенного выпуска, не из непроверенной доставки.
+
+   ```bash
+   set -euo pipefail
+   delivery_dir="$HOME/campus-delivery-d5db6844"
+   release_dir=$(sudo readlink -e /opt/campus/current)
+   test -n "$release_dir"
+   sudo bash -s -- "$delivery_dir" "$release_dir" <<'CAMPUS_MANIFEST'
+   set -euo pipefail
+   umask 077
+   delivery_dir=$1
+   release_dir=$2
+
+   # Корневой каталог и оба проверяющих файла должны быть доверенными заранее.
+   python3 - "$release_dir" <<'PYTRUST'
+   import os, stat, sys
+   from pathlib import Path
+   root = Path(sys.argv[1])
+   for path in (root, root/'ops/vps/verify-delivery.sh', root/'ops/vps/release_manifest.py'):
+       for item in (path, *path.parents):
+           s = item.lstat()
+           if stat.S_ISLNK(s.st_mode) or s.st_uid != 0 or s.st_mode & 0o022:
+               raise SystemExit('СТОП: недоверенный путь установленного выпуска')
+   PYTRUST
+
+   # Проверяется и устанавливается одна и та же приватная копия; исходник не исполняется.
+   snapshot_dir=$(mktemp -d /var/tmp/campus-manifest-verify.XXXXXXXX)
+   trap 'rm -rf -- "$snapshot_dir"' EXIT
+   for name in runtime.tar.gz tools.tar.gz database.tar.gz config.tar release.json SHA256SUMS SHA256SUMS.sig; do
+       test -f "$delivery_dir/$name" && test ! -L "$delivery_dir/$name"
+       install -m 0600 -- "$delivery_dir/$name" "$snapshot_dir/$name"
+   done
+   bash "$release_dir/ops/vps/verify-delivery.sh" /etc/campus/allowed_signers "$snapshot_dir"
+   python3 - "$snapshot_dir/release.json" <<'PYSOURCE'
+   import json, sys
+   from pathlib import Path
+   m = json.loads(Path(sys.argv[1]).read_bytes())
+   if m['sourceCommit'] != 'd5db68445922e94ef85e5228eb19044c631e92ce':
+       raise SystemExit('СТОП: это не установленный выпуск d5db6844')
+   PYSOURCE
+
+   destination="$release_dir/release.json"
+   test ! -L "$destination"
+   if test -e "$destination"; then
+       cmp -s -- "$snapshot_dir/release.json" "$destination" || {
+           echo 'СТОП: существующий манифест отличается; не перезаписываем историю' >&2
+           exit 1
+       }
+   fi
+   install -o root -g root -m 0644 -- "$snapshot_dir/release.json" "$destination"
+   cmp -- "$snapshot_dir/release.json" "$destination"
+   stat -c '%U:%G %a %n' "$destination"
+   sha256sum -- "$destination"
+   CAMPUS_MANIFEST
+   printf 'baselineManifest: %s/release.json\ncompose: %s/ops/vps/compose.yaml\n' "$release_dir" "$release_dir"
+   ```
+
+   Ожидаются valid SSHSIG, пять `OK`, PASS metadata/evidence и `root:root 644` у
+   установленного JSON. Ошибка подписи/checksum/source/trust или отличный существующий
+   манифест останавливает шаг. Установленный JSON должен быть побайтно тем же, что в
+   проверенном snapshot. Исходная папка доставки сохраняется; удаляется только созданная
+   этим шагом временная копия. Другие файлы выпуска не перезаписываются.
+
+   Два выведенных канонических пути перенести в `baselineManifest` и `compose` файла
+   `/etc/campus/app-update.json`. Например, **только если `readlink` действительно выдал
+   этот каталог**: `/opt/campus/releases/d5db6844/release.json` и
+   `/opt/campus/releases/d5db6844/ops/vps/compose.yaml`. Остальные настройки из runbook
+   сохранить. После остальных однократных проверок выполнить `server.py target`:
+   он отдельно сверит реальные image IDs, миграции и конфигурацию. Этот шаг не загружает
+   образы, не меняет БД и не запускает/перезапускает сервисы.
+
 3. Inbox создать в домашнем каталоге SSH-оператора, mode0700. Настроить age recipients и проверить действующий
    encrypted backup service, `/var/backups/campus` и экспорт
    `/srv/campus-backup-export`; оператор должен входить в `campus-backup` и иметь
