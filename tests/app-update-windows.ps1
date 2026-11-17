@@ -32,7 +32,7 @@ try {
     Invoke-CampusNative 'ssh-keygen' @('-q','-t','ed25519','-N','','-f',$key) | Out-Null
     $signers = Join-Path $temp 'allowed signers'
     "campus-release-owner $(Get-Content -LiteralPath ($key+'.pub') -Raw)" | Set-Content -LiteralPath $signers -Encoding ascii
-    $release = Join-Path $temp 'release with spaces'
+    $release = Join-Path $temp 'release с пробелами'
     New-Item -ItemType Directory -Path $release | Out-Null
     $code = 'import sys;from pathlib import Path;sys.path.insert(0,"tests");from app_update_fixture import fixture;fixture(Path(sys.argv[1]))'
     Invoke-CampusNative 'python' @('-c',$code,$release) | Out-Null

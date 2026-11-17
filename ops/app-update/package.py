@@ -161,6 +161,8 @@ def create(full, target, out, run_id):
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="action", required=True)
     p = sub.add_parser("contract"); p.add_argument("source"); p.add_argument("output")

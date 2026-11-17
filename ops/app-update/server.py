@@ -3,6 +3,7 @@
 import argparse
 import fcntl
 import hashlib
+import grp
 import json
 import os
 import re
@@ -69,6 +70,12 @@ class Updater:
         self.command_env = {k: v for k, v in os.environ.items() if k not in {"DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "COMPOSE_FILE", "COMPOSE_PROJECT_NAME", "COMPOSE_PROFILES"} and not k.startswith("CAMPUS_")}
         self.command_env["PATH"] = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+    def event(self, phase, **details):
+        fd = os.open(self.state_dir / "operations.jsonl", os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, "a", encoding="utf-8") as file:
+            file.write(json.dumps({"time": int(time.time()), "phase": phase, **details}, ensure_ascii=False) + "\n")
+            file.flush(); os.fsync(file.fileno())
+
     def run(self, args, data=None):
         result = subprocess.run(args, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=self.command_env, timeout=900)
         require(result.returncode == 0, "Команда не выполнена: " + args[0])
@@ -106,13 +113,16 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         require(len(result) == 2 and result[1] == "0", "Есть незавершённые или откаченные миграции")
         return fmt.loads(result[0])
 
+    def file_digests(self, paths):
+        return {str(p): fmt.sha(p) for p in paths}
+
     def fingerprint(self):
         env = self.env()
         env.pop("CAMPUS_APP_IMAGE")
         # Kept only in root-private state; no secret hashes in public target or logs.
-        files = [self.compose, self.compose.with_name("pg_hba.conf")]
+        files = [self.compose, self.compose.with_name("pg_hba.conf"), Path(self.c["backupRecipients"])]
         files += [Path(env["CAMPUS_SECRETS_DIR"]) / n for n in ("runtime.env", "runtime-db.env", "migration.env", "db-ca.pem")]
-        return hashlib.sha256(json.dumps({"env": env, "files": {str(p): fmt.sha(p) for p in files}}, sort_keys=True).encode()).hexdigest()
+        return hashlib.sha256(json.dumps({"env": env, "files": self.file_digests(files)}, sort_keys=True).encode()).hexdigest()
 
     def current_app(self):
         rows = self.dc("ps", "-q", "app").decode().splitlines()
@@ -179,22 +189,52 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
     def timer_action(self, action, timers):
         if timers: self.run(["systemctl", action, *timers])
 
+    def publish_backup(self, source, destination):
+        # Root-controlled export, readable only to the existing backup group.
+        with destination.open("xb") as out, source.open("rb") as data:
+            shutil.copyfileobj(data, out)
+            out.flush(); os.fsync(out.fileno())
+        os.chown(destination, 0, grp.getgrnam("campus-backup").gr_gid)
+        os.chmod(destination, 0o640)
+
+    AGE_PROGRAM = "age"
+
     def backup(self):
-        start = time.time_ns()
-        before = {p.name for p in Path(self.c["backupDir"]).glob("campus-*.dump.age")}
-        self.run(["systemctl", "start", "campus-backup.service"])
-        files = [p for p in Path(self.c["backupDir"]).glob("campus-*.dump.age") if p.name not in before and p.stat().st_mtime_ns >= start]
-        require(len(files) == 1 and files[0].stat().st_size > 100 and not files[0].is_symlink(), "Нет новой зашифрованной копии")
-        with files[0].open("rb") as file:
-            require(file.read(22) == b"age-encryption.org/v1\n", "Копия не является age ciphertext")
-        export = Path(self.c["exportDir"]) / files[0].name
-        require(export.is_file() and not export.is_symlink() and fmt.sha(export) == fmt.sha(files[0]), "Нет доступной экспортной копии backup")
-        return {"file": export.name, "sha256": fmt.sha(export), "bytes": export.stat().st_size}
+        # Use this exact project/container, never an unrelated service's default
+        # Compose project. Only ciphertext reaches disk; no recovery key on VPS.
+        directory = Path(self.c["backupDir"])
+        name = "campus-" + time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + ".dump.age"
+        final = directory / name
+        require(not final.exists(), "Копия с этим временем уже существует; повторите позже")
+        fd, temporary = tempfile.mkstemp(prefix=".app-update-", dir=directory)
+        dump = encrypted = None
+        try:
+            command = ["docker", "--host=unix:///var/run/docker.sock", "compose", "--project-name", self.project, "--env-file", str(self.envfile), "-f", str(self.compose), "exec", "-T", "db", "sh", "-c", 'export PGPASSWORD="$(cat /run/secrets/pg-admin-pw)"; exec pg_dump -U campus_admin -d campus --format=custom --no-owner --no-acl']
+            with os.fdopen(fd, "wb") as output:
+                dump = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=self.command_env)
+                encrypted = subprocess.Popen([self.AGE_PROGRAM, "-R", self.c["backupRecipients"]], stdin=dump.stdout, stdout=output, stderr=subprocess.DEVNULL, env=self.command_env)
+                dump.stdout.close()
+                require(encrypted.wait(timeout=900) == 0 and dump.wait(timeout=30) == 0, "Не удалось создать encrypted backup")
+                output.flush(); os.fsync(output.fileno())
+            require(Path(temporary).stat().st_size > 100, "Пустой backup")
+            with Path(temporary).open("rb") as file:
+                require(file.read(22) == b"age-encryption.org/v1\n", "Копия не является age ciphertext")
+            os.link(temporary, final) # Exclusive publication, never overwrite an earlier backup.
+            export = Path(self.c["exportDir"]) / name
+            self.publish_backup(final, export)
+            require(export.is_file() and not export.is_symlink() and fmt.sha(export) == fmt.sha(final), "Нет экспортной копии backup")
+            return {"file": name, "sha256": fmt.sha(export), "bytes": export.stat().st_size}
+        finally:
+            for process in (encrypted, dump):
+                if process is not None and process.poll() is None:
+                    process.kill(); process.wait()
+            if os.path.exists(temporary): os.unlink(temporary)
 
     def recover(self):
         require(self.journal.exists(), "Нет незавершённого обновления")
         j = fmt.loads(self.journal.read_bytes())
         require(self.database() == j["database"], "БД изменилась во время обновления; нужен ручной разбор")
+        self.event("rollback-start", runtimeImage=j["previous"]["runtimeImage"])
         self.set_image(j["previous"]["runtimeImage"])
         self.dc("up", "-d", "--no-deps", "--wait", "--wait-timeout", str(self.WAIT_SECONDS), "app")
         self.smoke(j["previous"]["runtimeImage"])
@@ -202,6 +242,7 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
         atomic(self.state_path, j["previous"])
         self.timer_action("start", j["timers"])
         self.journal.unlink()
+        self.event("rollback-healthy", sourceCommit=j["previous"]["sourceCommit"])
         return {"status": "ROLLED_BACK", "sourceCommit": j["previous"]["sourceCommit"], "databaseUnchanged": True}
 
     def snapshot(self, incoming, destination):
@@ -233,6 +274,7 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
             snapshot = Path(tmp)
             self.snapshot(Path(self.c["inbox"]) / token, snapshot)
             manifest = fmt.verify(snapshot, True, self.c["signers"])
+            self.event("signature-verified", sourceCommit=manifest["sourceCommit"], runtimeImage=manifest["runtimeImage"])
             db = self.compatible(manifest, state)
             if manifest["sourceCommit"] == state["sourceCommit"] and manifest["runtimeImage"] == state["runtimeImage"]:
                 self.smoke(state["runtimeImage"])
@@ -247,10 +289,13 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
                 self.timer_action("stop", timers)
                 # Close timer/service race after stopping scheduling.
                 self.timers()
+                self.event("stop-app")
                 self.dc("stop", "app")
                 backup = self.backup()
+                self.event("encrypted-backup", **backup)
                 # No writers from this app; re-check before the first switch.
                 require(self.database() == db and self.ledger() == state["target"]["contract"]["migrations"] and self.fingerprint() == state["fingerprint"], "Цель изменилась после копирования")
+                self.event("switch-app", runtimeImage=manifest["runtimeImage"])
                 self.set_image(manifest["runtimeImage"])
                 self.dc("up", "-d", "--no-deps", "--wait", "--wait-timeout", str(self.WAIT_SECONDS), "app")
                 self.smoke(manifest["runtimeImage"])
@@ -261,8 +306,10 @@ SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NULL OR rolled_ba
                 atomic(self.state_path, updated)
                 self.timer_action("start", timers)
                 self.journal.unlink()
+                self.event("update-healthy", sourceCommit=manifest["sourceCommit"])
                 return {"status": "UPDATED", "sourceCommit": manifest["sourceCommit"], "runtimeImage": manifest["runtimeImage"], "databaseUnchanged": True, "backup": backup}
             except BaseException:
+                self.event("update-failed-recovering")
                 result = self.recover()
                 result["updateFailed"] = True
                 return result
@@ -289,8 +336,8 @@ def main():
     trusted(Path(__file__).resolve()); trusted(Path(__file__).with_name("package.py"))
     trusted(a.config)
     c = fmt.loads(Path(a.config).read_bytes())
-    require(set(c) == {"stateDir", "envFile", "compose", "project", "baselineManifest", "sourceContract", "inbox", "signers", "backupDir", "exportDir"}, "Неверный состав настроек")
-    for key in ("envFile", "compose", "baselineManifest", "sourceContract", "signers"): trusted(c[key])
+    require(set(c) == {"stateDir", "envFile", "compose", "project", "baselineManifest", "sourceContract", "inbox", "signers", "backupDir", "exportDir", "backupRecipients"}, "Неверный состав настроек")
+    for key in ("envFile", "compose", "baselineManifest", "sourceContract", "signers", "backupRecipients"): trusted(c[key])
     for key in ("stateDir", "backupDir", "exportDir"): trusted(c[key], True)
     with (Path(c["stateDir"]) / "update.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

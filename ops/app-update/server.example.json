@@ -8,5 +8,6 @@
   "inbox": "/home/OPERATOR/campus-inbox",
   "signers": "/etc/campus/allowed_signers",
   "backupDir": "/var/backups/campus",
-  "exportDir": "/srv/campus-backup-export"
+  "exportDir": "/srv/campus-backup-export",
+  "backupRecipients": "/etc/campus/backup-recipients.txt"
 }

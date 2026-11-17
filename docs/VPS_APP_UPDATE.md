@@ -76,13 +76,13 @@ Prisma drift; штатный runtime не имеет DDL-прав. Не испо
    Baseline manifest — уже проверенный подписанный установленный выпуск; его SHA
    должен совпадать с source contract, три image IDs — с установленными.
 
-3. Inbox создать в домашнем каталоге SSH-оператора, mode0700. Настроить действующие
-   encrypted backup service/age recipients, `/var/backups/campus` и экспорт
+3. Inbox создать в домашнем каталоге SSH-оператора, mode0700. Настроить age recipients и проверить действующий
+   encrypted backup service, `/var/backups/campus` и экспорт
    `/srv/campus-backup-export`; оператор должен входить в `campus-backup` и иметь
    возможность скачать ciphertext. Инструкции: [первая установка](VPS_DEPLOY_RUNBOOK.md).
    На первом обновлении штатный timer ещё не был настроен — история PR#61 **не
    подтверждает его наличие сейчас**. Перед включением упрощённого пути проверить
-   backup service и отдельно проверить расшифровку/fresh restore локальной копии.
+   age recipients, backup service и отдельно проверить расшифровку/fresh restore локальной копии.
    Закрытый age key на VPS не нужен. Не пропускать backup ради упрощения.
 
 4. `allowed_signers` root:root0644 содержит закреплённый ключ владельца. Если задано
@@ -113,6 +113,7 @@ Prisma drift; штатный runtime не имеет DDL-прав. Не испо
 `/opt/campus/current` остаётся ссылкой на **базовую конфигурацию полного выпуска**.
 App-only не подменяет её метаданные смешанной тройкой образов. Фактическая версия
 приложения отражена в `/var/lib/campus-app-update/state.json` и `last-result.json`,
+безопасный журнал фаз — `operations.jsonl` в том же root-private каталоге,
 а `/etc/campus/release.env` содержит фактический новый runtime ID. Штатные backup,
 monitor и cleanup используют эти ссылки, PostgreSQL/tools остаются базовыми.
 
@@ -145,7 +146,7 @@ SHA/run ID/target и checksums; подпишет existing local key и пров�
 
 Сервер берёт exclusive lock, проверяет target, загружает **только app image**, сохраняет
 journal, приостанавливает ранее активные timers, отказывает при уже выполняющейся
-служебной операции, останавливает app, создаёт новую encrypted копию и повторяет
+служебной операции, останавливает app, создаёт новую encrypted копию потоком pg_dump → age именно этого Compose project и повторяет
 совместимость. Затем атомарно меняет только app ID и запускает
 `compose up --no-deps --wait app`. Smoke требует Docker healthy, HTTP200 на
 `/api/structure` и401 на защищённом `/api/group` без сессии. Новый app ID применяется
@@ -202,8 +203,9 @@ TLS/SCRAM, SQL ledger, Docker Compose, реальный SSHSIG throwaway key, pg
 Тестовые good/bad images — только metadata/CMD-варианты текущего настоящего runtime;
 они не являются подписанными production releases. Scan metadata в этой тестовой
 доставке — явно синтетическая fixture; **реальный export** собирается только из
-полного свежего проверенного CI-пакета и его настоящих отчётов. Systemd scheduling
-в disposable окружении заменён адаптером; настоящий systemd/sudo/SSH ingress и
+полного свежего проверенного CI-пакета и его настоящих отчётов. Systemd scheduling и ownership экспортного файла
+в disposable окружении заменены адаптерами; root-mapped secrets проверяются по
+настоящим hashes через network-none helper без изменения прав файлов; настоящий systemd/sudo/SSH ingress и
 конфигурация рабочего VPS требуют отдельного разрешённого приёмочного окна.
 Windows job проверяет PowerShell7, native аргументы/пути с пробелами, источник CI,
 реальный OpenSSH signing/verify и отказ подмены; он не подключается к VPS.

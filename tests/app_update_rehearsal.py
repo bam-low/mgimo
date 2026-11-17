@@ -29,7 +29,7 @@ def main(root, project):
     backups=parent/'backups'; backups.mkdir(mode=0o700)
     export=parent/'export'; export.mkdir(mode=0o700)
     inbox=parent/'inbox'; inbox.mkdir(mode=0o700)
-    cfg={'stateDir':str(state),'envFile':str(Path(root)/'release.env'),'compose':str(ROOT/'ops/vps/compose.yaml'),'project':project,'baselineManifest':str(parent/'baseline.json'),'sourceContract':str(parent/'contract.json'),'signers':str(parent/'allowed_signers'),'backupDir':str(backups),'exportDir':str(export),'inbox':str(inbox)}
+    cfg={'stateDir':str(state),'envFile':str(Path(root)/'release.env'),'compose':str(ROOT/'ops/vps/compose.yaml'),'project':project,'baselineManifest':str(parent/'baseline.json'),'sourceContract':str(parent/'contract.json'),'signers':str(parent/'allowed_signers'),'backupDir':str(backups),'exportDir':str(export),'inbox':str(inbox),'backupRecipients':str(parent/'recipients.txt')}
 
     class Isolated(s.Updater):
         WAIT_SECONDS=12
@@ -37,21 +37,27 @@ def main(root, project):
         def timers(self): return list(self.active)
         def timer_action(self, action, timers):
             self.active=[] if action=='stop' else list(timers)
-        def run(self,args,data=None):
-            if args==['systemctl','start','campus-backup.service']:
-                time.sleep(1.05) # Same production filename convention, no same-second overwrite.
-                dump=self.dc('exec','-T','db','sh','-c','export PGPASSWORD="$(cat /run/secrets/pg-admin-pw)"; exec pg_dump -U campus_admin -d campus --format=custom --no-owner --no-acl')
-                encrypted=subprocess.check_output([age,'-r',recipient],input=dump)
-                p=backups/('campus-'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime())+'.dump.age')
-                p.write_bytes(encrypted); shutil.copyfile(p,export/p.name)
-                restored=subprocess.check_output([age,'-d','-i',str(parent/'age.key')],input=encrypted)
-                assert restored==dump
-                return b''
-            return super().run(args,data)
+        def file_digests(self, paths):
+            # Managed Docker may map the secret UID outside the runner UID. Read
+            # real hashes via a network-none root fixture, never relax file modes.
+            private=[p for p in paths if p.parent == Path(root)/'secrets']
+            out=super().file_digests([p for p in paths if p not in private])
+            if private:
+                image='postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5'
+                value=self.docker('run','--rm','--user','0','--network','none','-v',str(root)+':/test:ro','--entrypoint','sha256sum',image,*['/test/secrets/'+p.name for p in private]).decode().splitlines()
+                assert len(value)==len(private)
+                out.update({str(p):row.split()[0] for p,row in zip(private,value)})
+            return out
+        def publish_backup(self, source, destination):
+            # Runner is non-root; actual encryption/backup/verification remains
+            # the production implementation. Only export file ownership differs.
+            shutil.copyfile(source,destination)
 
     age=os.environ.get('AGE_BIN','age'); keygen=os.environ.get('AGE_KEYGEN_BIN','age-keygen')
     subprocess.run([keygen,'-o',str(parent/'age.key')],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     recipient=subprocess.check_output([keygen,'-y',str(parent/'age.key')],text=True).strip()
+    (parent/'recipients.txt').write_text(recipient+'\n')
+    Isolated.AGE_PROGRAM=age
     key=parent/'throwaway-signing-key'
     subprocess.run(['ssh-keygen','-q','-t','ed25519','-N','','-f',str(key)],check=True)
     (parent/'allowed_signers').write_text(f.IDENTITY+' '+key.with_suffix('.pub').read_text())
@@ -94,8 +100,12 @@ def main(root, project):
         r=u.apply(good_token); assert r['status']=='UPDATED' and r['databaseUnchanged']
         assert u.database()==before and u.current_app()['Image']==good
         assert snapshot()==data_before
+        backup=r['backup']; ciphertext=(export/backup['file']).read_bytes()
+        plaintext=subprocess.check_output([age,'-d','-i',str(parent/'age.key')],input=ciphertext)
+        assert plaintext.startswith(b'PGDMP') and hashlib.sha256(ciphertext).hexdigest()==backup['sha256']
         assert u.apply(good_token)['status']=='ALREADY_INSTALLED'
         results.append({'case':'success','status':'PASS','database':u.database(),'encryptedBackupDecryption':'PASS','allTableHashesUnchanged':True})
+        time.sleep(1.05)
         bad_token=bundle(bad,target,'3'*40)
         r=u.apply(bad_token); assert r['status']=='ROLLED_BACK' and r['updateFailed']
         assert u.database()==before and u.current_app()['Image']==good

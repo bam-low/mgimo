@@ -52,6 +52,30 @@ class FormatTests(unittest.TestCase):
                 s['runtime']['Results']=[{'Vulnerabilities':[v]}]
                 with self.assertRaises(ValueError): f.validate(m,s)
 
+    def test_archive_id_cannot_be_replaced_by_matching_metadata(self):
+        with tempfile.TemporaryDirectory() as name:
+            r=Path(name); m=fixture(r)
+            security=f.loads((r/'runtime-security.json').read_bytes())
+            m['runtimeImage']='sha256:'+'9'*64
+            security['runtime']['Metadata']['ImageID']=m['runtimeImage']
+            f.write(r/'runtime-security.json',security)
+            m['securitySHA256']=f.sha(r/'runtime-security.json')
+            f.write(r/'app-release.json',m); sums(r)
+            with self.assertRaises(ValueError): f.verify(r)
+
+    def test_archive_link_is_rejected_even_with_matching_checksum(self):
+        with tempfile.TemporaryDirectory() as name:
+            r=Path(name); fixture(r)
+            entries=[]
+            with tarfile.open(r/'runtime.tar.gz') as archive:
+                for member in archive:
+                    entries.append((member,archive.extractfile(member).read()))
+            with tarfile.open(r/'runtime.tar.gz','w:gz') as archive:
+                for member,data in entries: archive.addfile(member,io.BytesIO(data))
+                link=tarfile.TarInfo('escape'); link.type=tarfile.SYMTYPE; link.linkname='/etc/passwd'; archive.addfile(link)
+            sums(r)
+            with self.assertRaises(ValueError): f.verify(r)
+
     def test_server_snapshot_refuses_hardlinks_and_fifo(self):
         with tempfile.TemporaryDirectory() as name:
             r=Path(name); incoming=r/'incoming'; incoming.mkdir(); fixture(incoming); (incoming/'SHA256SUMS.sig').write_text('fixture')

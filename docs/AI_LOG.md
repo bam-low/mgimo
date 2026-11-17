@@ -498,3 +498,8 @@
   Docker/Windows/CI указываются в PR после завершения. Синтетические test signing
   keys/scan fixtures не выдаются за production release evidence. Действующий VPS,
   ключ владельца, export dispatch/merge/deploy не использовались. Production NO-GO.
+- Первая проверка Windows обнаружила реальную ошибку вывода кириллицы Python в
+  кодировке runner; CLI переведён на UTF-8, добавлен путь с кириллицей/пробелами.
+  Свежая локальная сборка устранила несовпадение старого runtime с тестами main.
+  Для root-mapped secret files изолированный non-root runner читает настоящие hashes
+  через network-none fixture, не ослабляя режимы файлов. Итог повторяется на новом HEAD.
