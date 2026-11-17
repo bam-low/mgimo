@@ -1,0 +1,2 @@
+# Linux helpers are installed from a Windows checkout too.
+ops/app-update/*.py text eol=lf

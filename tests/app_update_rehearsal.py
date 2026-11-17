@@ -22,9 +22,10 @@ s = importlib.util.module_from_spec(spec); spec.loader.exec_module(s)
 f=s.fmt
 
 
-def main(root, project):
+def main(root, project, fixture_root=None):
     assert project.startswith('campus24-test-') and Path(root).name.startswith('campus-vps-test-')
-    parent=Path(root)/'application-update'; parent.mkdir(mode=0o700)
+    parent=Path(fixture_root) if fixture_root else Path(tempfile.mkdtemp(prefix='campus-app-update-fixture-'))
+    assert parent.parent.resolve()==Path(tempfile.gettempdir()).resolve() and parent.name.startswith('campus-app-update-fixture-') and not parent.is_symlink() and not list(parent.iterdir())
     state=parent/'state'; state.mkdir(mode=0o700)
     backups=parent/'backups'; backups.mkdir(mode=0o700)
     export=parent/'export'; export.mkdir(mode=0o700)

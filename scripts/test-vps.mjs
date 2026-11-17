@@ -420,11 +420,17 @@ try {
     fixture,
   });
   if (!upgradeMode) {
-    execFileSync("python3", ["tests/app_update_rehearsal.py", root, project], {
-      env: process.env,
-      stdio: "inherit",
-      timeout: 600000,
-    });
+    const appUpdateRoot = await mkdtemp("/tmp/campus-app-update-fixture-");
+    disk("register-path", "app-update-fixture", appUpdateRoot);
+    execFileSync(
+      "python3",
+      ["tests/app_update_rehearsal.py", root, project, appUpdateRoot],
+      {
+        env: process.env,
+        stdio: "inherit",
+        timeout: 600000,
+      },
+    );
   }
   if (upgradeMode) await upgradeProof.freeze();
   else dc(["stop", "app"]);

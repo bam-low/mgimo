@@ -517,3 +517,12 @@
   команду: даже другой валидно подписанный пакет нельзя подставить в inbox вместо
   выбранного экспорта. Отказ до совместимости/остановки приложения проверяется
   отдельным unit и реальной репетицией. Всего14 unit проверок данного пути PASS.
+- CI9be4e7b прошёл обе полные репетиции, но перед Trivy корректно остановился:
+  8382910464B свободно (<8GiB). Добавленные четыре тестовых runtime archives
+  около85MiB каждый оставались вне старого lifecycle. Новый fixture вынесен в
+  отдельный mkdtemp/registered role; штатная addressed cleanup после обеих PASS
+  proofs/малого artifact измеряет и удаляет только этот job-owned каталог.
+  27 lifecycle tests PASS, включая отсутствие proof/подмену inode; floors/gates
+  и три final images не меняются. Локальная default retention сохраняется.
+- Для Linux helpers добавлен LF attribute при Windows checkout: shebang после
+  передачи с Windows должен исполняться без CRLF. Windows проверяет это отдельно.

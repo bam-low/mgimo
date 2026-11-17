@@ -11,6 +11,8 @@ if ($result.status -cne 'UPDATED') { throw 'Ошибка разбора прот
 Must-Fail { ConvertFrom-CampusResult 'Нет подтверждения сервера' }
 Must-Fail { ConvertFrom-CampusResult "CAMPUS_APP_RESULT={}`nCAMPUS_APP_RESULT={}" }
 Must-Fail { ConvertFrom-CampusResult 'CAMPUS_APP_RESULT=не JSON' }
+$linuxHelper = [IO.File]::ReadAllText("$PSScriptRoot/../ops/app-update/server.py").Split("`n")[0]
+if ($linuxHelper.EndsWith("`r")) { throw 'Linux helper должен сохранять LF при checkout на Windows.' }
 $sha = 'a' * 40
 $run = @{ id = 123; repository = @{full_name = 'bam-low/mgimo'}; path = '.github/workflows/vps-ci.yml'; event = 'workflow_dispatch'; head_branch = 'main'; status = 'completed'; conclusion = 'success'; head_sha = $sha }
 Assert-CampusRun $run '123'

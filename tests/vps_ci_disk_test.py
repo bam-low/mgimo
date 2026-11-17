@@ -205,6 +205,40 @@ class DiskTests(unittest.TestCase):
         self.calls.clear()
         return browser, fixtures
 
+    def app_fixture_proof(self):
+        self.rehearsal_resources()
+        directory=self.scratch("app-update-fixture")
+        (directory/"runtime.tar.gz").write_bytes(b"test-only runtime archive")
+        database={"image":self.images["db"]["id"],"container":"test-only","startedAt":"test-only","restartCount":0}
+        result={"status":"PASS","ownerVpsContacted":False,"manualRollback":"PASS","databaseBefore":database,
+                "cases":[{"case":name,"status":"PASS","database":database,"allTableHashesUnchanged":True} for name in ("success","automatic-rollback","incompatible")]}
+        proof=self.disk.evidence/"app-update-rehearsal.json"
+        proof.write_text(json.dumps(result))
+        return directory,proof
+
+    def test_only_owned_app_fixture_removed_after_both_proofs(self):
+        directory,proof=self.app_fixture_proof()
+        self.disk.cleanup_rehearsal()
+        self.assertFalse(directory.exists())
+        self.assertTrue(proof.exists())
+        self.assertEqual(self.disk.load()["appUpdateProofHash"],hashlib.sha256(proof.read_bytes()).hexdigest())
+        resources=json.loads((self.disk.metrics/"rehearsal-resources.json").read_text())
+        self.assertGreater(resources["appUpdateAllocatedBytes"],0)
+
+    def test_app_fixture_not_removed_without_complete_proof(self):
+        directory,proof=self.app_fixture_proof()
+        proof.write_text('{"status":"FAIL"}')
+        with self.assertRaises((ValueError,KeyError)): self.disk.cleanup_rehearsal()
+        self.assertTrue(directory.exists())
+        self.assertFalse(any(c[:2]==["image","rm"] for c in self.calls))
+
+    def test_app_fixture_identity_swap_refused(self):
+        directory,_=self.app_fixture_proof()
+        directory.rename(directory.with_name(directory.name+'-original'))
+        directory.mkdir()
+        with self.assertRaises(ValueError): self.disk.cleanup_rehearsal()
+        self.assertTrue(directory.exists())
+
     def test_owned_browsers_and_exact_unused_rehearsal_images_removed_after_proof(self):
         browser, _ = self.rehearsal_resources()
         self.disk.cleanup_rehearsal()
