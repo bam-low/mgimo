@@ -419,6 +419,13 @@ try {
     secret,
     fixture,
   });
+  if (!upgradeMode) {
+    execFileSync("python3", ["tests/app_update_rehearsal.py", root, project], {
+      env: process.env,
+      stdio: "inherit",
+      timeout: 300000,
+    });
+  }
   if (upgradeMode) await upgradeProof.freeze();
   else dc(["stop", "app"]);
   stage = "encrypted backup and restore";

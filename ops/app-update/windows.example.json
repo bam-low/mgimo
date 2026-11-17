@@ -1,0 +1,15 @@
+{
+  "Host": "vps.example.test",
+  "User": "operator",
+  "Port": 22,
+  "SigningKey": "C:\\Users\\OWNER\\.ssh\\campus_release",
+  "SigningPublicKey": "C:\\Users\\OWNER\\.ssh\\campus_release.pub",
+  "SigningFingerprint": "SHA256:REPLACE_WITH_PREVIOUSLY_VERIFIED_FINGERPRINT",
+  "SshKey": "C:\\Users\\OWNER\\.ssh\\campus_server",
+  "KnownHosts": "C:\\Users\\OWNER\\.ssh\\known_hosts",
+  "AllowedSigners": "C:\\Users\\OWNER\\Campus\\allowed_signers",
+  "TargetFile": "C:\\Users\\OWNER\\Campus\\target.json",
+  "CacheDir": "C:\\Users\\OWNER\\Campus\\releases",
+  "Inbox": "/home/operator/campus-inbox",
+  "BackupExport": "/srv/campus-backup-export"
+}

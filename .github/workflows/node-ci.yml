@@ -70,3 +70,16 @@ jobs:
             .vercel/output/campus-module-graph.json
           include-hidden-files: true
           retention-days: 7
+
+  app-update-windows:
+    name: Windows application update client checks
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: PowerShell client validation and real OpenSSH signature
+        shell: pwsh
+        run: ./tests/app-update-windows.ps1
