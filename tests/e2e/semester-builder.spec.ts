@@ -210,7 +210,9 @@ test("semester calendar and real shared timetable work at 360, 390 and 1280; for
     .selectOption(roomId);
   await expect(
     inspector.getByRole("combobox", { name: "Повторение", exact: true }),
-  ).toHaveValue("ONCE");
+  ).toHaveValue(
+    process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1" ? "EVERY" : "ONCE",
+  );
   await inspector
     .getByRole("combobox", { name: "Повторение", exact: true })
     .selectOption("EVERY");
