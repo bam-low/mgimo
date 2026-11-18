@@ -61,7 +61,7 @@ jobs:
           docker pull postgres:17-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
           docker build --network=none -t campus24-db "$context/database"
           docker build --network=none -t campus24-tools "$context/tools"
-      - name: Verify delivered picomatch code and bounded ReDoS probes inside final images
+      - name: Проверка исправленного picomatch и ReDoS в итоговых образах
         run: |
           mkdir -p .runtime-evidence/picomatch
           for role in runtime tools; do

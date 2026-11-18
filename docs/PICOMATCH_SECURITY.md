@@ -19,7 +19,7 @@
 - Backport на исходный npm2.3.2 сохраняет начальный текст при объединении tokens: это необходимо для корректной проверки реально генерируемого тела регулярного выражения.
 - Next использует адаптер **v2**, сохраняющий семантику его исходной встроенной копии. Npm2/4 остаются двумя самостоятельными совместимыми ветвями.
 
-Честные частные имена `@campus/picomatch-v2` / `@campus/picomatch-v4`, версии `2.3.2-campus.1` / `4.0.7-campus.1` обозначают **локальный форк**, не официальный исправленный picomatch. MIT license сохранена. Исходники доступны в [vendor](../vendor/picomatch-v2/SECURITY.md), [v4](../vendor/picomatch-v4/SECURITY.md); детерминированные tgz закреплены SHA-512 в lockfile, исходники и патчи — SHA-256 в [manifest](../vendor/picomatch-patches.json).
+Честные частные имена `@campus/picomatch-v2` / `@campus/picomatch-v4`, версии `2.3.2-campus.1` / `4.0.7-campus.1` обозначают **локальный форк**, не официальный исправленный picomatch. MIT license сохранена в LICENSE и полном заголовке index.js: Next NFT не копирует отдельный license-файл в standalone, поэтому уведомление поставляется вместе с исполняемым исходником. Исходники доступны в [vendor](../vendor/picomatch-v2/SECURITY.md), [v4](../vendor/picomatch-v4/SECURITY.md); детерминированные tgz закреплены SHA-512 в lockfile, исходники и патчи — SHA-256 в [manifest](../vendor/picomatch-patches.json).
 
 После замены имени npm advisory не сопоставляется с форком. **Ноль в audit не доказывает исправления**: обязательные независимые gates проверяют фактический код, встроенные копии и ограниченные по времени опасные сопоставления. Нет audit exclusions, suppress/ignore/VEX, изменения severity или отключения сканера.
 

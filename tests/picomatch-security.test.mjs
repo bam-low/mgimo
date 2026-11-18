@@ -10,6 +10,13 @@ import process from "node:process";
 import { verifiedPatch } from "../scripts/picomatch-patches.mjs";
 
 const require = createRequire(import.meta.url);
+test("MIT notice сохраняется в трассируемом entrypoint форка", async () => {
+  for (const major of [2, 4]) {
+    const notice = (await readFile(`vendor/picomatch-v${major}/LICENSE`, "utf8")).trim();
+    const entry = await readFile(require.resolve(`@campus/picomatch-v${major}`), "utf8");
+    assert.ok(entry.includes(notice), `v${major}: standalone должен содержать полный MIT notice`);
+  }
+});
 test("Изменение upstream bytes или маскировка маркером не обходят fail-closed проверку", async () => {
   const manifest = JSON.parse(await readFile("vendor/picomatch-patches.json", "utf8"));
   const file = "next/dist/compiled/picomatch/index.js";

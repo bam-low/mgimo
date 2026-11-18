@@ -28,7 +28,7 @@ export function replaceFactories(source, file, spec) {
     }
     if (spec.minified && ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && Object.hasOwn(spec.minified, node.name.text)) {
       const factory = node.initializer?.arguments?.[0];
-      if (!factory || !ts.isArrowFunction(factory) || !ts.isBlock(factory.body)) throw Error("Unexpected pinned factory structure");
+      if (!factory || !ts.isArrowFunction(factory) || !ts.isBlock(factory.body)) throw Error("Неожиданная структура закреплённой фабрики");
       body = factory.body;
       const item = spec.minified[node.name.text];
       target = `@campus/picomatch-v${item.major || spec.major || 2}` + (typeof item === "string" ? item : item.path);
@@ -43,7 +43,7 @@ export function replaceFactories(source, file, spec) {
     ts.forEachChild(node, visit);
   }
   visit(ast);
-  if (edits.length !== spec.factories) throw Error(`Unexpected picomatch factory count in ${file}: ${edits.length}`);
+  if (edits.length !== spec.factories) throw Error(`Неожиданное число фабрик picomatch в ${file}: ${edits.length}`);
   for (const edit of edits.sort((a, b) => b.start - a.start)) source = source.slice(0, edit.start) + edit.text + source.slice(edit.end);
   return source;
 }

@@ -75,5 +75,5 @@ for (const [entry, major] of [...modules.map(module => [module.entry, module.ver
 }
 // Ensure the adapter really resolves the fork from the delivered tree.
 const require = createRequire(next);
-if (!require.resolve("@campus/picomatch-v2").startsWith(root + path.sep)) throw Error("Fork resolves outside artifact");
+if (!require.resolve("@campus/picomatch-v2").startsWith(root + path.sep)) throw Error("Форк разрешается за пределами артефакта");
 process.stdout.write(JSON.stringify({ advisory: manifest.advisory, modules: modules.map(({ path, version }) => ({ path, version })), bundles, probes }, null, 2) + "\n");
