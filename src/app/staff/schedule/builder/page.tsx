@@ -8,6 +8,8 @@ export default async function Page({
     semesterId?: string;
     programId?: string;
     day?: string;
+    groupId?: string;
+    draft?: string;
   }>;
 }) {
   const query = await searchParams;
@@ -16,6 +18,8 @@ export default async function Page({
     <BuilderShell title="Конструктор расписания">
       <ScheduleBuilder
         catalog={catalog}
+        initialGroup={query.groupId}
+        initialDraft={query.draft}
         initialSemester={query.semesterId}
         initialProgram={query.programId}
         initialDay={

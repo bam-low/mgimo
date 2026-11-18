@@ -1,0 +1,5 @@
+
+> campus@0.1.0 check:vercel-runtime
+> node scripts/check-vercel-runtime.mjs
+
+PASS 4 real Vercel Node24 functions: files, package/dependency graphs, aliases and secret canaries; isolated copy ready.

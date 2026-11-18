@@ -1,0 +1,34 @@
+Account: 8 строк, SHA-256 совпадает
+Application: 6 строк, SHA-256 совпадает
+ApplicationDocument: 2 строк, SHA-256 совпадает
+ApplicationEvent: 17 строк, SHA-256 совпадает
+AuditLog: 155 строк, SHA-256 совпадает
+EnrollmentRequest: 9 строк, SHA-256 совпадает
+Faculty: 3 строк, SHA-256 совпадает
+Grade: 2 строк, SHA-256 совпадает
+GroupMembership: 13 строк, SHA-256 совпадает
+Notification: 13 строк, SHA-256 совпадает
+Program: 5 строк, SHA-256 совпадает
+RateBucket: 14 строк, SHA-256 совпадает
+RateLimit: 0 строк, SHA-256 совпадает
+Room: 3 строк, SHA-256 совпадает
+ScheduleEntry: 44 строк, SHA-256 совпадает
+ScheduleGroup: 24 строк, SHA-256 совпадает
+ScheduleTemplate: 6 строк, SHA-256 совпадает
+Semester: 4 строк, SHA-256 совпадает
+Session: 4 строк, SHA-256 совпадает
+StudentGroup: 10 строк, SHA-256 совпадает
+StudentProfile: 7 строк, SHA-256 совпадает
+Subject: 5 строк, SHA-256 совпадает
+Teacher: 5 строк, SHA-256 совпадает
+TeacherSubject: 6 строк, SHA-256 совпадает
+TeachingAssignment: 2 строк, SHA-256 совпадает
+TeachingAssignmentGroup: 4 строк, SHA-256 совпадает
+TemplateGroup: 10 строк, SHA-256 совпадает
+University: 1 строк, SHA-256 совпадает
+UniversityMembership: 8 строк, SHA-256 совпадает
+User: 8 строк, SHA-256 совпадает
+Verification: 0 строк, SHA-256 совпадает
+_prisma_migrations: 9 строк, SHA-256 совпадает
+PASS: все таблицы и реальные байты восстановлены в отдельную БД
+PASS: точная runtime policy восстановленной БД, реальный SCRAM-вход, новые таблицы читаются; DELETE запрещён

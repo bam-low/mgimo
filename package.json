@@ -9,12 +9,12 @@
   "packageManager": "npm@11.9.0",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "next build && node scripts/prepare-runtime.mjs",
+    "build": "npm run security:prepare && next build && node scripts/prepare-runtime.mjs",
     "start": "node .next/standalone/server.js",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest",
-    "db:generate": "prisma generate",
+    "db:generate": "npm run security:prepare && prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node prisma/seed.mjs",
     "test:integration": "vitest run --config vitest.integration.config.mts",
@@ -26,7 +26,9 @@
     "test:vercel-checker": "node tests/vercel-artifact.test.mjs",
     "test:launch-tools": "node --test tests/launch-tools.test.mjs tests/local-demo.test.mjs",
     "test:vercel-e2e": "playwright test --config playwright.vercel.config.ts && node scripts/test-vercel-cold-start.mjs && node scripts/verify-vercel-loads.mjs",
-    "build:vercel-app": "next build --webpack && node scripts/prepare-runtime.mjs"
+    "build:vercel-app": "npm run security:prepare && next build --webpack && node scripts/prepare-runtime.mjs",
+    "security:prepare": "node scripts/prepare-secure-dependencies.mjs",
+    "test:picomatch": "node --test tests/picomatch-security.test.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
@@ -39,7 +41,9 @@
     "react": "19.2.9",
     "react-dom": "19.2.9",
     "sharp": "0.35.5",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@campus/picomatch-v2": "file:vendor/picomatch-v2-2.3.2-campus.1.tgz",
+    "@campus/picomatch-v4": "file:vendor/picomatch-v4-4.0.7-campus.1.tgz"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -61,5 +65,9 @@
     "typescript-eslint": "8.72.1",
     "vitest": "4.1.12"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "picomatch@<3": "file:./vendor/picomatch-v2-2.3.2-campus.1.tgz",
+    "picomatch@>=3": "file:./vendor/picomatch-v4-4.0.7-campus.1.tgz"
+  }
 }

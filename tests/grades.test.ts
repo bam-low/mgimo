@@ -3,7 +3,12 @@ import { randomUUID } from "node:crypto";
 import { db } from "../src/server/db";
 import { auth } from "../src/server/auth";
 import { actor } from "../src/server/security";
-import { changeGrade, changeSubject, readGrades } from "../src/server/grades";
+import {
+  changeGrade,
+  changeSubject,
+  readGrades,
+  gradeRoster,
+} from "../src/server/grades";
 import { POST } from "../src/app/api/staff/grades/route";
 import { GET } from "../src/app/api/grades/route";
 import { hashPassword } from "better-auth/crypto";
@@ -46,6 +51,7 @@ function input() {
     action: "CREATE",
     operationId: randomUUID(),
     membershipId: mid,
+    groupId: "group-1",
     subjectId,
     issuedOn: "2026-11-07",
     result: { kind: "MARK", mark: 5 },
@@ -492,5 +498,90 @@ it("subject directory supports rename, deactivate, restore and stale-version den
     expect(await db.auditLog.count({ where: { targetId: sid } })).toBe(4);
   } finally {
     await db.subject.delete({ where: { id: sid } });
+  }
+});
+
+it("новый результат требует группу, отвергает чужого студента и ограничивает список выбранной группой", async () => {
+  const a = await actor(sh),
+    otherMembership = (await actor(other)).membership.id;
+  const empty = await gradeRoster(a);
+  expect(empty.rows).toEqual([]);
+  const roster = await gradeRoster(a, { groupId: "group-1" });
+  expect(roster.rows.some((r) => r.id === mid)).toBe(true);
+  expect(roster.rows.some((r) => r.id === otherMembership)).toBe(false);
+  await expect(
+    gradeRoster(a, { groupId: "group-1", cursor: otherMembership }),
+  ).rejects.toMatchObject({ status: 404 });
+  expect((await POST(req(sh, { ...input(), groupId: undefined }))).status).toBe(
+    400,
+  );
+  for (const patch of [
+    { groupId: "group-2" },
+    { membershipId: otherMembership },
+  ]) {
+    const command = { ...input(), ...patch };
+    expect((await POST(req(sh, command))).status).toBe(409);
+    expect(await db.grade.count({ where: { id: command.operationId } })).toBe(
+      0,
+    );
+    expect(
+      await db.auditLog.count({ where: { targetId: command.operationId } }),
+    ).toBe(0);
+  }
+});
+
+it("перевод после открытия формы блокирует устаревшую группу, но сохраняет личную историю и исправления", async () => {
+  const baseline = { ...input(), issuedOn: "2026-11-18" };
+  expect((await POST(req(sh, baseline))).status).toBe(200);
+  const before = await readGrades(await actor(uh));
+  expect(before.rows.some((r) => r.id === baseline.operationId)).toBe(true);
+  const current = await db.groupMembership.findFirstOrThrow({
+    where: { membershipId: mid, endedAt: null, revokedAt: null },
+  });
+  const stale = input();
+  try {
+    await changeMembership(staffId, "demo-university", {
+      action: "TRANSFER",
+      membershipId: mid,
+      expectedEnrollmentId: current.id,
+      groupId: "group-2",
+      reason: "Демо проверка устаревшей формы",
+    });
+    expect((await POST(req(sh, stale))).status).toBe(409);
+    expect(await db.grade.count({ where: { id: stale.operationId } })).toBe(0);
+    expect((await readGrades(await actor(uh))).rows).toEqual(before.rows);
+    const newGrade = { ...input(), groupId: "group-2", issuedOn: "2026-11-18" };
+    expect((await POST(req(sh, newGrade))).status).toBe(200);
+    const edit = {
+      action: "EDIT",
+      id: newGrade.operationId,
+      version: 1,
+      subjectId,
+      issuedOn: "2026-11-18",
+      result: { kind: "MARK", mark: 4 },
+      reason: "Демо исправление после перевода",
+    };
+    expect((await POST(req(sh, edit))).status).toBe(200);
+    expect(
+      (await readGrades(await actor(uh))).rows.find(
+        (r) => r.id === newGrade.operationId,
+      )?.mark,
+    ).toBe(4);
+    expect(
+      (await gradeRoster(await actor(sh), { history: true })).rows.some(
+        (r) => r.id === mid,
+      ),
+    ).toBe(true);
+  } finally {
+    const next = await db.groupMembership.findFirstOrThrow({
+      where: { membershipId: mid, endedAt: null, revokedAt: null },
+    });
+    await changeMembership(staffId, "demo-university", {
+      action: "TRANSFER",
+      membershipId: mid,
+      expectedEnrollmentId: next.id,
+      groupId: current.groupId,
+      reason: "Демо завершение проверки устаревшей формы",
+    });
   }
 });

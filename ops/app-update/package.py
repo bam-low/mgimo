@@ -53,7 +53,12 @@ def contract(source):
              "ops/vps/compose.yaml", "ops/vps/Dockerfile", "ops/vps/Dockerfile.db", "ops/vps/Dockerfile.tools",
              "ops/vps/pg_hba.conf", "ops/vps/init-secrets.sh", "ops/vps/cleanup-client.mjs",
              "scripts/prepare-runtime.mjs", "scripts/launch-db-policy.mjs", "src/proxy.ts"}
-    selected = sorted(n for n in names if n in fixed or n.startswith(("src/server/", "src/app/api/", "prisma/migrations/", "ops/vps/")))
+    # Older installed sources legitimately predate these files. Their addition
+    # or change must still change the contract, even with the same lockfile.
+    security_build = {"scripts/prepare-secure-dependencies.mjs", "scripts/picomatch-patches.mjs",
+                      "scripts/check-picomatch-artifact.mjs", "scripts/pack-security-vendors.py"}
+    selected = sorted(n for n in names if n in fixed or n in security_build
+                      or n.startswith(("src/server/", "src/app/api/", "prisma/migrations/", "ops/vps/", "vendor/")))
     require(fixed.issubset(selected), "Неполный контракт конфигурации")
     values = {n: hashlib.sha256(subprocess.check_output(["git", "show", source + ":" + n], cwd=REPO)).hexdigest() for n in selected}
     migrations = [{"name": n.split("/")[2], "sha256": values[n]} for n in selected if re.fullmatch(r"prisma/migrations/[0-9]{14}_[a-z_]+/migration.sql", n)]

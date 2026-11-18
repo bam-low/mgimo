@@ -30,7 +30,32 @@ const occurrenceFields = {
   teacherId: id.nullable(),
   roomId: id.nullable(),
 };
+const assignmentFields = {
+  programId: id,
+  subjectId: id,
+  kind: z.enum(["LECTURE", "SEMINAR"]),
+  groups: z
+    .array(z.object({ groupId: id, teacherId: id }).strict())
+    .min(1)
+    .max(50),
+};
 export const builderCommand = z.discriminatedUnion("action", [
+  z
+    .object({
+      action: z.literal("ASSIGNMENT_CREATE"),
+      operationId: z.uuid(),
+      ...assignmentFields,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("ASSIGNMENT_EDIT"),
+      id,
+      version,
+      active: z.boolean(),
+      ...assignmentFields,
+    })
+    .strict(),
   z
     .object({
       action: z.literal("SEMESTER_CREATE"),
@@ -85,6 +110,10 @@ export const builderCommand = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("TEMPLATE_CREATE"),
+      assignment: z
+        .object({ id, version, groupId: id.optional() })
+        .strict()
+        .optional(),
       operationId: z.uuid(),
       semesterId: id,
       programId: id,
@@ -336,7 +365,7 @@ async function conflicts(
             : null;
       if (resource)
         reject(
-          `Конфликт: ${dayKey(a.startsAt, zone)}, ${a.startsAt.toLocaleTimeString("ru-RU", { timeZone: zone, hour: "2-digit", minute: "2-digit" })} — ${resource}. Измените время или ресурс.`,
+          `Конфликт: ${resource} занят(а) ${dayKey(b.startsAt, zone)} с ${b.startsAt.toLocaleTimeString("ru-RU", { timeZone: zone, hour: "2-digit", minute: "2-digit" })} до ${b.endsAt.toLocaleTimeString("ru-RU", { timeZone: zone, hour: "2-digit", minute: "2-digit" })}. Выберите другое время или ресурс.`,
         );
     }
   }
@@ -496,7 +525,105 @@ export async function changeBuilder(
             413,
           );
       };
-      if (d.action === "SEMESTER_CREATE" || d.action === "SEMESTER_EDIT") {
+      if (d.action === "ASSIGNMENT_CREATE" || d.action === "ASSIGNMENT_EDIT") {
+        const old =
+          d.action === "ASSIGNMENT_EDIT"
+            ? await tx.teachingAssignment.findFirst({
+                where: { id: d.id, universityId },
+                include: { groups: true },
+              })
+            : null;
+        if (d.action === "ASSIGNMENT_EDIT") checkedVersion(old, d.version);
+        else
+          await reserve(
+            !!(await tx.teachingAssignment.findUnique({
+              where: { id: targetId },
+            })),
+          );
+        if (
+          old &&
+          (old.programId !== d.programId ||
+            old.subjectId !== d.subjectId ||
+            old.kind !== d.kind)
+        )
+          reject(
+            "Дисциплина, направление и вид существующей настройки не меняются. Создайте другую настройку.",
+            400,
+          );
+        if (new Set(d.groups.map((g) => g.groupId)).size !== d.groups.length)
+          reject("Группа выбрана дважды.", 400);
+        if (
+          d.kind === "LECTURE" &&
+          new Set(d.groups.map((g) => g.teacherId)).size !== 1
+        )
+          reject("У общей лекции должен быть один преподаватель.", 400);
+        const active = d.action === "ASSIGNMENT_CREATE" || d.active;
+        for (const g of d.groups) {
+          const group = await validGroup(tx, g.groupId, universityId, active);
+          if (group.programId !== d.programId)
+            reject("Выберите группы одного направления.", 400);
+          await references(
+            tx,
+            universityId,
+            d.subjectId,
+            g.teacherId,
+            null,
+            active,
+          );
+        }
+        evidence.push(old);
+        // Bind the preview to directory state, even though no dates are generated yet.
+        evidence.push(
+          await tx.subject.findUnique({ where: { id: d.subjectId } }),
+          await tx.teacher.findMany({
+            where: { id: { in: d.groups.map((g) => g.teacherId) } },
+            orderBy: { id: "asc" },
+            include: { subjects: true },
+          }),
+          await tx.studentGroup.findMany({
+            where: { id: { in: d.groups.map((g) => g.groupId) } },
+            orderBy: { id: "asc" },
+            include: { program: { include: { faculty: true } } },
+          }),
+        );
+        const data = {
+          universityId,
+          programId: d.programId,
+          subjectId: d.subjectId,
+          kind: d.kind,
+          active,
+        };
+        writes.push(async () => {
+          if (old)
+            await tx.teachingAssignment.update({
+              where: { id: old.id },
+              data: { ...data, version: { increment: 1 } },
+            });
+          else
+            await tx.teachingAssignment.create({
+              data: { id: targetId, ...data },
+            });
+          await tx.teachingAssignmentGroup.updateMany({
+            where: { assignmentId: targetId },
+            data: { active: false },
+          });
+          for (const g of d.groups)
+            await tx.teachingAssignmentGroup.upsert({
+              where: {
+                assignmentId_groupId: {
+                  assignmentId: targetId,
+                  groupId: g.groupId,
+                },
+              },
+              create: { assignmentId: targetId, universityId, ...g },
+              update: { teacherId: g.teacherId, active: true },
+            });
+          await audit(targetId, d.action, old, { ...data, groups: d.groups });
+        });
+      } else if (
+        d.action === "SEMESTER_CREATE" ||
+        d.action === "SEMESTER_EDIT"
+      ) {
         const old =
           d.action === "SEMESTER_EDIT"
             ? await scopedSemester(tx, universityId, d.id)
@@ -730,6 +857,37 @@ export async function changeBuilder(
             .programId;
         const semester = await scopedSemester(tx, universityId, semesterId),
           calendar = asCalendar(semester);
+        if (d.action === "TEMPLATE_CREATE" && d.assignment) {
+          const a = await tx.teachingAssignment.findFirst({
+            where: { id: d.assignment.id, universityId },
+            include: {
+              groups: { where: { active: true }, orderBy: { groupId: "asc" } },
+            },
+          });
+          checkedVersion(a, d.assignment.version);
+          if (
+            !a ||
+            !a.active ||
+            a.programId !== programId ||
+            a.subjectId !== d.rule.subjectId
+          )
+            reject("Назначение недоступно. Обновите каталог и предпросмотр.");
+          const rows =
+            a.kind === "LECTURE"
+              ? a.groups
+              : a.groups.filter((g) => g.groupId === d.assignment!.groupId);
+          if (
+            !rows.length ||
+            (a.kind === "SEMINAR" && rows.length !== 1) ||
+            JSON.stringify(rows.map((g) => g.groupId).sort()) !==
+              JSON.stringify([...d.rule.groupIds].sort()) ||
+            rows.some((g) => g.teacherId !== d.rule.teacherId)
+          )
+            reject(
+              "Группы или преподаватель не соответствуют готовому занятию. Обновите предпросмотр.",
+            );
+          evidence.push(a);
+        }
         const { groupIds, ...fields } = d.rule;
         const previousSegments = old
           ? z
@@ -881,6 +1039,68 @@ export async function changeBuilder(
         changes.push(c);
         retire.push(old);
       }
+      const [subjectRows, teacherRows, roomRows, groupRows] = await Promise.all(
+        [
+          tx.subject.findMany({
+            where: {
+              universityId,
+              id: { in: [...new Set(changes.map((c) => c.subjectId))] },
+            },
+            orderBy: { id: "asc" },
+          }),
+          tx.teacher.findMany({
+            where: {
+              universityId,
+              id: {
+                in: [
+                  ...new Set(
+                    changes.flatMap((c) => (c.teacherId ? [c.teacherId] : [])),
+                  ),
+                ],
+              },
+            },
+            orderBy: { id: "asc" },
+            include: { subjects: { orderBy: { subjectId: "asc" } } },
+          }),
+          tx.room.findMany({
+            where: {
+              universityId,
+              id: {
+                in: [
+                  ...new Set(
+                    changes.flatMap((c) => (c.roomId ? [c.roomId] : [])),
+                  ),
+                ],
+              },
+            },
+            orderBy: { id: "asc" },
+          }),
+          tx.studentGroup.findMany({
+            where: {
+              id: {
+                in: [
+                  ...new Set([
+                    ...changes.flatMap((c) => c.groupIds),
+                    ...retire.flatMap(groupsOf),
+                  ]),
+                ],
+              },
+              program: { faculty: { universityId } },
+            },
+            orderBy: { id: "asc" },
+            include: { program: { include: { faculty: true } } },
+          }),
+        ],
+      );
+      evidence.push(subjectRows, teacherRows, roomRows, groupRows);
+      if (
+        (d.action === "TEMPLATE_CREATE" || d.action === "TEMPLATE_FUTURE") &&
+        !changes.length
+      )
+        reject(
+          "Нет подходящих дат. Измените день, тип повторения или границы семестра; ручные исключения и прошедшие занятия сохраняются.",
+          400,
+        );
       const ignored = new Set(retire.map((e) => e.id));
       await conflicts(tx, universityId, changes, ignored, zone);
       if (changes.some((c) => c.status === "SCHEDULED" && !c.teacherId))
@@ -908,11 +1128,35 @@ export async function changeBuilder(
         dates: changes.map((c) => ({
           day: dayKey(c.startsAt, zone),
           groupCount: c.groupIds.length,
+          groups: c.groupIds.map(
+            (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
+          ),
+          title:
+            subjectRows.find((s) => s.id === c.subjectId)?.name ?? "Занятие",
+          teacher:
+            teacherRows.find((t) => t.id === c.teacherId)?.name ??
+            "Не назначен",
+          room: roomRows.find((r) => r.id === c.roomId)
+            ? `${roomRows.find((r) => r.id === c.roomId)!.building} · ${roomRows.find((r) => r.id === c.roomId)!.number}`
+            : "Не назначена",
+          startTime: c.startsAt.toLocaleTimeString("ru-RU", {
+            timeZone: zone,
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          endTime: c.endsAt.toLocaleTimeString("ru-RU", {
+            timeZone: zone,
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           status: c.status,
         })),
         affected: retire.map((e) => ({
           id: e.id,
           day: dayKey(e.startsAt, zone),
+          groups: groupsOf(e).map(
+            (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
+          ),
         })),
         skippedCount: skipped.length,
         skipped: [...new Set(skipped)].sort(),
@@ -1000,49 +1244,69 @@ export async function changeBuilder(
 
 // Explicit projection. Neither authentication records nor students are fetched here.
 export async function builderCatalog(universityId: string) {
-  const [semesters, teachers, rooms, subjects, faculties] = await Promise.all([
-    db.semester.findMany({
-      where: { universityId },
-      orderBy: [{ start: "desc" }, { id: "asc" }],
-      take: 201,
-    }),
-    db.teacher.findMany({
-      where: { universityId },
-      orderBy: [{ name: "asc" }, { id: "asc" }],
-      include: {
-        subjects: { where: { active: true }, select: { subjectId: true } },
-      },
-      take: 501,
-    }),
-    db.room.findMany({
-      where: { universityId },
-      orderBy: [{ building: "asc" }, { number: "asc" }, { id: "asc" }],
-      take: 501,
-    }),
-    db.subject.findMany({
-      where: { universityId },
-      orderBy: [{ name: "asc" }, { id: "asc" }],
-      select: { id: true, name: true, active: true },
-      take: 501,
-    }),
-    db.faculty.findMany({
-      where: { universityId },
-      select: {
-        id: true,
-        name: true,
-        active: true,
-        programs: {
-          select: {
-            id: true,
-            name: true,
-            active: true,
-            groups: { select: { id: true, name: true, active: true } },
+  const [semesters, teachers, rooms, subjects, faculties, assignments] =
+    await Promise.all([
+      db.semester.findMany({
+        where: { universityId },
+        orderBy: [{ start: "desc" }, { id: "asc" }],
+        take: 201,
+      }),
+      db.teacher.findMany({
+        where: { universityId },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+        include: {
+          subjects: { where: { active: true }, select: { subjectId: true } },
+        },
+        take: 501,
+      }),
+      db.room.findMany({
+        where: { universityId },
+        orderBy: [{ building: "asc" }, { number: "asc" }, { id: "asc" }],
+        take: 501,
+      }),
+      db.subject.findMany({
+        where: { universityId },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+        select: { id: true, name: true, active: true },
+        take: 501,
+      }),
+      db.faculty.findMany({
+        where: { universityId },
+        select: {
+          id: true,
+          name: true,
+          active: true,
+          programs: {
+            select: {
+              id: true,
+              name: true,
+              active: true,
+              groups: { select: { id: true, name: true, active: true } },
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+      db.teachingAssignment.findMany({
+        where: { universityId },
+        orderBy: { id: "asc" },
+        take: 501,
+        select: {
+          id: true,
+          programId: true,
+          subjectId: true,
+          kind: true,
+          active: true,
+          version: true,
+          groups: {
+            where: { active: true },
+            orderBy: { groupId: "asc" },
+            select: { groupId: true, teacherId: true },
+          },
+        },
+      }),
+    ]);
   if (
+    assignments.length > 500 ||
     semesters.length > 200 ||
     teachers.length > 500 ||
     rooms.length > 500 ||
@@ -1071,6 +1335,7 @@ export async function builderCatalog(universityId: string) {
     })),
     subjects,
     faculties,
+    assignments,
   };
 }
 export async function builderWeek(universityId: string, query: unknown) {

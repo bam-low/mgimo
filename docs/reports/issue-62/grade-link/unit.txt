@@ -1,0 +1,18 @@
+
+> campus@0.1.0 test
+> vitest --run
+
+
+ RUN  v4.1.12 <checkout>
+
+
+ Test Files  10 passed (10)
+      Tests  22 passed (22)
+   Start at  00:12:13
+   Duration  2.40s (transform 283ms, setup 0ms, import 979ms, tests 1.99s, environment 1ms)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

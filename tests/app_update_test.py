@@ -98,7 +98,27 @@ class FormatTests(unittest.TestCase):
     def test_contract_changes_block_packaging(self):
         c=f.contract(subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
         self.assertGreater(len(c['configuration']), 20)
-        self.assertEqual(len(c['migrations']),8)
+        inventory=json.loads((ROOT/'ops/vps/migration-contract.json').read_text())
+        self.assertEqual(c['migrations'],inventory['baseline']+inventory['additive'])
+
+    def test_dependency_preparation_change_is_incompatible_without_lockfile_change(self):
+        source=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+        initial=f.contract(source)
+        protected='scripts/prepare-secure-dependencies.mjs'
+        self.assertIn(protected,initial['configuration'])
+        self.assertIn('vendor/picomatch-patches.json',initial['configuration'])
+        original=subprocess.check_output
+        def changed(args, **kwargs):
+            value=original(args, **kwargs)
+            if args == ['git','show',source+':'+protected]:
+                return value+b'\n// Changed build configuration\n'
+            return value
+        with patch.object(f.subprocess,'check_output',side_effect=changed):
+            modified=f.contract(source)
+        self.assertEqual(initial['configuration']['package-lock.json'],modified['configuration']['package-lock.json'])
+        self.assertEqual(initial['migrations'],modified['migrations'])
+        self.assertNotEqual(initial,modified)
+        self.assertNotEqual(initial['configuration'][protected],modified['configuration'][protected])
 
     def test_refuse_environment_shell_syntax(self):
         with tempfile.TemporaryDirectory() as name:

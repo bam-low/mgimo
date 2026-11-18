@@ -345,6 +345,7 @@ it("full server workflow runs under limited credentials, retains audit and revok
     action: "CREATE",
     operationId: randomUUID(),
     membershipId: seedMember.id,
+    groupId: "group-1",
     subjectId,
     issuedOn: "2026-11-07",
     result: { kind: "MARK", mark: 5 },

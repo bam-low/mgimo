@@ -44,12 +44,18 @@ function StructureForm({
         e.preventDefault();
         const form = e.currentTarget,
           f = new FormData(form);
-        const active = f.get("active") === "on";
+        const submitter = (e.nativeEvent as SubmitEvent).submitter;
+        const visibility = submitter?.getAttribute("data-visibility");
+        const active =
+          visibility === "archive"
+            ? false
+            : visibility === "restore"
+              ? true
+              : (record?.active ?? (f.get("active") === "on"));
         if (
-          record?.active &&
-          !active &&
+          visibility === "archive" &&
           !window.confirm(
-            "Деактивировать? Учебный доступ связанных студентов закроется, история сохранится.",
+            `Убрать «${record?.name}» в архив? Связанные студенты потеряют доступ к этой учебной ветке. История сохранится.`,
           )
         )
           return;
@@ -64,7 +70,7 @@ function StructureForm({
               ...(!record
                 ? { operationId: (operation.current ??= crypto.randomUUID()) }
                 : {}),
-              name: f.get("name"),
+              name: visibility ? record?.name : f.get("name"),
               active,
               ...(record
                 ? { id: record.id, version: record.version }
@@ -115,22 +121,102 @@ function StructureForm({
           required
         />
       </label>
-      <label className="check-label">
-        <input
-          type="checkbox"
-          name="active"
-          defaultChecked={record?.active ?? true}
-        />
-        Активно
-      </label>
-      <button disabled={busy}>
+      {!record && (
+        <label className="check-label">
+          <input type="checkbox" name="active" defaultChecked />
+          Активно
+        </label>
+      )}
+      <button type="submit" disabled={busy}>
         {busy ? "Сохраняем…" : record ? "Сохранить изменения" : "Создать"}
       </button>
+      {record && (
+        <button
+          type="submit"
+          data-visibility={record.active ? "archive" : "restore"}
+          formNoValidate
+          disabled={busy}
+        >
+          {record.active ? "Убрать в архив" : "Восстановить"}
+        </button>
+      )}
       <p role="status">{error}</p>
     </form>
   );
 }
+function StructureTree({
+  tree,
+  archive = false,
+}: {
+  tree: Tree;
+  archive?: boolean;
+}) {
+  return tree.map((f) => (
+    <section className="structure-branch" key={f.id}>
+      <h2>
+        {f.name} {!f.active && "· В архиве"}
+      </h2>
+      {(!archive || !f.active) && (
+        <details>
+          <summary>Редактировать факультет</summary>
+          <StructureForm key={f.version} kind="faculty" record={f} />
+        </details>
+      )}
+      {f.programs.map((p) => (
+        <section key={p.id} className="structure-program">
+          <h3>
+            {p.name} {!p.active && "· В архиве"}
+          </h3>
+          {f.active && (!archive || !p.active) && (
+            <details>
+              <summary>Редактировать направление</summary>
+              <StructureForm key={p.version} kind="program" record={p} />
+            </details>
+          )}
+          <ul>
+            {p.groups.map((g) => (
+              <li key={g.id}>
+                <h4>
+                  {g.name} {!g.active && "· В архиве"}
+                </h4>
+                {f.active && p.active && (!archive || !g.active) && (
+                  <details>
+                    <summary>Редактировать группу</summary>
+                    <StructureForm key={g.version} kind="group" record={g} />
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </section>
+  ));
+}
+
+function archivedStructure(tree: Tree): Tree {
+  return tree.flatMap((faculty) => {
+    if (!faculty.active) return [faculty];
+    const programs = faculty.programs.flatMap((program) => {
+      if (!program.active) return [program];
+      const groups = program.groups.filter((group) => !group.active);
+      return groups.length ? [{ ...program, groups }] : [];
+    });
+    return programs.length ? [{ ...faculty, programs }] : [];
+  });
+}
+
 export function StructureEditor({ tree }: { tree: Tree }) {
+  const active = tree.filter((faculty) => faculty.active).map((faculty) => ({
+    ...faculty,
+    programs: faculty.programs
+      .filter((program) => program.active)
+      .map((program) => ({
+        ...program,
+        groups: program.groups.filter((group) => group.active),
+      })),
+  }));
+  const archived = archivedStructure(tree);
   return (
     <>
       <section className="staff-create-grid">
@@ -159,43 +245,19 @@ export function StructureEditor({ tree }: { tree: Tree }) {
           />
         </div>
       </section>
-      <h2 className="section-heading">Структура университета</h2>
-      {!tree.length && <p>Начните с первого факультета.</p>}
-      {tree.map((f) => (
-        <section className="structure-branch" key={f.id}>
-          <h2>
-            {f.name} {!f.active && "· Неактивно"}
-          </h2>
-          <details>
-            <summary>Редактировать факультет</summary>
-            <StructureForm key={f.version} kind="faculty" record={f} />
-          </details>
-          {f.programs.map((p) => (
-            <section key={p.id} className="structure-program">
-              <h3>
-                {p.name} {!p.active && "· Неактивно"}
-              </h3>
-              <details>
-                <summary>Редактировать направление</summary>
-                <StructureForm key={p.version} kind="program" record={p} />
-              </details>
-              <ul>
-                {p.groups.map((g) => (
-                  <li key={g.id}>
-                    <h4>
-                      {g.name} {!g.active && "· Неактивно"}
-                    </h4>
-                    <details>
-                      <summary>Редактировать группу</summary>
-                      <StructureForm key={g.version} kind="group" record={g} />
-                    </details>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+      <section aria-label="Активная учебная структура">
+        <h2 className="section-heading">Структура университета</h2>
+        {!active.length && <p>Активных факультетов пока нет.</p>}
+        <StructureTree tree={active} />
+      </section>
+      <details>
+        <summary>Архив учебной структуры</summary>
+        <section aria-label="Архив учебной структуры">
+          <p>Чтобы вернуть вложенную запись, сначала восстановите её родителя.</p>
+          {!archived.length && <p>В архиве пока ничего нет.</p>}
+          <StructureTree tree={archived} archive />
         </section>
-      ))}
+      </details>
     </>
   );
 }

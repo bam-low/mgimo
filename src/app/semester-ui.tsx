@@ -9,8 +9,11 @@ import {
   excluded,
   type Calendar,
   type Rule,
+  dates,
+  ruleInput,
 } from "@/lib/semester";
 import { addDays, monday, dayKey, timeLabel } from "@/lib/schedule-time";
+import { assignmentBlocks } from "@/lib/teaching-assignment";
 import { ScheduleField } from "./schedule-field";
 import { displayDate } from "./schedule-input-values";
 import type {
@@ -21,8 +24,19 @@ import type {
 type Catalog = Awaited<ReturnType<typeof builderCatalog>>;
 type Week = Awaited<ReturnType<typeof builderWeek>>;
 type Preview = {
+  id: string;
   token: string;
-  dates: { day: string; groupCount: number; status: string }[];
+  dates: {
+    day: string;
+    groupCount: number;
+    status: string;
+    groups: string[];
+    title: string;
+    teacher: string;
+    room: string;
+    startTime: string;
+    endTime: string;
+  }[];
   affected: { id: string; day: string }[];
   skipped: string[];
   skippedCount: number;
@@ -58,12 +72,14 @@ export function BuilderMutation({
 }: {
   command: () => BuilderCommand;
   children: ReactNode;
-  onSaved?: () => void;
+  onSaved?: (preview: Preview) => void;
 }) {
   const [preview, P] = useState<Preview | null>(null),
     [error, E] = useState(""),
     [busy, B] = useState(false),
-    [done, D] = useState(false);
+    [done, D] = useState(false),
+    [ready, Ready] = useState(false);
+  useEffect(() => Ready(true), []);
   const sequence = useRef(0),
     router = useRouter();
   const signature = JSON.stringify(command());
@@ -100,7 +116,7 @@ export function BuilderMutation({
         P(null);
         D(true);
         router.refresh();
-        onSaved?.();
+        onSaved?.(data);
       } else P(data);
     } catch {
       if (sequence.current === serial)
@@ -125,14 +141,14 @@ export function BuilderMutation({
         void send(false);
       }}
     >
-      <fieldset disabled={busy}>{children}</fieldset>
+      <fieldset disabled={busy || !ready}>{children}</fieldset>
       <p
         role="status"
         className={error ? "form-message is-error" : "form-message"}
       >
         {error || (done ? "Изменения сохранены" : busy ? "Проверяем…" : "")}
       </p>
-      <button disabled={busy} type="submit">
+      <button disabled={busy || !ready} type="submit">
         Проверить изменения
       </button>
       {preview && (
@@ -151,12 +167,27 @@ export function BuilderMutation({
               {w}
             </p>
           ))}
-          <details>
+          {preview.dates[0] && (
+            <div className="publication-summary">
+              <h4>{preview.dates[0].title}</h4>
+              <p>
+                {preview.dates[0].teacher} · {preview.dates[0].room}
+              </p>
+              <p>
+                <strong>Группы:</strong>{" "}
+                {[...new Set(preview.dates.flatMap((d) => d.groups))].join(
+                  ", ",
+                )}
+              </p>
+            </div>
+          )}
+          <details open>
             <summary>Конкретные даты и затронутые занятия</summary>
             <ul className="preview-dates">
               {preview.dates.map((d, i) => (
                 <li key={i}>
-                  {displayDate(d.day)} · групп: {d.groupCount} ·{" "}
+                  {displayDate(d.day)} · {d.startTime}–{d.endTime} ·{" "}
+                  {d.groups.join(", ")} ·{" "}
                   {d.status === "SCHEDULED"
                     ? "запланировано"
                     : "отмена / удаление"}
@@ -287,9 +318,21 @@ export function SemesterEditor({
         exclusions: [],
       },
     ),
-    [op] = useState(() => crypto.randomUUID());
+    [op] = useState(() => crypto.randomUUID()),
+    [firstWeek, FW] = useState<"A" | "B">("A");
   function update<K extends keyof Calendar>(key: K, value: Calendar[K]) {
-    C((c) => ({ ...c, [key]: value }));
+    C((c) => ({
+      ...c,
+      [key]: value,
+      ...(!semester && key === "start" && civilDay(value as string)
+        ? {
+            anchor:
+              firstWeek === "A"
+                ? monday(value as string)
+                : addDays(monday(value as string), -7),
+          }
+        : {}),
+    }));
   }
   return (
     <div className="semester-edit-grid">
@@ -329,6 +372,37 @@ export function SemesterEditor({
             value={calendar.end}
             onValueChange={(v) => update("end", v)}
           />
+          {!semester && (
+            <label>
+              Неделя с датой начала
+              <select
+                value={firstWeek}
+                onChange={(e) => {
+                  const v = e.target.value as "A" | "B";
+                  FW(v);
+                  if (civilDay(calendar.start))
+                    update(
+                      "anchor",
+                      v === "A"
+                        ? monday(calendar.start)
+                        : addDays(monday(calendar.start), -7),
+                    );
+                }}
+              >
+                <option value="A">Числитель</option>
+                <option value="B">Знаменатель</option>
+              </select>
+            </label>
+          )}
+          {civilDay(calendar.start) && civilDay(calendar.anchor) && (
+            <p className="notice">
+              Дата начала {displayDate(calendar.start)} —{" "}
+              {parity(calendar.start, calendar.anchor) === "A"
+                ? "числитель"
+                : "знаменатель"}
+              . Дни до начала недоступны для публикации.
+            </p>
+          )}
           <ScheduleField
             label="Первая неделя-числитель (понедельник)"
             broad
@@ -654,8 +728,10 @@ function ResourceFields({
   catalog,
   value,
   onChange,
+  locked = false,
 }: {
   catalog: Catalog;
+  locked?: boolean;
   value: Pick<
     Rule,
     "subjectId" | "teacherId" | "roomId" | "startTime" | "endTime"
@@ -664,47 +740,53 @@ function ResourceFields({
 }) {
   return (
     <>
-      <label>
-        Дисциплина
-        <select
-          required
-          value={value.subjectId}
-          onChange={(e) =>
-            onChange({ subjectId: e.target.value, teacherId: null })
-          }
-        >
-          <option value="">Выберите дисциплину</option>
-          {catalog.subjects
-            .filter((s) => s.active || s.id === value.subjectId)
-            .map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {!s.active ? " (неактивна)" : ""}
-              </option>
-            ))}
-        </select>
-      </label>
-      <label>
-        Преподаватель
-        <select
-          value={value.teacherId ?? ""}
-          onChange={(e) => onChange({ teacherId: e.target.value || null })}
-        >
-          <option value="">Не назначен — занятость не проверяется</option>
-          {catalog.teachers
-            .filter(
-              (t) =>
-                t.id === value.teacherId ||
-                (t.active && t.subjectIds.includes(value.subjectId)),
-            )
-            .map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-                {!t.active ? " (неактивен)" : ""}
-              </option>
-            ))}
-        </select>
-      </label>
+      {!locked && (
+        <>
+          <label>
+            Дисциплина
+            <select
+              required
+              disabled={locked}
+              value={value.subjectId}
+              onChange={(e) =>
+                onChange({ subjectId: e.target.value, teacherId: null })
+              }
+            >
+              <option value="">Выберите дисциплину</option>
+              {catalog.subjects
+                .filter((s) => s.active || s.id === value.subjectId)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {!s.active ? " (неактивна)" : ""}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Преподаватель
+            <select
+              disabled={locked}
+              value={value.teacherId ?? ""}
+              onChange={(e) => onChange({ teacherId: e.target.value || null })}
+            >
+              <option value="">Не назначен — занятость не проверяется</option>
+              {catalog.teachers
+                .filter(
+                  (t) =>
+                    t.id === value.teacherId ||
+                    (t.active && t.subjectIds.includes(value.subjectId)),
+                )
+                .map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                    {!t.active ? " (неактивен)" : ""}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </>
+      )}
       <label>
         Аудитория
         <select
@@ -746,11 +828,15 @@ export function ScheduleBuilder({
   initialSemester = "",
   initialProgram = "",
   initialDay = "",
+  initialGroup = "",
+  initialDraft = "",
 }: {
   catalog: Catalog;
   initialSemester?: string;
   initialProgram?: string;
   initialDay?: string;
+  initialGroup?: string;
+  initialDraft?: string;
 }) {
   const [semesterId, S] = useState(initialSemester),
     [programId, P] = useState(initialProgram),
@@ -759,14 +845,23 @@ export function ScheduleBuilder({
         f.programs.some((p) => p.id === initialProgram),
       )?.id ?? "",
     ),
-    [mode, M] = useState("ALL"),
-    [groupId, G] = useState(""),
+    [mode, M] = useState(initialGroup ? "ONE" : "ALL"),
+    [groupId, G] = useState(initialGroup),
     [mobileGroup, MG] = useState(""),
     [day, D] = useState(initialDay),
     [week, W] = useState<Week | null>(null),
     [error, E] = useState(""),
     [busy, B] = useState(false),
-    [selected, Sel] = useState("");
+    [selected, Sel] = useState(""),
+    [slot, Slot] = useState({
+      day: initialDay,
+      groupId: initialGroup,
+      startTime: "09:00",
+      endTime: "10:30",
+    }),
+    [highlight, H] = useState(""),
+    [saved, Saved] = useState(""),
+    [newRevision, Rev] = useState(0);
   const sequence = useRef(0),
     semester = catalog.semesters.find((s) => s.id === semesterId),
     programs = catalog.faculties.flatMap((f) =>
@@ -784,7 +879,14 @@ export function ScheduleBuilder({
     : semester
       ? monday(semester.calendar.start)
       : "";
-  async function load(nextDay = day) {
+  async function load(nextDay = day, published?: Preview) {
+    if (published) {
+      H(published.id);
+      Rev((n) => n + 1);
+      Saved(
+        `Опубликовано занятий: ${published.dates.length}. Группы: ${[...new Set(published.dates.flatMap((d) => d.groups))].join(", ")}. Новые пары выделены в расписании.`,
+      );
+    }
     const serial = ++sequence.current;
     if (
       !semester ||
@@ -813,7 +915,21 @@ export function ScheduleBuilder({
       if (!r.ok) {
         E(data.error);
         W(null);
-      } else W(data);
+      } else {
+        W(data);
+        if (!civilDay(slot.day))
+          Slot({
+            day:
+              nextDay >= semester.calendar.start &&
+              nextDay <= semester.calendar.end
+                ? nextDay
+                : semester.calendar.start,
+            groupId:
+              mode === "ONE" ? groupId : mobileGroup || groups[0]?.id || "",
+            startTime: "09:00",
+            endTime: "10:30",
+          });
+      }
     } catch {
       E("Не удалось загрузить расписание. Повторите попытку.");
     } finally {
@@ -821,6 +937,7 @@ export function ScheduleBuilder({
     }
   }
   function invalidate() {
+    Slot({ day: "", groupId: "", startTime: "09:00", endTime: "10:30" });
     ++sequence.current;
     W(null);
     Sel("");
@@ -834,7 +951,7 @@ export function ScheduleBuilder({
     return (
       <button
         type="button"
-        className={`timetable-lesson ${e.status === "CANCELLED" ? "is-cancelled" : ""}`}
+        className={`timetable-lesson ${e.templateId === highlight ? "is-published" : ""} ${e.status === "CANCELLED" ? "is-cancelled" : ""}`}
         key={e.id}
         onClick={() => {
           Sel(e.id);
@@ -869,15 +986,54 @@ export function ScheduleBuilder({
           e.groupIds.includes(g) &&
           dayKey(new Date(e.startsAt), week.timezone) === date,
       ) ?? [];
-    return entries.length ? (
-      entries.map(entryCard)
-    ) : (
-      <p className="empty-slot">Занятий нет</p>
+    const unavailable =
+      !semester ||
+      date < semester.calendar.start ||
+      date > semester.calendar.end ||
+      excluded(date, semester.calendar);
+    return (
+      <>
+        {entries.length ? (
+          entries.map(entryCard)
+        ) : (
+          <p className="empty-slot">Занятий нет</p>
+        )}
+        <button
+          type="button"
+          className="secondary add-slot"
+          disabled={unavailable}
+          aria-label={`Добавить занятие ${displayDate(date)} · ${groups.find((x) => x.id === g)?.name}`}
+          onClick={() => {
+            Rev((n) => n + 1);
+            Sel("");
+            Slot({
+              day: date,
+              groupId: g,
+              startTime: "09:00",
+              endTime: "10:30",
+            });
+            requestAnimationFrame(() =>
+              document
+                .getElementById("builder-inspector")
+                ?.scrollIntoView({ block: "start" }),
+            );
+          }}
+        >
+          {unavailable ? "Вне учебных дней" : "+ Добавить занятие"}
+        </button>
+      </>
     );
   }
   return (
     <>
+      <div className="builder-entrypoints">
+        <Link href="/staff/schedule/assignments">
+          1. Настроить дисциплину и группы
+        </Link>
+        <a href="#builder-filters">2. Добавить занятие в расписание</a>
+      </div>
       <form
+        id="builder-filters"
         className="builder-filters"
         onSubmit={(e) => {
           e.preventDefault();
@@ -944,7 +1100,7 @@ export function ScheduleBuilder({
               .filter((p) => p.facultyId === facultyId)
               .map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.label}
+                  {p.name}
                   {!p.available ? " (неактивно)" : ""}
                 </option>
               ))}
@@ -1031,7 +1187,7 @@ export function ScheduleBuilder({
               ← Неделя
             </button>
             <strong>
-              {displayDate(from)} ·{" "}
+              {displayDate(from)} — {displayDate(addDays(from, 6))} ·{" "}
               {parity(from, semester.calendar.anchor) === "A"
                 ? "Числитель"
                 : "Знаменатель"}
@@ -1048,10 +1204,47 @@ export function ScheduleBuilder({
               Неделя →
             </button>
           </nav>
+          <nav className="week-nav" aria-label="Переход по типу недели">
+            {(["A", "B"] as const).map((type) => {
+              const start =
+                parity(from, semester.calendar.anchor) === type
+                  ? from
+                  : addDays(from, 7);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    D(start);
+                    void load(start);
+                  }}
+                >
+                  {type === "A" ? "Числитель" : "Знаменатель"} ·{" "}
+                  {displayDate(start)}–{displayDate(addDays(start, 6))}
+                </button>
+              );
+            })}
+          </nav>
+          {saved && (
+            <p role="status" className="notice">
+              {saved}
+            </p>
+          )}
           <button
             type="button"
             className="secondary"
             onClick={() => {
+              Rev((n) => n + 1);
+              Slot({
+                day:
+                  civilDay(day) && day >= semester.calendar.start
+                    ? day
+                    : semester.calendar.start,
+                groupId: visibleGroup,
+                startTime: "09:00",
+                endTime: "10:30",
+              });
               Sel("");
               requestAnimationFrame(() => {
                 const panel = document.getElementById("builder-inspector");
@@ -1090,6 +1283,10 @@ export function ScheduleBuilder({
                   <tr key={date}>
                     <th scope="row">
                       {displayDate(date)}
+                      {(date < semester.calendar.start ||
+                        date > semester.calendar.end) && (
+                        <small>Вне семестра</small>
+                      )}
                       {excluded(date, semester.calendar) && (
                         <small>Исключено</small>
                       )}
@@ -1129,6 +1326,10 @@ export function ScheduleBuilder({
                     ? "Числитель"
                     : "Знаменатель"}
                 </h3>
+                {(date < semester.calendar.start ||
+                  date > semester.calendar.end) && (
+                  <p>Вне семестра — публикация недоступна</p>
+                )}
                 {excluded(date, semester.calendar) && (
                   <p>Исключённый день семестра</p>
                 )}
@@ -1167,13 +1368,18 @@ export function ScheduleBuilder({
               )
             ) : (
               <TemplateEditor
-                key={`${semester.id}:${program.id}:${mode}:${groupId}`}
+                key={`${semester.id}:${program.id}:${mode}:${groupId}:${slot.day}:${slot.groupId}:${newRevision}`}
                 catalog={catalog}
                 semester={semester}
                 programId={program.id}
                 groups={groups.filter((g) => g.active && program.available)}
-                defaultGroup={mode === "ONE" ? groupId : visibleGroup}
-                reload={() => void load()}
+                defaultGroup={
+                  slot.groupId || (mode === "ONE" ? groupId : visibleGroup)
+                }
+                slot={slot}
+                initialDraft={initialDraft}
+                viewGroup={mode === "ONE" ? groupId : ""}
+                reload={(p) => void load(day, p)}
               />
             )}
           </section>
@@ -1191,31 +1397,75 @@ function TemplateEditor({
   reload,
   template,
   today,
+  slot,
+  initialDraft,
+  viewGroup = "",
 }: {
   catalog: Catalog;
   semester: Catalog["semesters"][number];
   programId: string;
   groups: { id: string; name: string }[];
   defaultGroup?: string;
-  reload: () => void;
+  reload: (preview?: Preview) => void;
+  slot?: { day: string; groupId: string; startTime: string; endTime: string };
+  initialDraft?: string;
+  viewGroup?: string;
   template?: Week["templates"][number];
   today?: string;
 }) {
+  const draft = (() => {
+    try {
+      const r = ruleInput.safeParse(JSON.parse(initialDraft ?? ""));
+      return r.success ? r.data : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
   const [rule, R] = useState<Rule>(
-      template?.rule ?? {
-        subjectId: "",
-        teacherId: null,
-        roomId: null,
-        groupIds: defaultGroup ? [defaultGroup] : [],
-        recurrence: "EVERY",
-        weekday: 1,
-        once: semester.calendar.start,
-        startTime: "09:00",
-        endTime: "10:30",
-      },
+      template?.rule ??
+        draft ?? {
+          subjectId: "",
+          teacherId: null,
+          roomId: null,
+          groupIds: defaultGroup ? [defaultGroup] : [],
+          recurrence: "EVERY",
+          weekday:
+            slot && civilDay(slot.day)
+              ? ((new Date(slot.day).getUTCDay() + 6) % 7) + 1
+              : 1,
+          once: slot?.day || semester.calendar.start,
+          startTime: slot?.startTime ?? "09:00",
+          endTime: slot?.endTime ?? "10:30",
+        },
     ),
     [from, F] = useState(today ?? semester.calendar.start),
-    [op] = useState(() => crypto.randomUUID());
+    [op] = useState(() => crypto.randomUUID()),
+    [blockKey, BK] = useState("");
+  const blocks = assignmentBlocks(
+      catalog,
+      programId,
+      viewGroup || defaultGroup,
+    ),
+    block = blocks.find((b) => b.key === blockKey);
+  const returnTo =
+    "/staff/schedule/builder?" +
+    new URLSearchParams({
+      semesterId: semester.id,
+      programId,
+      day: slot?.day || rule.once,
+      ...(viewGroup ? { groupId: viewGroup } : {}),
+      draft: JSON.stringify(rule),
+    });
+  const setupHref =
+    "/staff/schedule/assignments?" +
+    new URLSearchParams({ programId, returnTo });
+  let generated: ReturnType<typeof dates> | undefined;
+  try {
+    if (ruleInput.safeParse(rule).success)
+      generated = dates(semester.calendar, rule);
+  } catch {
+    /* Server returns the actionable bounds error. */
+  }
   return (
     <>
       <p>
@@ -1240,34 +1490,115 @@ function TemplateEditor({
                 semesterId: semester.id,
                 programId,
                 rule,
+                ...(block
+                  ? {
+                      assignment: {
+                        id: block.assignment.id,
+                        version: block.assignment.version,
+                        ...(block.assignment.kind === "SEMINAR"
+                          ? { groupId: block.groupIds[0] }
+                          : {}),
+                      },
+                    }
+                  : {}),
               }
         }
       >
-        <fieldset>
-          <legend>Участвующие группы</legend>
-          {groups.map((g) => (
-            <label key={g.id} className="check-line">
-              <input
-                type="checkbox"
-                checked={rule.groupIds.includes(g.id)}
-                onChange={(e) =>
-                  R({
-                    ...rule,
-                    groupIds: e.target.checked
-                      ? [...rule.groupIds, g.id]
-                      : rule.groupIds.filter((x) => x !== g.id),
-                  })
-                }
-              />
-              {g.name}
+        {!template && (
+          <section className="ready-lessons">
+            <p className="eyebrow">Шаг 2 / Готовое занятие</p>
+            <label>
+              Готовая лекция или семинар
+              <select
+                value={blockKey}
+                onChange={(e) => {
+                  BK(e.target.value);
+                  const b = blocks.find((b) => b.key === e.target.value);
+                  if (b)
+                    R({
+                      ...rule,
+                      subjectId: b.assignment.subjectId,
+                      teacherId: b.teacherId,
+                      groupIds: b.groupIds,
+                    });
+                }}
+              >
+                <option value="">Выберите готовое занятие</option>
+                {blocks.map((b) => (
+                  <option key={b.key} value={b.key} disabled={!!b.reason}>
+                    {b.label}
+                    {b.reason ? ` — ${b.reason}` : ""}
+                  </option>
+                ))}
+              </select>
             </label>
-          ))}
-        </fieldset>
+            {!blocks.length && (
+              <p>Для выбранной группы пока нет готовых занятий.</p>
+            )}
+            <Link href={setupHref}>Настроить дисциплину и группы →</Link>
+            {block && (
+              <div className="notice">
+                <h3>
+                  {block.title} ·{" "}
+                  {block.assignment.kind === "LECTURE" ? "Лекция" : "Семинар"}
+                </h3>
+                <p>
+                  <strong>
+                    {block.assignment.kind === "LECTURE"
+                      ? "Общая лекция появится у всех групп:"
+                      : "Отдельный семинар для группы:"}
+                  </strong>{" "}
+                  {block.groupNames.join(", ")}. Преподаватель: {block.teacher}.
+                </p>
+              </div>
+            )}
+            {blocks
+              .filter((b) => b.reason)
+              .map((b) => (
+                <p key={b.key}>
+                  {b.title} · {b.groupNames.join(", ")}: {b.reason}.{" "}
+                  <Link href="/staff/schedule/resources">
+                    Проверить преподавателей
+                  </Link>
+                </p>
+              ))}
+          </section>
+        )}
+        {!block && (
+          <fieldset>
+            <legend>Участвующие группы</legend>
+            {groups.map((g) => (
+              <label key={g.id} className="check-line">
+                <input
+                  type="checkbox"
+                  checked={rule.groupIds.includes(g.id)}
+                  onChange={(e) =>
+                    R({
+                      ...rule,
+                      groupIds: e.target.checked
+                        ? [...rule.groupIds, g.id]
+                        : rule.groupIds.filter((x) => x !== g.id),
+                    })
+                  }
+                />
+                {g.name}
+              </label>
+            ))}
+          </fieldset>
+        )}
         <ResourceFields
           catalog={catalog}
           value={rule}
+          locked={!!block}
           onChange={(patch) => R({ ...rule, ...patch })}
         />
+        <p>
+          Открыта неделя:{" "}
+          {slot && civilDay(slot.day)
+            ? `${displayDate(monday(slot.day))}–${displayDate(addDays(monday(slot.day), 6))} · ${parity(slot.day, semester.calendar.anchor) === "A" ? "числитель" : "знаменатель"}`
+            : "по выбранной дате"}
+          . Правило повторения выбирается отдельно.
+        </p>
         <label>
           Повторение
           <select
@@ -1312,6 +1643,46 @@ function TemplateEditor({
               ))}
             </select>
           </label>
+        )}
+        {generated && (
+          <section className="placement-summary" aria-label="План размещения">
+            <h3>Что появится в расписании</h3>
+            <p>
+              {catalog.subjects.find((s) => s.id === rule.subjectId)?.name} ·{" "}
+              {catalog.teachers.find((t) => t.id === rule.teacherId)?.name ??
+                "Преподаватель не назначен"}
+            </p>
+            <p>
+              Группы:{" "}
+              {rule.groupIds
+                .map((id) => groups.find((g) => g.id === id)?.name ?? id)
+                .join(", ")}
+            </p>
+            <p>
+              Повтор:{" "}
+              {
+                {
+                  EVERY: "каждую неделю",
+                  A: "только числитель",
+                  B: "только знаменатель",
+                  ONCE: "разово",
+                }[rule.recurrence]
+              }
+              . {rule.startTime}–{rule.endTime}.
+            </p>
+            <p>
+              Даты:{" "}
+              {generated.days.map(displayDate).join(", ") ||
+                "Нет подходящих дат — измените день, повторение или границы семестра."}
+            </p>
+            {!!generated.skipped.length && (
+              <p>Исключено: {generated.skipped.map(displayDate).join(", ")}</p>
+            )}
+            <small>
+              Точный план и занятость по всему вузу проверит сервер по кнопке
+              ниже.
+            </small>
+          </section>
         )}
         {template && (
           <ScheduleField
