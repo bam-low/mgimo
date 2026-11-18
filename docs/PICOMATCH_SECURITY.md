@@ -1,0 +1,51 @@
+# GHSA-fc5q-39xc-vjpf — кандидат исправления #64
+
+Дата исследования: 18.11.2026. Основа: main `a923ab65e077ef6fe22c7a4fa88003904daba366`.
+Это кандидат для ручного security review, не разрешение выкладки. Production NO-GO сохраняется.
+
+## Причина и границы
+
+`better-auth@1.7.17` имеет optional peer Vitest. Поэтому Vitest/Vite/tinyglobby/fdir/picomatch достижимы в production npm-графе (`devOptional`), несмотря на прямую devDependency Vitest. `npm audit --omit=dev` обоснованно проверяет этот путь. Отдельно Next содержит встроенный модуль, который npm audit не инвентаризирует как отдельную зависимость. Tools также поставляет встроенные копии в Prisma, Vercel и Playwright.
+
+[Advisory](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) на момент исследования не имеет официальной patched version. Next16.4.6 содержит побайтно тот же compiled/picomatch, что16.4.5: SHA-256 `607dc79784c1161c33076903769dba23e63d9d9ccfe3c4695a32ebe3a5ab892d`. Обновление только Next не устраняет finding.
+
+## Выбор исправления
+
+Рассмотрены открытые upstream PR, включая [238](https://github.com/micromatch/picomatch/pull/238), [246](https://github.com/micromatch/picomatch/pull/246), [260](https://github.com/micromatch/picomatch/pull/260), [261](https://github.com/micromatch/picomatch/pull/261), [262](https://github.com/micromatch/picomatch/pull/262), [263](https://github.com/micromatch/picomatch/pull/263), [264](https://github.com/micromatch/picomatch/pull/264), [265](https://github.com/micromatch/picomatch/pull/265). PR262/264 оставляют ограниченно воспроизведённые зависания на raw/nested повторениях; opt-out сохраняет уязвимое поведение. Они не приняты как достаточное исправление. Сторонний переименованный пакет с изменением обычной glob-семантики также отвергнут.
+
+Основа кандидата — **только security-изменения** PR261, commit `b911986d9fb69c39ac203a1d08b7436057508058`: ограниченная проверка неоднозначности повторений и нормализация простых безопасных случаев. Не импортируются посторонние изменения upstream master в globstar, `[!x]` или fastpaths. Дополнения проекта:
+
+- Финальная проверка охватывает `@(*a)+` и raw group quantifiers, а не только внешние `+()`/`*()`; `maxExtglobRecursion:false` не отключает защиту.
+- Backport на исходный npm2.3.2 сохраняет начальный текст при объединении tokens: это необходимо для корректной проверки реально генерируемого тела регулярного выражения.
+- Next использует адаптер **v2**, сохраняющий семантику его исходной встроенной копии. Npm2/4 остаются двумя самостоятельными совместимыми ветвями.
+
+Честные частные имена `@campus/picomatch-v2` / `@campus/picomatch-v4`, версии `2.3.2-campus.1` / `4.0.7-campus.1` обозначают **локальный форк**, не официальный исправленный picomatch. MIT license сохранена. Исходники доступны в [vendor](../vendor/picomatch-v2/SECURITY.md), [v4](../vendor/picomatch-v4/SECURITY.md); детерминированные tgz закреплены SHA-512 в lockfile, исходники и патчи — SHA-256 в [manifest](../vendor/picomatch-patches.json).
+
+После замены имени npm advisory не сопоставляется с форком. **Ноль в audit не доказывает исправления**: обязательные независимые gates проверяют фактический код, встроенные копии и ограниченные по времени опасные сопоставления. Нет audit exclusions, suppress/ignore/VEX, изменения severity или отключения сканера.
+
+## Поставка и воспроизводимость
+
+```sh
+npm ci --ignore-scripts
+npm run security:prepare
+npm run test:picomatch
+npm audit --omit=dev
+```
+
+Установка не запускает lifecycle hooks. Подготовка явно вызывается CI, `db:generate`, build и изолированной Functions-сборкой до использования Prisma/Vercel. Все изменяемые vendor bundles проверяются полным исходным SHA-256. Неожиданная версия или изменённый файл останавливают подготовку; повторный вызов принимает только точный итоговый SHA-256. Замена фабрик выполняется по AST, включая обе независимые копии в Playwright expect bundle. Имена исходных factory paths сохраняются для происхождения, тела старых парсеров удалены, а не оставлены доступной альтернативой.
+
+[Архиватор](../scripts/pack-security-vendors.py) не скачивает и не исполняет сторонний код; исходные tarball checksums и минимальные diff доступны в материалах PR. При обновлении зависимостей нужно заново исследовать изменившийся bundle, а не обновлять hash вслепую.
+
+## Проверки
+
+[Security tests](../tests/picomatch-security.test.mjs) включают сравнение 14 985 обычных сопоставлений с исходными npm2.3.2/4.0.7 и Next16.4.5; настоящий поиск дерева файлов tinyglobby/micromatch; scan/ignore/capture/windows; отсутствие opt-out; целостность архивов. Эталонные результаты получены только на обычных синтетических путях, исходный уязвимый код не поставляется в fixture.
+
+[Artifact checker](../scripts/check-picomatch-artifact.mjs) проверяет все обнаруженные npm-копии, точные hashes встроенных модулей и dangerous-pattern matrix через отдельные процессы с timeout/SIGKILL. В VPS CI он исполняется **внутри** итоговых runtime/tools: read-only, network none, cap-drop ALL, no-new-privileges, ограничение CPU/memory/PID. JSON inventory/probes и IDs образов сохраняются отдельно до остальных репетиций и Trivy. Штатные полные Trivy reports, audit, Node/Functions/VPS E2E, upgrade/rollback/fresh restore и упаковка сохраняются. Доказательства и результаты относятся только к указанному HEAD/конкретному Actions run.
+
+## Ограничения и принятие
+
+- Консервативная проверка отклоняет неоднозначные/недоказанные сложные повторяющиеся extglobs с `SyntaxError`, включая превышение бюджета доказательства. Это намеренное ограничение опасных шаблонов; не обещается полная совместимость всех экзотических glob-выражений.
+- Произвольный переданный `RegExp`, подделанный parse-state и самостоятельный callback expansion остаются доверенной границей API; проверка не превращает picomatch в sandbox произвольных регулярных выражений.
+- Ограниченные behavioral tests не являются формальным доказательством отсутствия всех возможных ReDoS. Локальный форк требует ручного security review и сопровождения до подтверждённого upstream fix. Уязвимость через существующий HTTP-сценарий Кампуса не продемонстрирована.
+- Нужен **полный выпуск**, поскольку изменились package-lock.json, runtime и tools. App-only обновление несовместимо с действующим контрактом и должно отказать; не обходить его проверки. Схема/миграции/данные и версия PostgreSQL не меняются.
+- Действующий VPS не затрагивается. Никаких подписей ключом владельца, публикации релиза, merge или deploy.

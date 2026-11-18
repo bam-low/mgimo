@@ -1,0 +1,138 @@
+{
+  "advisory": "GHSA-fc5q-39xc-vjpf",
+  "patchCommit": "b911986d9fb69c39ac203a1d08b7436057508058",
+  "vendors": {
+    "2": {
+      "LICENSE": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+      "SECURITY.md": "1155ce2e1004fef92552f469b1a20db4e9ca05bc94cb3cb7ce2bf2b1bb350eaa",
+      "index.js": "5695ff5dfcd5a338a40630bd506056f2950bcb08fe1cc068519cbbfe60add480",
+      "lib/constants.js": "980225ab847a88a784f6d315557b8434f7742b2551ce20e354455c61b938c0a5",
+      "lib/parse.js": "69c00ff5bd373ee8e54ed2dd0c9ae7091779aca1aafc79fc19eeecfd48cf996d",
+      "lib/picomatch.js": "382007f87b26f35f3a9eb4b1908f3a0c9d9a923457449951a42d991adf26f090",
+      "lib/safe-repetition.js": "7ff1212f1481589c45b834a3e6518b0d5a1762a7a7d7db2677f867cf5f004eb6",
+      "lib/scan.js": "227fcc994a477ea95c5a0435d32783566334c6bd0dcc4a103029735ad8c9c535",
+      "lib/utils.js": "809fc29cf35ab0aa76b99cad29182f62c0ae598902481d10f9868eaef71981ee",
+      "package.json": "b5b4376e7d90a4d76e63057eabb1f41a28c90de95f1d2409b8b4d710e114b230"
+    },
+    "4": {
+      "LICENSE": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+      "SECURITY.md": "1155ce2e1004fef92552f469b1a20db4e9ca05bc94cb3cb7ce2bf2b1bb350eaa",
+      "index.js": "02ae26406508e28f9ba0865be16cf77f0b33de6c4d4d49c212c4176df1d5625a",
+      "lib/constants.js": "c28f952d2758261fe5428a121add485cc25b03e0193633f649de903dc0e5e222",
+      "lib/parse.js": "9867e0065ae81248009bad1a30102aa18a701dc02058ee50a13c30d87b5da5d2",
+      "lib/picomatch.js": "fae3ffea9dc4d227a87e2c5bffb59cf7ee35e8fc8e65d602e945ba49b91e7caf",
+      "lib/safe-repetition.js": "7ff1212f1481589c45b834a3e6518b0d5a1762a7a7d7db2677f867cf5f004eb6",
+      "lib/scan.js": "6457a1764e5c2e543cc3a0c00ce12ebb3764097628868198370b64d4e642aaae",
+      "lib/utils.js": "f04604f70cd1a3f6ace80b84766468674ff38b4bb83818d2ef1d81fc6355f935",
+      "package.json": "89e2755ce14b331f5215c4d7bbcff1c4180123c8deb83181ea7dcb48671f9a2e",
+      "posix.js": "5695ff5dfcd5a338a40630bd506056f2950bcb08fe1cc068519cbbfe60add480"
+    }
+  },
+  "bundles": {
+    "next/dist/compiled/picomatch/index.js": {
+      "replacement": "\"use strict\";\n// Campus security adapter; see vendor/picomatch-patches.json.\nmodule.exports = require(\"@campus/picomatch-v2\");\n",
+      "originalSHA256": "607dc79784c1161c33076903769dba23e63d9d9ccfe3c4695a32ebe3a5ab892d",
+      "patchedSHA256": "060a341e2c174eb710439eb763350b1866fa94d9a1a288d4b011dfc275262d0e"
+    },
+    "next/dist/compiled/picomatch/package.json": {
+      "replacement": "{\n  \"name\": \"@campus/next-picomatch-adapter\",\n  \"version\": \"16.4.5-campus.1\",\n  \"private\": true,\n  \"main\": \"index.js\",\n  \"license\": \"MIT\",\n  \"campusSecurity\": {\n    \"upstreamNext\": \"16.4.5\",\n    \"upstreamModule\": \"picomatch\",\n    \"fork\": \"@campus/picomatch-v2\"\n  }\n}\n",
+      "originalSHA256": "bcb6e75087cfe22755400218f098b6b36805627e5f54171abf58454f6484ac47",
+      "patchedSHA256": "bd48b7cc04dedbe631d96b2ac325b6cb668cc78caa5554a2e9fddd9cea0173eb"
+    },
+    "@prisma/get-platform/dist/chunk-3UEKS5W6.js": {
+      "factories": 6,
+      "originalSHA256": "e3296c06512dd5dcd95a932b152c00e4ca8e6b71c3d4b87a2bee90bf66c66ae7",
+      "patchedSHA256": "ad67055bd047d8508e66c6752d38785d02bae29ea3458d12b91ec292421de306"
+    },
+    "@prisma/fetch-engine/dist/chunk-HWBBHXY6.js": {
+      "factories": 6,
+      "originalSHA256": "07e74e372d988f77be471587dd6ab8dce83d5b4827c516eb3084434f6b9e55b1",
+      "patchedSHA256": "341efec3493920f7c727a1e609a9c19d04a816f8e73f8e9ac304850343f512f0"
+    },
+    "@prisma/fetch-engine/dist/chunk-PPPJF3PE.js": {
+      "factories": 6,
+      "originalSHA256": "11c4f16d51b726ad654ebc199e61d3fb8009df3affdc36d08452ae4c8cf9fde9",
+      "patchedSHA256": "e9b87be2816185ea0f5464db8d5a3d03a9483947a5c56b11a25fd7018c562dca"
+    },
+    "@prisma/fetch-engine/node_modules/@prisma/get-platform/dist/chunk-IL63DMPY.js": {
+      "factories": 6,
+      "originalSHA256": "a22af5757f6897868dafa07e21e489da4c26776b15431e63609e73e6c8bdf2be",
+      "patchedSHA256": "0259838b0371aa0076db79337e968d94bd75528f25c3b05731a55034a3652a46"
+    },
+    "@prisma/engines/node_modules/@prisma/get-platform/dist/chunk-IL63DMPY.js": {
+      "factories": 6,
+      "originalSHA256": "a22af5757f6897868dafa07e21e489da4c26776b15431e63609e73e6c8bdf2be",
+      "patchedSHA256": "0259838b0371aa0076db79337e968d94bd75528f25c3b05731a55034a3652a46"
+    },
+    "@vercel/next/dist/adapter/index.js": {
+      "factories": 6,
+      "originalSHA256": "0b571fa6d75a54cceb26ff844f97004b0bb4761687e23239e73f4517bf2c6e02",
+      "patchedSHA256": "d0e29bf84fa13c285a3774b001dbde3b2010c43945e7ae7845e2e292f172abb2"
+    },
+    "playwright/lib/utilsBundleImpl.js": {
+      "factories": 6,
+      "major": 2,
+      "minified": {
+        "gr": "/lib/constants.js",
+        "ei": "/lib/utils.js",
+        "vl": "/lib/scan.js",
+        "Bl": "/lib/parse.js",
+        "Ll": "/lib/picomatch.js",
+        "ms": ""
+      },
+      "originalSHA256": "06ce639bbf1b11dda400e4a3c7130bd4b544f4ff3c1d70e6a2441d7699d7a0ec",
+      "patchedSHA256": "e56ca496e96c556ffa938b7e4e8338db2777873db1f9a8deb7e4c813d6090da3"
+    },
+    "playwright/lib/common/expectBundleImpl.js": {
+      "factories": 12,
+      "major": 4,
+      "minified": {
+        "mt": {
+          "major": 2,
+          "path": "/lib/constants.js"
+        },
+        "ht": {
+          "major": 2,
+          "path": "/lib/utils.js"
+        },
+        "Vi": {
+          "major": 2,
+          "path": "/lib/scan.js"
+        },
+        "Xi": {
+          "major": 2,
+          "path": "/lib/parse.js"
+        },
+        "Ji": {
+          "major": 2,
+          "path": "/lib/picomatch.js"
+        },
+        "eu": {
+          "major": 2,
+          "path": ""
+        },
+        "ot": "/lib/constants.js",
+        "at": "/lib/utils.js",
+        "ds": "/lib/scan.js",
+        "gs": "/lib/parse.js",
+        "ys": "/lib/picomatch.js",
+        "Cs": ""
+      },
+      "originalSHA256": "19f55e9574dc01b4718547b89f20e71cc54882c5d610139c383fbeb44f4cf8d1",
+      "patchedSHA256": "dbabff2956a1db2e3064f6e624be6b482cb614a5330ec8714d50c13a15b56bc7"
+    },
+    "prisma/build/cli.js": {
+      "factories": 6,
+      "minified": {
+        "GT": "/lib/constants.js",
+        "HT": "/lib/utils.js",
+        "Dbe": "/lib/scan.js",
+        "Obe": "/lib/parse.js",
+        "Fbe": "/lib/picomatch.js",
+        "$be": ""
+      },
+      "originalSHA256": "4ab8a95f0072dfa7c3db869a5ff8f775499f22c346a4556991c0ae28eb1220fd",
+      "patchedSHA256": "6a81cc7d25e4a586a2dc4e5976b633a2679ac270e2d54f7666f64d39c239de11"
+    }
+  }
+}
