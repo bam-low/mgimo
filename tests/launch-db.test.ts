@@ -112,6 +112,8 @@ it("limited role cannot delete structure/history, read migrations, DDL, escalate
     'DELETE FROM "ScheduleTemplate"',
     'DELETE FROM "TemplateGroup"',
     'DELETE FROM "ScheduleGroup"',
+    'DELETE FROM "TeachingAssignment"',
+    'DELETE FROM "TeachingAssignmentGroup"',
 
     'UPDATE "University" SET name=name',
     'DELETE FROM "EnrollmentRequest"',

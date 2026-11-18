@@ -26,6 +26,7 @@ export const gradeInput = z.discriminatedUnion("action", [
       action: z.literal("CREATE"),
       operationId: z.uuid(),
       membershipId: id,
+      groupId: id,
       ...fields,
     })
     .strict(),
@@ -83,6 +84,7 @@ async function eligible(
   });
   if (!m || m.enrollments.length !== 1) throw new Denied();
   await validGroup(tx, m.enrollments[0].groupId, universityId);
+  return m.enrollments[0];
 }
 function snapshot(g: {
   membershipId: string;
@@ -125,7 +127,13 @@ export async function changeGrade(
       throw new Denied(409);
     const membershipId =
       d.action === "CREATE" ? d.membershipId : old!.membershipId;
-    await eligible(tx, membershipId, universityId);
+    const enrollment = await eligible(tx, membershipId, universityId);
+    if (d.action === "CREATE" && enrollment.groupId !== d.groupId) {
+      const error = new Denied(409);
+      error.message =
+        "Студент не прикреплён к выбранной группе. Обновите список и выберите студента заново. Ввод результата сохранён.";
+      throw error;
+    }
     await requireStaff(tx, actorId, universityId);
     if (d.action !== "CREATE") {
       old = await tx.grade.findFirst({ where: { id: d.id, universityId } });
@@ -177,6 +185,7 @@ export async function changeGrade(
         action: "GRADE_" + d.action,
         reason: JSON.stringify({
           membershipId,
+          ...(d.action === "CREATE" ? { groupId: enrollment.groupId } : {}),
           reason: d.action === "CREATE" ? null : d.reason,
           before: old ? snapshot(old) : null,
           after: snapshot(grade),
@@ -327,14 +336,21 @@ export async function readGrades(
 }
 export async function gradeRoster(
   a: Actor,
-  q: { groupId?: string; cursor?: string } = {},
+  q: { groupId?: string; cursor?: string; history?: boolean } = {},
 ) {
   staff(a);
+  if (!q.history && !q.groupId) return { rows: [], next: null };
   if (q.groupId)
-    await validGroup(db, q.groupId, a.membership.universityId, false);
+    await validGroup(
+      db,
+      id.parse(q.groupId),
+      a.membership.universityId,
+      !q.history,
+    );
   const where = {
     universityId: a.membership.universityId,
     role: "STUDENT",
+    ...(!q.history ? { status: "APPROVED", user: { active: true } } : {}),
     ...(q.groupId
       ? {
           enrollments: {

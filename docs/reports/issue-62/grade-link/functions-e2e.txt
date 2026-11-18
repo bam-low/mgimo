@@ -1,0 +1,50 @@
+
+> campus@0.1.0 test:vercel-e2e
+> playwright test --config playwright.vercel.config.ts && node scripts/test-vercel-cold-start.mjs && node scripts/verify-vercel-loads.mjs
+
+[WebServer] (node:51013) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:51025) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:51033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:51041) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:51049) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 22 tests using 1 worker
+
+(node:51057) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51057) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:51041) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+  ✓   1 tests/e2e/applications.spec.ts:50:1 › applications: genuine certificate bytes, completion, immutable replacement and mobile workflows (18.6s)
+  ✓   2 tests/e2e/editorial-public.spec.ts:3:1 › Русские публичные экраны сохраняют формы, навигацию и адаптивность (5.5s)
+[WebServer] (node:51049) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+  ✓   3 tests/e2e/foundation.spec.ts:4:1 › STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px (11.1s)
+  ✓   4 tests/e2e/grades.spec.ts:4:1 › STAFF selects student and subject, records marks and credit; personal student history and audited corrections (9.9s)
+  ✓   5 tests/e2e/journey.spec.ts:5:3 › student → staff → approved at 360px (5.6s)
+  ✓   6 tests/e2e/journey.spec.ts:5:3 › student → staff → approved at 1280px (5.8s)
+  ✓   7 tests/e2e/journey.spec.ts:152:1 › registration empty/error states stay usable without collecting identities (679ms)
+  ✓   8 tests/e2e/journey.spec.ts:166:3 › issued credentials survive tab switching, then clear on explicit exit at 360px (1.5s)
+  ✓   9 tests/e2e/journey.spec.ts:166:3 › issued credentials survive tab switching, then clear on explicit exit at 1280px (1.3s)
+  ✓  10 tests/e2e/journey.spec.ts:251:3 › a late registration response cannot re-expose credentials after pagehide (524ms)
+  ✓  11 tests/e2e/journey.spec.ts:251:3 › a late registration response cannot re-expose credentials after hidden (538ms)
+  ✓  12 tests/e2e/journey.spec.ts:350:1 › account quota errors are accessible and never display credentials (787ms)
+  ✓  13 tests/e2e/lesson-hydration.spec.ts:4:1 › Форма занятия не отправляет GET до готовности JS и сохраняет невозможную дату (3.2s)
+  ✓  14 tests/e2e/notifications.spec.ts:6:1 › Личные уведомления: справка, прочтение, конкуренция, отзыв и восстановление доступа (13.3s)
+  ✓  15 tests/e2e/schedule-grades-link.spec.ts:6:1 › Расписание → успеваемость: общий Subject, обязательная группа, перевод и сохранённая история (11.9s)
+  ✓  16 tests/e2e/schedule-states.spec.ts:6:1 › Russian fields, real multi-lesson/empty days, and isolated clock boundary states (10.9s)
+  ✓  17 tests/e2e/schedule.spec.ts:221:1 › STAFF structure and schedule → real student today/week → edit/cancel/delete, preserving other groups (45.8s)
+  ✓  18 tests/e2e/semester-builder.spec.ts:47:1 › semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict (6.7s)
+  ✓  19 tests/e2e/semester-builder.spec.ts:316:1 › mobile resource forms support multiple subjects, subsequent creation, rename and activation without losing invalid input (5.4s)
+Результат входа E2E { status: 200 }
+  ✓  20 tests/e2e/teaching-assignments.spec.ts:6:1 › staff configures a shared lecture and separate seminars; previews partial A/B weeks and room conflicts at 360px and desktop (19.8s)
+  ✓  21 tests/e2e/teaching-assignments.spec.ts:491:1 › a new semester starting Tuesday defaults to numerator and can start in denominator without moving its start (1.6s)
+  ✓  22 tests/vercel-e2e/security.spec.ts:49:1 › real generated Functions retain source limits, isolation, logout and guarded idle cleanup (2.7s)
+
+  22 passed (3.1m)
+ПРОЙДЕНО: холодный старт и перезапуск Functions сохраняют сессию в БД; чужая группа закрыта, выход отзывает доступ к следующему запросу.
+PASS 501 observed Vercel CJS/ESM resolutions in 4 isolated functions; no external fallback/failures. Executed paths only.

@@ -13,14 +13,14 @@ test("Форма результата блокирует отправку до J
     data: { action: "CREATE", operationId: subjectId, name: "Демо готовность формы " + subjectId.slice(0, 8) },
   });
   expect(response.status()).toBe(200);
-  await page.goto("/staff/grades");
+  const historical = process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1";
+  await page.goto(historical ? "/staff/grades" : "/staff/grades?groupId=group-1");
   const option = page.getByLabel("Студент", { exact: true }).locator("option").filter({ hasText: "Студент 1" });
   for (let n = 0; await option.count() === 0 && n < 10; n++) {
     await page.goto((await page.getByRole("link", { name: "Следующие студенты", exact: true }).getAttribute("href"))!);
   }
   await expect(option).toHaveCount(1);
   const membershipId = await option.getAttribute("value");
-  const historical = process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1";
   for (const width of [360, 1280]) {
     const context = await browser.newContext({ baseURL, httpCredentials, ignoreHTTPSErrors, viewport: { width, height: 900 }, locale: "ru-RU" });
     await context.addCookies(await page.context().cookies());
@@ -39,7 +39,7 @@ test("Форма результата блокирует отправку до J
       if (request.method() === "POST" && pathname === "/api/staff/grades") writes++;
     });
     try {
-      await p.goto("/staff/grades?student=" + membershipId, { waitUntil: "commit" });
+      await p.goto("/staff/grades?" + (historical ? "" : "groupId=group-1&") + "student=" + membershipId, { waitUntil: "commit" });
       const form = p.getByRole("form", { name: "Выставить результат", exact: true });
       await expect(form).toBeVisible();
       await expect.poll(() => delayed).toBeGreaterThan(0);

@@ -3534,3 +3534,138 @@ textarea:focus {
 .notification-card .card-action {
   margin-top: 18px;
 }
+
+/* #62: two clear steps, reusable teaching assignments and a readable publication plan. */
+.builder-entrypoints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 20px;
+}
+.builder-entrypoints a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: var(--card);
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+.assignment-intro,
+.ready-lessons,
+.placement-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ready-lessons,
+.placement-summary,
+.new-subject {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.ready-lessons > *,
+.placement-summary > * {
+  margin-block: 8px;
+}
+.new-subject {
+  margin-block: 16px;
+}
+.new-subject summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--brand);
+}
+.new-subject form {
+  display: grid;
+  gap: 12px;
+}
+.assignment-list .semester-card {
+  margin-block: 12px;
+}
+.assignment-layout {
+  margin-block: 24px;
+}
+.assignment-layout > *,
+.assignment-layout select {
+  min-width: 0;
+  max-width: 100%;
+}
+.assignment-layout select {
+  width: 100%;
+  text-overflow: ellipsis;
+}
+.assignment-layout .check-line {
+  overflow-wrap: anywhere;
+}
+.publication-summary h4 {
+  font: 600 1.15rem var(--display);
+}
+.program-mobile .mobile-timetable-day {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.add-slot {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 0.8rem;
+}
+.timetable-lesson.is-published {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+#builder-filters,
+#builder-inspector {
+  scroll-margin-top: 90px;
+}
+@media (max-width: 899px) {
+  .builder-entrypoints {
+    display: grid;
+  }
+  .builder-entrypoints a {
+    font-size: 0.85rem;
+  }
+  .builder-preview {
+    padding: 12px;
+  }
+  .preview-dates {
+    padding-left: 16px;
+  }
+  .assignment-layout {
+    gap: 20px;
+  }
+}
+.builder-preview h3 {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+.builder-preview p,
+.publication-summary,
+.preview-dates li {
+  margin-block: 10px;
+}
+.assignment-list h2 {
+  margin-bottom: 16px;
+}
+.assignment-list .semester-card h3 {
+  font-size: 1.1rem;
+  margin-block: 12px 6px;
+}
+.program-table th small {
+  display: block;
+  margin-top: 4px;
+  font-weight: 400;
+}
+.grade-scope-content {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}

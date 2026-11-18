@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ScheduleManagement } from "../../schedule-management";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 import { actor, staff } from "@/server/security";
@@ -35,15 +35,8 @@ export function BuilderShell({
           <h1>{title}</h1>
           <p>Учебный календарь и занятия · Только вымышленные данные</p>
         </header>
-        <nav className="semester-links" aria-label="Управление расписанием">
-          <Link href="/staff/schedule/semesters">Учебные семестры</Link>
-          <Link href="/staff/schedule/builder">Конструктор</Link>
-          <Link href="/staff/schedule/resources">
-            Преподаватели и аудитории
-          </Link>
-          <Link href="/staff/structure">Управлять группами</Link>
-          <Link href="/staff/schedule">Прежнее расписание</Link>
-        </nav>
+        <ScheduleManagement />
+
         {children}
       </Workspace>
     </main>

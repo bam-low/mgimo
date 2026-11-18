@@ -85,3 +85,33 @@ it("DST gaps and duplicate wall times are rejected, arbitrary semester years res
     localInstant("2140-02-02", "09:00", "Europe/Moscow").toISOString(),
   ).toBe("2140-02-02T06:00:00.000Z");
 });
+
+it("partial first/last weeks, weekend starts and year changes keep the configured parity", () => {
+  const c = {
+    ...calendar,
+    start: "2026-09-01",
+    end: "2026-09-17",
+    exclusions: [],
+  };
+  expect(dates(c, { ...rule, recurrence: "A", weekday: 1 }).days).toEqual([
+    "2026-09-14",
+  ]);
+  expect(dates(c, { ...rule, recurrence: "B", weekday: 2 }).days).toEqual([
+    "2026-09-08",
+  ]);
+  expect(
+    dates({ ...c, anchor: "2026-08-24" }, { ...rule, recurrence: "B" }).days,
+  ).toEqual(["2026-09-01", "2026-09-15"]);
+  expect(() =>
+    dates(c, { ...rule, recurrence: "ONCE", once: "2026-08-31" }),
+  ).toThrow(/вне семестра/);
+  const weekend = { ...c, start: "2026-09-05", end: "2026-09-06" };
+  expect(dates(weekend, { ...rule, weekday: 6 }).days).toEqual(["2026-09-05"]);
+  expect(dates(weekend, { ...rule, weekday: 1 }).days).toEqual([]);
+  expect(
+    dates(
+      { ...c, start: "2026-12-30", end: "2027-01-05", anchor: "2026-12-28" },
+      { ...rule, recurrence: "B", weekday: 1 },
+    ).days,
+  ).toEqual(["2027-01-04"]);
+});

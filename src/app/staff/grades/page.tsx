@@ -9,6 +9,7 @@ import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
 import { RefreshContext } from "../../forms";
 import { GradeList } from "../../grade-list";
+import { GradeGroupScope } from "../../grade-group-scope";
 import { GradeForm, SubjectForm } from "../../grade-forms";
 export const dynamic = "force-dynamic";
 export default async function Page({
@@ -20,6 +21,7 @@ export default async function Page({
     studentsCursor?: string;
     cursor?: string;
     auditCursor?: string;
+    history?: string;
   }>;
 }) {
   const q = await searchParams;
@@ -28,10 +30,12 @@ export default async function Page({
     staff(a);
     return a;
   });
+  const history = q.history === "1";
   const roster = await protectedPage(() =>
     gradeRoster(a, {
       groupId: q.groupId || undefined,
       cursor: q.studentsCursor,
+      history,
     }),
   );
   const tree = await protectedPage(() =>
@@ -41,7 +45,11 @@ export default async function Page({
   const selected = roster.rows.find((s) => s.id === q.student);
   const data = selected
     ? await protectedPage(() =>
-        readGrades(a, { membershipId: selected.id, cursor: q.cursor }),
+        readGrades(a, {
+          membershipId: selected.id,
+          cursor: q.cursor,
+          auditCursor: q.auditCursor,
+        }),
       )
     : null;
   const today = dayKey(new Date(), a.membership.university.timezone);
@@ -61,152 +69,191 @@ export default async function Page({
             {a.membership.university.timezone}.
           </p>
         </header>
-        <form method="get" className="request" aria-label="Фильтр студентов">
-          <label>
-            Группа
-            <select
-              aria-label="Группа"
-              name="groupId"
-              defaultValue={q.groupId ?? ""}
-            >
-              <option value="">Все группы</option>
-              {tree.flatMap((f) =>
-                f.programs.flatMap((p) =>
-                  p.groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  )),
-                ),
-              )}
-            </select>
-          </label>
-          <button>Показать студентов</button>
-        </form>
-        <form method="get" className="request" aria-label="Выбор студента">
-          <input type="hidden" name="groupId" value={q.groupId ?? ""} />
-          {q.studentsCursor && (
-            <input
-              type="hidden"
-              name="studentsCursor"
-              value={q.studentsCursor}
-            />
+        <nav className="grades-pages" aria-label="Режим успеваемости">
+          <Link href="/staff/grades">Выставить новый результат</Link>
+          <Link href="/staff/grades?history=1">История всех студентов</Link>
+        </nav>
+        <p className="notice">
+          {history
+            ? "История сохраняется после перевода и отзыва прикрепления. Для нового результата вернитесь к выбору группы."
+            : "1. Выберите группу → 2. Студента → 3. Дисциплину и результат."}
+        </p>
+        <GradeGroupScope
+          key={`${q.groupId ?? ""}:${history}`}
+          groupId={q.groupId ?? ""}
+          history={history}
+          groups={tree.flatMap((f) =>
+            f.programs.flatMap((p) =>
+              p.groups.map((g) => ({
+                id: g.id,
+                name: g.name,
+                context: `${f.name} / ${p.name}`,
+                active: f.active && p.active && g.active,
+              })),
+            ),
           )}
-          <label>
-            Студент
-            <select
-              aria-label="Студент"
-              name="student"
-              required
-              defaultValue={selected?.id ?? ""}
-            >
-              <option value="" disabled>
-                Выберите студента
-              </option>
-              {roster.rows.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} · {s.group}
-                  {!s.eligible ? " · только история" : ""}
+        >
+          <form method="get" className="request" aria-label="Выбор студента">
+            <input type="hidden" name="groupId" value={q.groupId ?? ""} />
+            {history && <input type="hidden" name="history" value="1" />}
+            {q.studentsCursor && (
+              <input
+                type="hidden"
+                name="studentsCursor"
+                value={q.studentsCursor}
+              />
+            )}
+            <label>
+              Студент
+              <select
+                aria-label="Студент"
+                name="student"
+                required
+                disabled={!roster.rows.length || (!history && !q.groupId)}
+                defaultValue={selected?.id ?? ""}
+              >
+                <option value="" disabled>
+                  Выберите студента
                 </option>
-              ))}
-            </select>
-          </label>
-          <button disabled={!roster.rows.length}>Открыть результаты</button>
-          {!roster.rows.length && <p>В выбранной группе студентов нет.</p>}
-        </form>
-        <nav className="grades-pages" aria-label="Страницы студентов">
-          <Link
-            href={{ pathname: "/staff/grades", query: { groupId: q.groupId } }}
-          >
-            К началу списка
-          </Link>
-          {roster.next && (
+                {roster.rows.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} · {s.group}
+                    {!s.eligible ? " · только история" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button disabled={!roster.rows.length}>Открыть результаты</button>
+            {!history && !q.groupId ? (
+              <p>
+                Сначала выберите учебную группу. Затем появятся студенты с
+                действующим прикреплением.
+              </p>
+            ) : (
+              !roster.rows.length && (
+                <p>
+                  {history
+                    ? "Для выбранного фильтра студентов нет. Исторические результаты доступны в общем списке истории."
+                    : "В группе нет подтверждённых студентов с действующим прикреплением. Проверьте прикрепления или выберите другую группу."}
+                </p>
+              )
+            )}
+          </form>
+          <nav className="grades-pages" aria-label="Страницы студентов">
             <Link
               href={{
                 pathname: "/staff/grades",
-                query: { groupId: q.groupId, studentsCursor: roster.next },
+                query: {
+                  groupId: q.groupId,
+                  history: history ? "1" : undefined,
+                },
               }}
             >
-              Следующие студенты
+              К началу списка
             </Link>
-          )}
-        </nav>
-        <details>
-          <summary>Справочник дисциплин</summary>
-          <SubjectForm />
-          {!subjectList.length && (
-            <p>Дисциплин пока нет. Создайте первую дисциплину.</p>
-          )}
-          {subjectList.map((s) => (
-            <SubjectForm key={s.id + "-" + s.version} subject={s} />
-          ))}
-        </details>
-        {selected && data && (
-          <>
-            <h2>
-              {selected.name} · {selected.group}
-            </h2>
-            {selected.eligible ? (
-              <GradeForm
-                key={selected.id}
+            {roster.next && (
+              <Link
+                href={{
+                  pathname: "/staff/grades",
+                  query: {
+                    groupId: q.groupId,
+                    studentsCursor: roster.next,
+                    history: history ? "1" : undefined,
+                  },
+                }}
+              >
+                Следующие студенты
+              </Link>
+            )}
+          </nav>
+          <details>
+            <summary>Справочник дисциплин</summary>
+            <p>
+              Это тот же справочник, что в «Дисциплины и группы» расписания.
+              Повторно создавать дисциплину не нужно; результат можно выставить
+              и без опубликованных занятий.
+            </p>
+            <SubjectForm />
+            {!subjectList.length && (
+              <p>Дисциплин пока нет. Создайте первую дисциплину.</p>
+            )}
+            {subjectList.map((s) => (
+              <SubjectForm key={s.id + "-" + s.version} subject={s} />
+            ))}
+          </details>
+          {selected && data && (
+            <>
+              <h2>
+                {selected.name} · {selected.group}
+              </h2>
+              {selected.eligible && !history && q.groupId ? (
+                <GradeForm
+                  key={`${selected.id}:${q.groupId}`}
+                  membershipId={selected.id}
+                  groupId={q.groupId}
+                  subjects={subjectList}
+                  today={today}
+                />
+              ) : (
+                <p className="notice">
+                  {selected.eligible
+                    ? "Открыта история. Чтобы выставить новый результат, сначала выберите учебную группу в основном режиме."
+                    : "Нет действующего учебного доступа. Новые результаты и исправления недоступны; история сохранена."}
+                </p>
+              )}
+              <GradeList
+                data={data}
                 membershipId={selected.id}
-                subjects={subjectList}
+                subjectList={subjectList}
                 today={today}
               />
-            ) : (
-              <p className="notice">
-                Нет действующего учебного доступа. Новые результаты и
-                исправления недоступны; история сохранена.
-              </p>
-            )}
-            <GradeList
-              data={data}
-              membershipId={selected.id}
-              subjectList={subjectList}
-              today={today}
-            />
-            <nav className="grades-pages" aria-label="Страницы аудита">
-              <Link
-                href={{
-                  pathname: "/staff/grades",
-                  query: { ...q, auditCursor: undefined },
-                }}
-              >
-                Начало аудита
-              </Link>
-              {data.nextAudit && (
+              <nav className="grades-pages" aria-label="Страницы аудита">
                 <Link
                   href={{
                     pathname: "/staff/grades",
-                    query: { ...q, auditCursor: data.nextAudit },
+                    query: { ...q, auditCursor: undefined },
                   }}
                 >
-                  Предыдущие события аудита
+                  Начало аудита
                 </Link>
-              )}
-            </nav>
-            <nav className="grades-pages" aria-label="Страницы результатов">
-              <Link
-                href={{
-                  pathname: "/staff/grades",
-                  query: { ...q, cursor: undefined, auditCursor: undefined },
-                }}
-              >
-                К началу результатов
-              </Link>
-              {data.next && (
+                {data.nextAudit && (
+                  <Link
+                    href={{
+                      pathname: "/staff/grades",
+                      query: { ...q, auditCursor: data.nextAudit },
+                    }}
+                  >
+                    Предыдущие события аудита
+                  </Link>
+                )}
+              </nav>
+              <nav className="grades-pages" aria-label="Страницы результатов">
                 <Link
                   href={{
                     pathname: "/staff/grades",
-                    query: { ...q, cursor: data.next, auditCursor: undefined },
+                    query: { ...q, cursor: undefined, auditCursor: undefined },
                   }}
                 >
-                  Следующие результаты
+                  К началу результатов
                 </Link>
-              )}
-            </nav>
-          </>
-        )}
+                {data.next && (
+                  <Link
+                    href={{
+                      pathname: "/staff/grades",
+                      query: {
+                        ...q,
+                        cursor: data.next,
+                        auditCursor: undefined,
+                      },
+                    }}
+                  >
+                    Следующие результаты
+                  </Link>
+                )}
+              </nav>
+            </>
+          )}
+        </GradeGroupScope>
       </Workspace>
     </main>
   );
