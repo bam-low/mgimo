@@ -174,6 +174,18 @@ it("publishes actual semester dates, previews excluded slots and uses the same S
   );
   await commit(create({ startTime: "10:30", endTime: "11:00" }));
 });
+it("new semester publications require both teacher and room at the protected API", async () => {
+  for (const patch of [{ teacherId: null }, { roomId: null }]) {
+    const command = create(patch);
+    const response = await POST(req(sh, { command, preview: true }));
+    expect(response.status).toBe(400);
+    expect(
+      await db.scheduleTemplate.findUnique({
+        where: { id: "operationId" in command ? command.operationId : "" },
+      }),
+    ).toBeNull();
+  }
+});
 it("globally checks teacher/room across programs and atomic group conflicts on every generated date", async () => {
   for (const patch of [
     { groupIds: [groups[2]], teacherId: teachers[0], roomId: rooms[1] },

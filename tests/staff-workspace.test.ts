@@ -1,3 +1,4 @@
+import pg from "pg";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
@@ -293,4 +294,62 @@ it("два курса → семестр со вторника → числит�
     );
     await db.$executeRawUnsafe("DROP FUNCTION reject_workspace_notification()");
   }
+  const blocker = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await blocker.connect();
+  try {
+    await blocker.query("BEGIN");
+    await blocker.query(
+      'SELECT id FROM "UniversityMembership" WHERE id=$1 FOR UPDATE',
+      [students[1].membership.id],
+    );
+    await expect(
+      commit({ action: "OCCURRENCE_CANCEL", id: entries[1].id, version: 1 }),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(
+      await db.scheduleCancellation.count({
+        where: { entryId: entries[1].id },
+      }),
+    ).toBe(0);
+    expect(
+      (
+        await db.scheduleEntry.findUniqueOrThrow({
+          where: { id: entries[1].id },
+        })
+      ).status,
+    ).toBe("SCHEDULED");
+  } finally {
+    await blocker.query("ROLLBACK");
+    await blocker.end();
+  }
+  const current = await db.groupMembership.findFirstOrThrow({
+    where: {
+      membershipId: students[1].membership.id,
+      endedAt: null,
+      revokedAt: null,
+    },
+  });
+  const race = await Promise.allSettled([
+    commit({ action: "OCCURRENCE_CANCEL", id: entries[2].id, version: 1 }),
+    changeMembership(staff.user.id, universityId, {
+      action: "TRANSFER",
+      membershipId: students[1].membership.id,
+      expectedEnrollmentId: current.id,
+      groupId: groups[0].id,
+      reason: "Демо конкурентный перевод",
+    }),
+  ]);
+  expect(race[1].status).toBe("fulfilled");
+  if (race[0].status === "rejected") {
+    expect(race[0].reason).toMatchObject({ status: 409 });
+    await commit({
+      action: "OCCURRENCE_CANCEL",
+      id: entries[2].id,
+      version: 1,
+    });
+  }
+  expect(
+    await db.notification.count({
+      where: { cancellation: { entryId: entries[2].id } },
+    }),
+  ).toBe(1);
 });

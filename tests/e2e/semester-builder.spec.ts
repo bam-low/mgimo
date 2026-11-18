@@ -296,6 +296,12 @@ test("semester calendar and real shared timetable work at 360, 390 and 1280; for
   await inspector
     .getByRole("combobox", { name: "Дисциплина", exact: true })
     .selectOption(sid);
+  await inspector
+    .getByRole("combobox", { name: "Преподаватель", exact: true })
+    .selectOption(teacherId);
+  await inspector
+    .getByRole("combobox", { name: "Аудитория", exact: true })
+    .selectOption(roomId);
   await inspector.getByLabel("Начало занятия", { exact: true }).fill("11:15");
   await inspector.getByLabel("Конец занятия", { exact: true }).fill("11:45");
   await inspector.getByLabel("Повторение").selectOption("ONCE");

@@ -299,9 +299,38 @@ test("STAFF: два курса, вторник и числитель → отм�
     ).items.find((n: { message: string }) => n.message.includes(name));
     expect(notice.message).toContain("01.09.2037 · 09:00–10:30");
     await student.goto(`/notifications/${notice.id}`);
-    await student.screenshot({
-      path: info.outputPath("04-student-notification-360.png"),
-    });
+    await expect(
+      student.getByRole("heading", { name: "Занятие отменено", exact: true }),
+    ).toBeVisible();
+    await expect(
+      student.getByText(notice.message, { exact: true }),
+    ).toBeVisible();
+    for (const width of [360, 390, 768, 1280]) {
+      await student.setViewportSize({ width, height: 900 });
+      await student.evaluate(() => document.fonts.ready);
+      expect(
+        await student.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await student.screenshot({
+        path: info.outputPath(`04-student-notification-${width}.png`),
+      });
+    }
+    await student
+      .getByRole("link", { name: "Открыть расписание", exact: true })
+      .click();
+    await expect(student).toHaveURL(/\/schedule\?day=2037-09-01$/);
+    const ownSchedule = await student.request.get(
+      "/api/schedule?day=2037-09-01",
+    );
+    expect(ownSchedule.status()).toBe(200);
+    expect(
+      (await ownSchedule.json()).lessons.some(
+        (l: { title: string; status: string }) =>
+          l.title === name && l.status === "CANCELLED",
+      ),
+    ).toBe(true);
     await page.goto(`/staff/grades?groupId=${groups[0].id}`);
     const option = page
       .getByRole("combobox", { name: "Студент", exact: true })

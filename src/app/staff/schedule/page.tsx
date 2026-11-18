@@ -38,6 +38,9 @@ export default async function Page({
       <details id="schedule-resources" className="editor-panel">
         <summary>Преподаватели и аудитории</summary>
         <Resources catalog={catalog} />
+        <p>
+          <a href="#builder-filters">Вернуться к расписанию →</a>
+        </p>
       </details>
       <p>
         <Link href="/staff/schedule/manual">Демо · ручное расписание →</Link>
