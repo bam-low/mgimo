@@ -9,6 +9,9 @@ test("STAFF selects student and subject, records marks and credit; personal stud
   page.on("dialog", (d) => d.accept());
   await signInWithSession(page, "staff@example.test", process.env.DEMO_STAFF_PASSWORD!);
   await page.goto("/staff/grades");
+  await expect(page.getByLabel("Студент", { exact: true })).toBeDisabled();
+  await page.getByLabel("Группа", { exact: true }).selectOption("group-1");
+  await expect(page.getByLabel("Студент", { exact: true })).toBeEnabled();
   await page.getByText("Справочник дисциплин", { exact: true }).click();
   const title =
     "Демо исследовательский практикум по академическому письму " +

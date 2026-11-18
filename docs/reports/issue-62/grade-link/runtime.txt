@@ -1,0 +1,10 @@
+
+> campus@0.1.0 check:runtime
+> node scripts/check-runtime.mjs
+
+PASS 2123 standalone files, relative symlinks, traces/bundle markers; no Prisma CLI/Studio/@visx. Isolated copy prepared.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

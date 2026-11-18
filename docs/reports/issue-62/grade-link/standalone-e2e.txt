@@ -1,0 +1,44 @@
+
+> campus@0.1.0 test:e2e
+> playwright test && node scripts/verify-runtime-loads.mjs
+
+[WebServer] (node:48066) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 21 tests using 1 worker
+
+(node:48085) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48085) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:48066) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+  ✓   1 tests/e2e/applications.spec.ts:50:1 › applications: genuine certificate bytes, completion, immutable replacement and mobile workflows (17.1s)
+  ✓   2 tests/e2e/editorial-public.spec.ts:3:1 › Русские публичные экраны сохраняют формы, навигацию и адаптивность (4.1s)
+  ✓   3 tests/e2e/foundation.spec.ts:4:1 › STAFF transfer, revoke and controlled resubmission use real guards and refresh at 360px (7.7s)
+  ✓   4 tests/e2e/grades.spec.ts:4:1 › STAFF selects student and subject, records marks and credit; personal student history and audited corrections (8.5s)
+  ✓   5 tests/e2e/journey.spec.ts:5:3 › student → staff → approved at 360px (4.9s)
+  ✓   6 tests/e2e/journey.spec.ts:5:3 › student → staff → approved at 1280px (5.7s)
+  ✓   7 tests/e2e/journey.spec.ts:152:1 › registration empty/error states stay usable without collecting identities (444ms)
+  ✓   8 tests/e2e/journey.spec.ts:166:3 › issued credentials survive tab switching, then clear on explicit exit at 360px (1.2s)
+  ✓   9 tests/e2e/journey.spec.ts:166:3 › issued credentials survive tab switching, then clear on explicit exit at 1280px (1.1s)
+  ✓  10 tests/e2e/journey.spec.ts:251:3 › a late registration response cannot re-expose credentials after pagehide (675ms)
+  ✓  11 tests/e2e/journey.spec.ts:251:3 › a late registration response cannot re-expose credentials after hidden (634ms)
+  ✓  12 tests/e2e/journey.spec.ts:350:1 › account quota errors are accessible and never display credentials (558ms)
+  ✓  13 tests/e2e/lesson-hydration.spec.ts:4:1 › Форма занятия не отправляет GET до готовности JS и сохраняет невозможную дату (3.4s)
+  ✓  14 tests/e2e/notifications.spec.ts:6:1 › Личные уведомления: справка, прочтение, конкуренция, отзыв и восстановление доступа (12.8s)
+  ✓  15 tests/e2e/schedule-grades-link.spec.ts:6:1 › Расписание → успеваемость: общий Subject, обязательная группа, перевод и сохранённая история (11.8s)
+  ✓  16 tests/e2e/schedule-states.spec.ts:6:1 › Russian fields, real multi-lesson/empty days, and isolated clock boundary states (11.5s)
+  ✓  17 tests/e2e/schedule.spec.ts:221:1 › STAFF structure and schedule → real student today/week → edit/cancel/delete, preserving other groups (43.9s)
+  ✓  18 tests/e2e/semester-builder.spec.ts:47:1 › semester calendar and real shared timetable work at 360, 390 and 1280; forms retain values on conflict (6.8s)
+  ✓  19 tests/e2e/semester-builder.spec.ts:316:1 › mobile resource forms support multiple subjects, subsequent creation, rename and activation without losing invalid input (4.4s)
+Результат входа E2E { status: 200 }
+  ✓  20 tests/e2e/teaching-assignments.spec.ts:6:1 › staff configures a shared lecture and separate seminars; previews partial A/B weeks and room conflicts at 360px and desktop (14.5s)
+  ✓  21 tests/e2e/teaching-assignments.spec.ts:491:1 › a new semester starting Tuesday defaults to numerator and can start in denominator without moving its start (2.0s)
+
+  21 passed (2.8m)
+PASS 853 observed Node CJS/ESM resolutions; no forbidden modules or source node_modules fallback. Coverage is limited to executed E2E routes and supplemented by static traces/files.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

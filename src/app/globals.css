@@ -3656,3 +3656,9 @@ textarea:focus {
   margin-top: 4px;
   font-weight: 400;
 }
+.grade-scope-content {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}

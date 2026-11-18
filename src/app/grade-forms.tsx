@@ -19,10 +19,13 @@ function useMutation() {
         body: JSON.stringify(data),
       });
       if (!r.ok) {
+        const data = await r.json();
         M(
-          r.status === 409
-            ? "Конфликт. Обновите страницу и повторите действие."
-            : "Не удалось сохранить. Проверьте данные и действующие права.",
+          typeof data.error === "string"
+            ? data.error
+            : r.status === 409
+              ? "Конфликт. Обновите страницу и повторите действие."
+              : "Не удалось сохранить. Проверьте данные и действующие права.",
         );
         return false;
       }
@@ -91,12 +94,14 @@ export function SubjectForm({ subject }: { subject?: Subject }) {
 }
 export function GradeForm({
   membershipId,
+  groupId,
   subjects,
   today,
   row,
   onClose,
 }: {
   membershipId: string;
+  groupId?: string;
   subjects: Subject[];
   today: string;
   row?: Row;
@@ -128,7 +133,7 @@ export function GradeForm({
           action: row ? "EDIT" : "CREATE",
           ...(row
             ? { id: row.id, version: row.version, reason: f.get("reason") }
-            : { operationId, membershipId }),
+            : { operationId, membershipId, groupId }),
           subjectId: f.get("subjectId"),
           issuedOn: f.get("issuedOn"),
           result,
@@ -216,7 +221,9 @@ export function GradeForm({
           <textarea name="reason" required maxLength={500} />
         </label>
       )}
-      <button disabled={busy || !subjects.some((s) => s.active)}>
+      <button
+        disabled={busy || (!row && !groupId) || !subjects.some((s) => s.active)}
+      >
         {busy
           ? "Сохраняем…"
           : row

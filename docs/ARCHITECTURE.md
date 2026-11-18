@@ -221,3 +221,7 @@ PDF parser (pdf-lib 1.17.1, MIT), multipart parser (busboy 1.6.0, MIT) и image 
 ## Каталог учебных назначений — Issue #62
 
 Утверждённая владельцем реализация [#62](https://github.com/bam-low/mgimo/issues/62) для ревью: TeachingAssignment/TeachingAssignmentGroup поверх существующих Subject/Program/StudentGroup/Teacher. Университетские FK и серверная проверка полной иерархии, version/operationId, тот же lock/preview/commit/audit. Настройки не являются динамическим источником опубликованных занятий: старые снимки/segments/ручные исключения сохраняются. [Контракт, API, миграция и ограничения](TEACHING_ASSIGNMENTS.md). До ручного merge — feature-ветка; без deploy и снятия NO-GO.
+
+### Issue #62: контекст группы при создании результата
+
+CREATE Grade принимает проверяемый groupId, но не добавляет связь Grade→StudentGroup в БД. После membership lock и university lock фактическое прикрепление должно совпасть с выбранной группой; иначе 409 без записи. Перевод и выдача результата используют прежний порядок блокировок. groupId сохраняется в аудите CREATE как исторический контекст действия, не как право на последующее чтение личной истории. Основной roster scoped по группе; отдельный STAFF-режим истории сохраняет прежнюю область чтения/правила исправления. [Подробности](GRADES.md).
