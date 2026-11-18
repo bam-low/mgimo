@@ -50,9 +50,11 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     .getByLabel("Дисциплина", { exact: true })
     .selectOption({ label: title });
   await form().getByLabel("Результат", { exact: true }).selectOption("5");
-  await form()
-    .getByRole("button", { name: "Выставить результат", exact: true })
-    .click();
+  const [created] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname === "/api/staff/grades" && response.request().method() === "POST"),
+    form().getByRole("button", { name: "Выставить результат", exact: true }).click(),
+  ]);
+  expect(created.status(), "HTTP-ответ создания оценки").toBe(200);
   const rows = () =>
     page
       .getByTestId("grade-row")
@@ -73,9 +75,11 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     .selectOption({ label: title });
   await form().getByLabel("Тип результата").selectOption("CREDIT");
   await form().getByLabel("Результат", { exact: true }).selectOption("PASSED");
-  await form()
-    .getByRole("button", { name: "Выставить результат", exact: true })
-    .click();
+  const [credited] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname === "/api/staff/grades" && response.request().method() === "POST"),
+    form().getByRole("button", { name: "Выставить результат", exact: true }).click(),
+  ]);
+  expect(credited.status(), "HTTP-ответ создания зачёта").toBe(200);
   await expect(rows()).toHaveCount(2);
   const studentContext = await browser.newContext();
   const sp = await studentContext.newPage();
