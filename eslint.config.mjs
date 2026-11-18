@@ -4,7 +4,7 @@ import nextPlugin from "@next/eslint-plugin-next";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores([".next/**", "out/**", "coverage/**", "next-env.d.ts", "src/generated/**", "playwright-report/**", "test-results/**", "test-results-vercel/**", ".vercel/**", ".runtime-evidence/**"]),
+  globalIgnores(["vendor/**",".next/**", "out/**", "coverage/**", "next-env.d.ts", "src/generated/**", "playwright-report/**", "test-results/**", "test-results-vercel/**", ".vercel/**", ".runtime-evidence/**"]),
   js.configs.recommended,
   tseslint.configs.recommended,
   {

@@ -15,6 +15,7 @@ function run(command, args, env) {
 // Explicit build inputs work in provider checkouts without .git. Env files and
 // owner .vercel links are never inputs; unknown future build files require review.
 const inputs = [
+  "vendor",
   "src",
   "prisma",
   "scripts",
@@ -80,6 +81,7 @@ for (const key of Object.keys(env))
   )
     delete env[key];
 run("npm", ["ci", "--include=dev", "--ignore-scripts"], env);
+run("npm", ["run", "security:prepare"], env);
 run(
   process.execPath,
   [path.join(stage, "scripts/vercel-builder-worker.mjs")],
