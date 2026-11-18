@@ -1,3 +1,4 @@
+import { setTimeout as pause } from "node:timers/promises";
 import { test, expect, type Locator } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { signInWithSession } from "./ui-sign-in";
@@ -25,7 +26,16 @@ test("STAFF: два курса, вторник и числитель → отм�
   const origin = new URL(page.url()).origin,
     suffix = randomUUID().slice(0, 8);
   const name = "Демо учебный путь " + suffix;
+  let builderWrites = 0;
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      new URL(request.url()).pathname === "/api/staff/schedule/builder"
+    )
+      builderWrites++;
+  });
   const post = async (url: string, data: unknown) => {
+    if (url === "/api/staff/schedule/builder") builderWrites++;
     const response = await page.request.post(url, {
       headers: { origin },
       data,
@@ -396,4 +406,14 @@ test("STAFF: два курса, вторник и числитель → отм�
     await peer.close();
     await studentContext.close();
   }
+  // One worker shares the real STAFF account across legacy scenarios. Let this
+  // added batch expire naturally before the next dense batch. No bucket resets,
+  // session fabrication, 429 retries, or production-limit changes.
+  expect(builderWrites).toBeLessThanOrEqual(60);
+  const waitMs = 60000 - (Date.now() % 60000) + 200;
+  console.info("Окно операций конструктора E2E", {
+    requests: builderWrites,
+    waitMs,
+  });
+  await pause(waitMs);
 });
