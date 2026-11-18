@@ -821,3 +821,260 @@ it("counts excluded occurrences from different templates separately while dedupl
   expect(p.skipped).toEqual(["2034-02-13"]);
   expect(p.skippedCount).toBe(3);
 });
+
+it("reuses explicit lecture/seminar assignments, binds preview versions and preserves published snapshots", async () => {
+  const assignmentId = randomUUID();
+  const a: BuilderCommand = {
+    action: "ASSIGNMENT_CREATE",
+    operationId: assignmentId,
+    programId,
+    subjectId,
+    kind: "LECTURE",
+    groups: groups
+      .slice(0, 2)
+      .map((groupId) => ({ groupId, teacherId: teachers[0] })),
+  };
+  await commit(a);
+  const rule = {
+    subjectId,
+    teacherId: teachers[0],
+    roomId: rooms[0],
+    groupIds: groups.slice(0, 2),
+    recurrence: "B" as const,
+    weekday: 3,
+    once: "2040-09-04",
+    startTime: "17:00",
+    endTime: "18:00",
+  };
+  const sid = randomUUID();
+  await commit({
+    action: "SEMESTER_CREATE",
+    operationId: sid,
+    calendar: {
+      name: "Демо каталог " + sid,
+      start: "2040-09-04",
+      end: "2040-09-30",
+      anchor: "2040-09-03",
+      exclusions: [],
+    },
+  });
+  const placement: BuilderCommand = {
+    action: "TEMPLATE_CREATE",
+    operationId: randomUUID(),
+    semesterId: sid,
+    programId,
+    assignment: { id: assignmentId, version: 1 },
+    rule,
+  };
+  const p = await preview(placement);
+  expect(p.dates.length).toBeGreaterThan(0);
+  expect(p.dates[0].groups).toHaveLength(2);
+  await expect(
+    preview({ ...placement, rule: { ...rule, groupIds: [groups[0]] } }),
+  ).rejects.toMatchObject({ status: 409 });
+  await changeBuilder(staffId, uni, {
+    command: placement,
+    preview: false,
+    token: p.token,
+    confirmed: true,
+  });
+  const snapshots = await db.scheduleEntry.findMany({
+    where: { templateId: placement.operationId },
+    orderBy: { id: "asc" },
+  });
+  const stale = {
+    ...placement,
+    operationId: randomUUID(),
+    rule: { ...rule, startTime: "19:00", endTime: "20:00" },
+  };
+  const stalePreview = await preview(stale);
+  await commit({
+    action: "ASSIGNMENT_EDIT",
+    id: assignmentId,
+    version: 1,
+    active: true,
+    programId,
+    subjectId,
+    kind: "LECTURE",
+    groups: [{ groupId: groups[0], teacherId: teachers[1] }],
+  });
+  await expect(
+    changeBuilder(staffId, uni, {
+      command: stale,
+      preview: false,
+      token: stalePreview.token,
+      confirmed: true,
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(
+    await db.scheduleEntry.findMany({
+      where: { templateId: placement.operationId },
+      orderBy: { id: "asc" },
+    }),
+  ).toEqual(snapshots);
+  const seminar = randomUUID();
+  await commit({
+    action: "ASSIGNMENT_CREATE",
+    operationId: seminar,
+    programId,
+    subjectId,
+    kind: "SEMINAR",
+    groups: [
+      { groupId: groups[0], teacherId: teachers[0] },
+      { groupId: groups[1], teacherId: teachers[1] },
+    ],
+  });
+  const seminarPlacement: BuilderCommand = {
+    ...placement,
+    operationId: randomUUID(),
+    assignment: { id: seminar, version: 1, groupId: groups[1] },
+    rule: {
+      ...rule,
+      groupIds: [groups[1]],
+      teacherId: teachers[1],
+      startTime: "20:00",
+      endTime: "21:00",
+    },
+  };
+  await commit(seminarPlacement);
+  expect(
+    await db.scheduleGroup.count({
+      where: {
+        entry: { templateId: seminarPlacement.operationId },
+        groupId: groups[0],
+      },
+    }),
+  ).toBe(0);
+  const edits: BuilderCommand = {
+    action: "ASSIGNMENT_EDIT",
+    id: seminar,
+    version: 1,
+    active: true,
+    programId,
+    subjectId,
+    kind: "SEMINAR",
+    groups: [{ groupId: groups[0], teacherId: teachers[1] }],
+  };
+  const q = await preview(edits);
+  const results = await Promise.allSettled(
+    [1, 2].map(() =>
+      changeBuilder(staffId, uni, {
+        command: edits,
+        preview: false,
+        token: q.token,
+        confirmed: true,
+      }),
+    ),
+  );
+  expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+  expect(
+    await db.teachingAssignmentGroup.count({
+      where: { assignmentId, groupId: groups[2] },
+    }),
+  ).toBe(0);
+});
+
+it("assignment commands enforce STAFF, same-origin, university scope, active links and audit rollback", async () => {
+  const operationId = randomUUID();
+  const command: BuilderCommand = {
+    action: "ASSIGNMENT_CREATE",
+    operationId,
+    programId,
+    subjectId,
+    kind: "LECTURE",
+    groups: [{ groupId: groups[0], teacherId: teachers[0] }],
+  };
+  expect((await POST(req(uh, { command, preview: true }))).status).toBe(403);
+  const cross = new Headers(sh);
+  cross.set("origin", "https://foreign.invalid");
+  expect((await POST(req(cross, { command, preview: true }))).status).toBe(403);
+  const foreignUniversity = randomUUID(),
+    foreignSubject = randomUUID();
+  await db.university.create({
+    data: {
+      id: foreignUniversity,
+      name: "Демо чужой контекст",
+      timezone: "Europe/Moscow",
+    },
+  });
+  await db.subject.create({
+    data: {
+      id: foreignSubject,
+      universityId: foreignUniversity,
+      name: "Демо чужая дисциплина",
+    },
+  });
+  await expect(
+    preview({ ...command, subjectId: foreignSubject }),
+  ).rejects.toMatchObject({ status: 400 });
+  await expect(
+    preview({
+      ...command,
+      groups: [{ groupId: otherGroup, teacherId: teachers[0] }],
+    }),
+  ).rejects.toMatchObject({ status: 400 });
+  const unrelated = randomUUID();
+  await commit({
+    action: "TEACHER_CREATE",
+    operationId: unrelated,
+    name: "Демо без назначения",
+    subjectIds: [],
+  });
+  await expect(
+    preview({
+      ...command,
+      groups: [{ groupId: groups[0], teacherId: unrelated }],
+    }),
+  ).rejects.toMatchObject({ status: 400 });
+  // A valid independent assignment must roll back only because of the deliberate audit failure.
+  const own = randomUUID();
+  await db.subject.create({
+    data: { id: own, universityId: uni, name: "Демо атомарное назначение" },
+  });
+  await commit({
+    action: "TEACHER_EDIT",
+    id: unrelated,
+    version: 1,
+    active: true,
+    name: "Демо без назначения",
+    subjectIds: [own],
+  });
+  const atomic: BuilderCommand = {
+    ...command,
+    subjectId: own,
+    groups: [{ groupId: groups[0], teacherId: unrelated }],
+  };
+  const p = await preview(atomic);
+  await db.$executeRawUnsafe(
+    `CREATE FUNCTION assignment_audit_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='ASSIGNMENT_CREATE' THEN RAISE EXCEPTION 'test refusal'; END IF; RETURN NEW; END $$`,
+  );
+  await db.$executeRawUnsafe(
+    'CREATE TRIGGER assignment_audit_fail BEFORE INSERT ON "AuditLog" FOR EACH ROW EXECUTE FUNCTION assignment_audit_fail()',
+  );
+  try {
+    await expect(
+      changeBuilder(staffId, uni, {
+        command: atomic,
+        preview: false,
+        token: p.token,
+        confirmed: true,
+      }),
+    ).rejects.toThrow();
+    expect(
+      await db.teachingAssignment.count({ where: { id: operationId } }),
+    ).toBe(0);
+    expect(
+      await db.teachingAssignmentGroup.count({
+        where: { assignmentId: operationId },
+      }),
+    ).toBe(0);
+    expect(await db.auditLog.count({ where: { targetId: operationId } })).toBe(
+      0,
+    );
+  } finally {
+    await db.$executeRawUnsafe(
+      'DROP TRIGGER assignment_audit_fail ON "AuditLog"',
+    );
+    await db.$executeRawUnsafe("DROP FUNCTION assignment_audit_fail()");
+  }
+});

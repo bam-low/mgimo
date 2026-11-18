@@ -15,6 +15,8 @@ export const tablePolicy = {
   Teacher: ["SELECT", "INSERT", "UPDATE"],
   Room: ["SELECT", "INSERT", "UPDATE"],
   TeacherSubject: ["SELECT", "INSERT", "UPDATE"],
+  TeachingAssignment: ["SELECT", "INSERT", "UPDATE"],
+  TeachingAssignmentGroup: ["SELECT", "INSERT", "UPDATE"],
   ScheduleTemplate: ["SELECT", "INSERT", "UPDATE"],
   TemplateGroup: ["SELECT", "INSERT", "UPDATE"],
   ScheduleGroup: ["SELECT", "INSERT", "UPDATE"],
