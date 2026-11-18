@@ -129,6 +129,7 @@ npm run test:e2e
 | [PRD](docs/PRD.md) | Продуктовые сценарии, роли, критерии приёмки |
 | [Architecture](docs/ARCHITECTURE.md) | Модель данных, доступ, безопасность и открытые вопросы |
 | [Decisions](docs/DECISIONS.md) | Принятые и предложенные решения |
+| [Рабочее пространство STAFF](docs/STAFF_ACADEMIC_WORKSPACE.md) | Курсы, безопасное удаление, единое расписание, отмены и средний балл #70 |
 | [Semesters](docs/SEMESTERS.md) | Конструктор, история, ресурсы, коллизии и API #41 |
 | [Schedule](docs/SCHEDULE.md) | Контракты учебной структуры и расписания |
 | [Design](docs/DESIGN.md) | Визуальная система и статус утверждений |

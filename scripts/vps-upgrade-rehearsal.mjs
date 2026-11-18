@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import https from "node:https";
 import assert from "node:assert/strict";
 const migrationContract = JSON.parse(await readFile(new URL("../ops/vps/migration-contract.json", import.meta.url), "utf8"));
-const additive = migrationContract.additive[0];
+const additive = migrationContract.additive;
 const additivePolicy = "baseline-preserved-approved-additive";
 export function assertAdditiveHistory(actual, before) {
   const empty = { count: 0, sha256: createHash("sha256").update("[]").digest("hex") };
@@ -36,7 +36,7 @@ export function rehearsal({
   const started = performance.now();
   let auditBaselineIDs, auditEvent;
   const snapshotCode = (auditAdditions = 0) =>
-    `import pg from 'pg';import {createHash} from 'node:crypto';const c=new pg.Client({connectionString:process.env.DATABASE_URL});await c.connect();const tables=(await c.query("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename")).rows;const out={};for(const {tablename:t} of tables){if(t==='RateBucket')continue;if(!/^[A-Za-z_]+$/.test(t))throw Error('Unexpected table');let rows=(await c.query('SELECT to_jsonb(t) AS row FROM "'+t+'" t ORDER BY to_jsonb(t)::text')).rows;if(t==='_prisma_migrations'){const added=rows.filter(r=>r.row.migration_name===${JSON.stringify(additive.name)});for(const {row}of added)if(row.checksum!==${JSON.stringify(additive.sha256)}||!row.finished_at||row.rolled_back_at||row.applied_steps_count!==1)throw Error('Invalid additive ledger');rows=rows.filter(r=>r.row.migration_name!==${JSON.stringify(additive.name)});}const keep=${JSON.stringify(auditBaselineIDs ?? null)};if(t==='AuditLog'&&keep){const old=new Set(keep),extra=rows.filter(r=>!old.has(r.row.id));if(extra.length!==${auditAdditions})throw Error('Unexpected audit additions');const expected=${JSON.stringify(auditEvent ?? null)};for(const {row} of extra)for(const k of Object.keys(expected))if(row[k]!==expected[k])throw Error('Unexpected audit event');rows=rows.filter(r=>old.has(r.row.id));}out[t]={count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};}await c.end();console.log(JSON.stringify(out));`;
+    `import pg from 'pg';import {createHash} from 'node:crypto';const c=new pg.Client({connectionString:process.env.DATABASE_URL});await c.connect();const tables=(await c.query("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename")).rows;const out={};for(const {tablename:t} of tables){if(t==='RateBucket')continue;if(!/^[A-Za-z_]+$/.test(t))throw Error('Unexpected table');let rows=(await c.query('SELECT to_jsonb(t) AS row FROM "'+t+'" t ORDER BY to_jsonb(t)::text')).rows;if(t==='_prisma_migrations'){const expected=${JSON.stringify(additive)};for(const approved of expected){const added=rows.filter(r=>r.row.migration_name===approved.name);for(const {row}of added)if(row.checksum!==approved.sha256||!row.finished_at||row.rolled_back_at||row.applied_steps_count!==1)throw Error('Invalid additive ledger');}rows=rows.filter(r=>!expected.some(a=>a.name===r.row.migration_name));}for(const column of (${JSON.stringify(migrationContract.addedColumns)}[t]??[])){for(const {row}of rows){if(Object.hasOwn(row,column)&&row[column]!==null)throw Error('Non-null new column changes baseline data');delete row[column];}}rows.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b),'en'));const keep=${JSON.stringify(auditBaselineIDs ?? null)};if(t==='AuditLog'&&keep){const old=new Set(keep),extra=rows.filter(r=>!old.has(r.row.id));if(extra.length!==${auditAdditions})throw Error('Unexpected audit additions');const expected=${JSON.stringify(auditEvent ?? null)};for(const {row} of extra)for(const k of Object.keys(expected))if(row[k]!==expected[k])throw Error('Unexpected audit event');rows=rows.filter(r=>old.has(r.row.id));}out[t]={count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};}await c.end();console.log(JSON.stringify(out));`;
   function toolJSON(code) {
     return JSON.parse(
       dc(
@@ -331,6 +331,7 @@ export function rehearsal({
       schema: additivePolicy,
       approvedAdditiveMigrations: migrationContract.additive,
       addedTables: migrationContract.addedTables,
+      addedColumns: migrationContract.addedColumns,
       tables: before,
       checks: [
         "baseline-populated-E2E",

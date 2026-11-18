@@ -244,7 +244,14 @@ type Actor = Awaited<ReturnType<typeof actor>>;
 // Personal history follows membership, never a caller-supplied current group.
 export async function readGrades(
   a: Actor,
-  q: { membershipId?: string; cursor?: string; auditCursor?: string } = {},
+  q: {
+    membershipId?: string;
+    cursor?: string;
+    auditCursor?: string;
+    from?: string;
+    to?: string;
+    subjectId?: string;
+  } = {},
 ) {
   let membershipId = a.membership.id;
   const isStaff = a.membership.role === "STAFF";
@@ -263,19 +270,75 @@ export async function readGrades(
     studentAccess(a);
     if (q.membershipId && q.membershipId !== membershipId) throw new Denied();
   }
+  const from = q.from ? z.string().refine(validDay).parse(q.from) : undefined;
+  const to = q.to ? z.string().refine(validDay).parse(q.to) : undefined;
+  if (from && to && from > to) throw new Denied(400);
   const where = {
     universityId: a.membership.universityId,
     membershipId,
     ...(isStaff ? {} : { voided: false }),
+    ...(from || to
+      ? {
+          issuedOn: {
+            ...(from ? { gte: new Date(from) } : {}),
+            ...(to ? { lte: new Date(to) } : {}),
+          },
+        }
+      : {}),
+  };
+  // Aggregate the entire selected period, never just the visible result page.
+  const totals = await db.grade.aggregate({
+    where: { ...where, voided: false, kind: "MARK" },
+    _avg: { mark: true },
+    _count: { mark: true },
+  });
+  const credits = await db.grade.groupBy({
+    by: ["credit"],
+    where: { ...where, voided: false, kind: "CREDIT" },
+    _count: true,
+  });
+  const subjectSummary = await db.grade.groupBy({
+    by: ["subjectId"],
+    where: { ...where, voided: false, kind: "MARK" },
+    _avg: { mark: true },
+    _count: { mark: true },
+  });
+  const selectedSubject = q.subjectId ? id.parse(q.subjectId) : undefined;
+  const disciplines = await db.subject.findMany({
+    where: {
+      universityId: a.membership.universityId,
+      ...(selectedSubject ? { id: selectedSubject } : {}),
+      grades: {
+        some: selectedSubject
+          ? {
+              universityId: a.membership.universityId,
+              membershipId,
+              ...(isStaff ? {} : { voided: false }),
+            }
+          : where,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      active: true,
+      _count: { select: { grades: { where } } },
+    },
+    orderBy: [{ name: "asc" }, { id: "asc" }],
+  });
+  if (selectedSubject && !disciplines.length) throw new Denied(404);
+  const resultWhere = {
+    ...where,
+    ...(selectedSubject ? { subjectId: selectedSubject } : {}),
   };
   const cursor = q.cursor ? id.parse(q.cursor) : undefined;
   if (
     cursor &&
-    !(await db.grade.findFirst({ where: { ...where, id: cursor } }))
+    !(await db.grade.findFirst({ where: { ...resultWhere, id: cursor } }))
   )
     throw new Denied(404);
   const rows = await db.grade.findMany({
-    where,
+    where: resultWhere,
     orderBy: [{ issuedOn: "desc" }, { id: "desc" }],
     take: 26,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -323,6 +386,25 @@ export async function readGrades(
       })
     : [];
   return {
+    summary: {
+      average: totals._avg.mark,
+      count: totals._count.mark,
+      passed: credits.find((c) => c.credit === "PASSED")?._count ?? 0,
+      failed: credits.find((c) => c.credit === "FAILED")?._count ?? 0,
+    },
+    period: { from: from ?? "", to: to ?? "" },
+    subjectSummary: subjectSummary.map((s) => ({
+      subjectId: s.subjectId,
+      average: s._avg.mark,
+      count: s._count.mark,
+    })),
+    subjectId: selectedSubject ?? null,
+    disciplines: disciplines.map((s) => ({
+      id: s.id,
+      name: s.name,
+      active: s.active,
+      count: s._count.grades,
+    })),
     rows: page.map((r) => ({
       ...r,
       issuedOn: r.issuedOn.toISOString().slice(0, 10),

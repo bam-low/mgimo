@@ -11,7 +11,13 @@ export type Tree = {
     name: string;
     active: boolean;
     version: number;
-    groups: { id: string; name: string; active: boolean; version: number }[];
+    groups: {
+      id: string;
+      name: string;
+      active: boolean;
+      version: number;
+      course: number | null;
+    }[];
   }[];
 }[];
 type RecordData = {
@@ -19,15 +25,18 @@ type RecordData = {
   name: string;
   active: boolean;
   version: number;
+  course?: number | null;
 };
 function StructureForm({
   kind,
   record,
   parents = [],
+  parentActive = true,
 }: {
   kind: "faculty" | "program" | "group";
   record?: RecordData;
   parents?: { id: string; name: string }[];
+  parentActive?: boolean;
 }) {
   const operation = useRef<string | undefined>(undefined);
   const [busy, B] = useState(false),
@@ -46,12 +55,20 @@ function StructureForm({
           f = new FormData(form);
         const submitter = (e.nativeEvent as SubmitEvent).submitter;
         const visibility = submitter?.getAttribute("data-visibility");
+        const deleting = visibility === "delete";
+        if (
+          deleting &&
+          !window.confirm(
+            `Удалить «${record?.name}» без возможности восстановления? Это доступно только при отсутствии связей и истории.`,
+          )
+        )
+          return;
         const active =
           visibility === "archive"
             ? false
             : visibility === "restore"
               ? true
-              : (record?.active ?? (f.get("active") === "on"));
+              : (record?.active ?? f.get("active") === "on");
         if (
           visibility === "archive" &&
           !window.confirm(
@@ -72,6 +89,16 @@ function StructureForm({
                 : {}),
               name: visibility ? record?.name : f.get("name"),
               active,
+              ...(deleting ? { action: "DELETE" } : {}),
+              ...(kind === "group"
+                ? {
+                    course: visibility
+                      ? (record?.course ?? null)
+                      : f.get("course")
+                        ? Number(f.get("course"))
+                        : null,
+                  }
+                : {}),
               ...(record
                 ? { id: record.id, version: record.version }
                 : kind === "faculty"
@@ -79,7 +106,15 @@ function StructureForm({
                   : { parentId: f.get("parentId") }),
             }),
           });
-          if (!r.ok) throw Error();
+          if (!r.ok) {
+            const result = await r.json();
+            E(
+              typeof result.error === "string"
+                ? result.error
+                : "Не удалось сохранить изменения.",
+            );
+            return;
+          }
           E("Сохранено");
           if (!record) {
             form.reset();
@@ -88,7 +123,7 @@ function StructureForm({
           router.refresh();
         } catch {
           E(
-            "Не удалось сохранить. Проверьте данные и обновите страницу: возможно, запись уже изменена.",
+            "Не удалось сохранить. Проверьте соединение и обновите страницу: возможно, запись уже изменена.",
           );
         } finally {
           B(false);
@@ -121,6 +156,20 @@ function StructureForm({
           required
         />
       </label>
+      {kind === "group" && (
+        <label>
+          Курс
+          <input
+            name="course"
+            type="number"
+            min="1"
+            max="2147483647"
+            step="1"
+            defaultValue={record?.course ?? ""}
+            placeholder="Курс не указан"
+          />
+        </label>
+      )}
       {!record && (
         <label className="check-label">
           <input type="checkbox" name="active" defaultChecked />
@@ -133,9 +182,19 @@ function StructureForm({
       {record && (
         <button
           type="submit"
-          data-visibility={record.active ? "archive" : "restore"}
+          data-visibility="delete"
           formNoValidate
           disabled={busy}
+        >
+          Удалить
+        </button>
+      )}
+      {record && (
+        <button
+          type="submit"
+          data-visibility={record.active ? "archive" : "restore"}
+          formNoValidate
+          disabled={busy || (!record.active && !parentActive)}
         >
           {record.active ? "Убрать в архив" : "Восстановить"}
         </button>
@@ -167,10 +226,15 @@ function StructureTree({
           <h3>
             {p.name} {!p.active && "· В архиве"}
           </h3>
-          {f.active && (!archive || !p.active) && (
+          {(!archive || !p.active || !f.active) && (
             <details>
               <summary>Редактировать направление</summary>
-              <StructureForm key={p.version} kind="program" record={p} />
+              <StructureForm
+                key={p.version}
+                kind="program"
+                record={p}
+                parentActive={f.active}
+              />
             </details>
           )}
           <ul>
@@ -179,10 +243,19 @@ function StructureTree({
                 <h4>
                   {g.name} {!g.active && "· В архиве"}
                 </h4>
-                {f.active && p.active && (!archive || !g.active) && (
+                <span className="group-course">
+                  {" "}
+                  · {g.course == null ? "Курс не указан" : `${g.course} курс`}
+                </span>
+                {(!archive || !g.active || !p.active || !f.active) && (
                   <details>
                     <summary>Редактировать группу</summary>
-                    <StructureForm key={g.version} kind="group" record={g} />
+                    <StructureForm
+                      key={g.version}
+                      kind="group"
+                      record={g}
+                      parentActive={f.active && p.active}
+                    />
                   </details>
                 )}
               </li>
@@ -207,15 +280,17 @@ function archivedStructure(tree: Tree): Tree {
 }
 
 export function StructureEditor({ tree }: { tree: Tree }) {
-  const active = tree.filter((faculty) => faculty.active).map((faculty) => ({
-    ...faculty,
-    programs: faculty.programs
-      .filter((program) => program.active)
-      .map((program) => ({
-        ...program,
-        groups: program.groups.filter((group) => group.active),
-      })),
-  }));
+  const active = tree
+    .filter((faculty) => faculty.active)
+    .map((faculty) => ({
+      ...faculty,
+      programs: faculty.programs
+        .filter((program) => program.active)
+        .map((program) => ({
+          ...program,
+          groups: program.groups.filter((group) => group.active),
+        })),
+    }));
   const archived = archivedStructure(tree);
   return (
     <>
@@ -253,7 +328,9 @@ export function StructureEditor({ tree }: { tree: Tree }) {
       <details>
         <summary>Архив учебной структуры</summary>
         <section aria-label="Архив учебной структуры">
-          <p>Чтобы вернуть вложенную запись, сначала восстановите её родителя.</p>
+          <p>
+            Чтобы вернуть вложенную запись, сначала восстановите её родителя.
+          </p>
           {!archived.length && <p>В архиве пока ничего нет.</p>}
           <StructureTree tree={archived} archive />
         </section>

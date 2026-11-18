@@ -10,9 +10,17 @@ const links = [
 ] as const;
 
 /** Native disclosure on mobile; the desktop row keeps its existing layout. */
-export function ScheduleManagement() {
+export function ScheduleManagement({ unified = false }: { unified?: boolean }) {
+  const destinations = unified
+    ? [
+        ["#semester-setup", "Учебный семестр"],
+        ["#builder-filters", "Расписание"],
+        ["#schedule-resources", "Преподаватели и аудитории"],
+        ["/staff/structure", "Учебная структура"],
+      ]
+    : links;
   const items = () =>
-    links.map(([href, label]) => (
+    destinations.map(([href, label]) => (
       <Link href={href} key={href}>
         {label}
       </Link>

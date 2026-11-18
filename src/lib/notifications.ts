@@ -1,5 +1,6 @@
 /** Only safe server-owned templates, never copies of private domain text. */
 export const notificationTitles = {
+  SCHEDULE_CANCELLED: "Занятие отменено",
   ENROLLMENT_APPROVED: "Прикрепление подтверждено",
   ENROLLMENT_REJECTED: "В прикреплении отказано",
   APPLICATION_TAKEN: "Заявка принята в работу",

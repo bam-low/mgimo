@@ -7,11 +7,17 @@ import { AppNav } from "../app-nav";
 import { Workspace } from "../workspace";
 import { RefreshContext } from "../forms";
 import { GradeList } from "../grade-list";
+import { GradePeriod } from "../grade-period";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ cursor?: string }>;
+  searchParams: Promise<{
+    cursor?: string;
+    from?: string;
+    to?: string;
+    subjectId?: string;
+  }>;
 }) {
   const q = await searchParams;
   const data = await protectedPage(async () =>
@@ -32,11 +38,18 @@ export default async function Page({
             Оценки и зачёты, сохранённые сотрудником. Даты в календаре вуза.
           </p>
         </header>
-        <GradeList data={data} />
+        <GradePeriod query={q} />
+        <GradeList data={data} query={q} />
         <nav className="grades-pages" aria-label="Страницы результатов">
-          <Link href="/grades">К началу</Link>
-          {data.next && (
-            <Link href={{ pathname: "/grades", query: { cursor: data.next } }}>
+          <Link
+            href={{ pathname: "/grades", query: { ...q, cursor: undefined } }}
+          >
+            К началу
+          </Link>
+          {data.subjectId && data.next && (
+            <Link
+              href={{ pathname: "/grades", query: { ...q, cursor: data.next } }}
+            >
               Следующие результаты
             </Link>
           )}

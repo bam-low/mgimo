@@ -146,7 +146,7 @@ export function TeachingAssignments({
     </>
   );
 }
-function AssignmentEditor({
+export function AssignmentEditor({
   catalog,
   program,
   selected,

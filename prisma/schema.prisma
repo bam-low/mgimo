@@ -95,6 +95,7 @@ model Program {
  groups StudentGroup[]
 }
 model StudentGroup {
+ course Int?
  assignmentGroups TeachingAssignmentGroup[]
  version Int @default(1)
  submittedApplications Application[]
@@ -188,6 +189,8 @@ model RateBucket {
 }
 
 model ScheduleEntry {
+ cancellations ScheduleCancellation[]
+ @@unique([id,universityId])
  universityId String?
  semesterId String?
  semester Semester? @relation(fields:[semesterId,universityId],references:[id,universityId],onDelete:Restrict)
@@ -432,6 +435,8 @@ model ApplicationEvent {
 }
 
 model Notification {
+ cancellationId String?
+ cancellation ScheduleCancellation? @relation(fields:[cancellationId,universityId],references:[id,universityId],onDelete:Restrict)
  id String @id @default(cuid())
  universityId String
  recipientMembershipId String
@@ -449,6 +454,21 @@ model Notification {
  readAt DateTime? @db.Timestamptz(3)
  @@unique([universityId,recipientMembershipId,sourceKey])
  @@index([recipientMembershipId,universityId,createdAt,id])
+}
+
+model ScheduleCancellation {
+ id String @id
+ universityId String
+ entryId String
+ entryVersion Int
+ entry ScheduleEntry @relation(fields:[entryId,universityId],references:[id,universityId],onDelete:Restrict)
+ title String
+ startsAt DateTime @db.Timestamptz(3)
+ endsAt DateTime @db.Timestamptz(3)
+ groupIds Json
+ notifications Notification[]
+ @@unique([id,universityId])
+ @@unique([entryId,entryVersion])
 }
 
 // Reusable explicit assignments, independent of a semester. Published lessons are snapshots.

@@ -23,7 +23,7 @@ def fixture():
     values["scanner-metadata.json"] = {"scanner": {"Version": "0.76.2", "VulnerabilityDB": {"Version": 2}}, "databaseFileSHA256": "a" * 64}
     for name in ("npm-all.json", "npm-production.json"):
         values[name] = {"metadata": {"vulnerabilities": {"total": 0}}}
-    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"]}
+    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"], "addedColumns": rc.CONTRACT["addedColumns"]}
     evidence = {name: json.dumps(value).encode() for name, value in values.items()}
     migrations = [{"name": p.parent.name, "sha256": rc.digest(p.read_bytes())} for p in sorted((Path(__file__).parents[1] / "prisma/migrations").glob("*/migration.sql"))]
     m = {"releaseVersion": rc.VERSION, "manifestSchemaVersion": 1, "sourceCommit": rc.BASELINE,

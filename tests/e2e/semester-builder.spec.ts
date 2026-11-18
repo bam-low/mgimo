@@ -208,6 +208,12 @@ test("semester calendar and real shared timetable work at 360, 390 and 1280; for
   await inspector
     .getByRole("combobox", { name: "Аудитория", exact: true })
     .selectOption(roomId);
+  await expect(
+    inspector.getByRole("combobox", { name: "Повторение", exact: true }),
+  ).toHaveValue("ONCE");
+  await inspector
+    .getByRole("combobox", { name: "Повторение", exact: true })
+    .selectOption("EVERY");
   // Select exactly the two desired groups using stable values from the real directory.
   const groupOptions = updated.faculties
     .flatMap(
@@ -403,14 +409,12 @@ test("mobile resource forms support multiple subjects, subsequent creation, rena
       exact: true,
     }),
   ).toBeVisible();
-  const roomCard = page
-    .getByRole("article")
-    .filter({
-      has: page.getByRole("heading", {
-        name: `Демо исследовательский корпус ${suffix} · 205`,
-        exact: true,
-      }),
-    });
+  const roomCard = page.getByRole("article").filter({
+    has: page.getByRole("heading", {
+      name: `Демо исследовательский корпус ${suffix} · 205`,
+      exact: true,
+    }),
+  });
   await panel
     .getByRole("checkbox", { name: "Действующая запись", exact: true })
     .uncheck();

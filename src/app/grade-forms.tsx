@@ -107,6 +107,7 @@ export function GradeForm({
   today,
   row,
   onClose,
+  initialSubjectId,
 }: {
   membershipId: string;
   groupId?: string;
@@ -114,6 +115,7 @@ export function GradeForm({
   today: string;
   row?: Row;
   onClose?: () => void;
+  initialSubjectId?: string;
 }) {
   const { busy, message, send, ready } = useMutation();
   const [operationId, O] = useState(() => crypto.randomUUID());
@@ -166,7 +168,7 @@ export function GradeForm({
             aria-label="Дисциплина"
             name="subjectId"
             required
-            defaultValue={row?.subjectId ?? ""}
+            defaultValue={row?.subjectId ?? initialSubjectId ?? ""}
           >
             <option value="" disabled>
               Выберите дисциплину
@@ -229,10 +231,19 @@ export function GradeForm({
         {row && (
           <label>
             Причина исправления
-            <textarea name="reason" disabled={!ready} required maxLength={500} />
+            <textarea
+              name="reason"
+              disabled={!ready}
+              required
+              maxLength={500}
+            />
           </label>
         )}
-        <button disabled={busy || (!row && !groupId) || !subjects.some((s) => s.active)}>
+        <button
+          disabled={
+            busy || (!row && !groupId) || !subjects.some((s) => s.active)
+          }
+        >
           {busy
             ? "Сохраняем…"
             : row
@@ -266,7 +277,12 @@ export function GradeActions({
     return <p className="notice">Аннулировано; история сохранена.</p>;
   return (
     <>
-      <button type="button" className="secondary" disabled={!ready} onClick={() => E(!edit)}>
+      <button
+        type="button"
+        className="secondary"
+        disabled={!ready}
+        onClick={() => E(!edit)}
+      >
         Исправить
       </button>
       {edit && (

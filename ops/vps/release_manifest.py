@@ -61,7 +61,7 @@ def validate(m, evidence):
     require(m["compatibility"] == {"upgradeFrom": BASELINE, "appRollbackTo": BASELINE,
                                   "schemaPolicy": migration_policy(m["migrations"])}, "Unsupported compatibility claim")
     migrations = m["migrations"]
-    require(isinstance(migrations, list) and len(migrations) in (8, 9), "Unexpected migration inventory")
+    require(isinstance(migrations, list) and len(migrations) in (len(CONTRACT["baseline"]), len(CONTRACT["baseline"]) + len(CONTRACT["additive"])), "Unexpected migration inventory")
     names = []
     for row in migrations:
         require(set(row) == {"name", "sha256"} and re.fullmatch(r"[0-9]{14}_[a-z_]+", row["name"])
@@ -88,7 +88,8 @@ def validate(m, evidence):
     require(upgrade.get("schema") == m["compatibility"]["schemaPolicy"], "Schema upgrade proof mismatch")
     if m["compatibility"]["schemaPolicy"] == ADDITIVE_POLICY:
         require(upgrade.get("approvedAdditiveMigrations") == CONTRACT["additive"]
-                and upgrade.get("addedTables") == CONTRACT["addedTables"], "Additive upgrade proof missing")
+                and upgrade.get("addedTables") == CONTRACT["addedTables"]
+                and upgrade.get("addedColumns") == CONTRACT["addedColumns"], "Additive upgrade proof missing")
     for name in ("npm-all.json", "npm-production.json"):
         audit = loads(evidence[name])
         require("error" not in audit and "metadata" in audit and "vulnerabilities" in audit["metadata"], "Invalid npm audit")

@@ -1,3 +1,4 @@
+import { gradeRows } from "./grade-rows";
 import { signInWithSession } from "./ui-sign-in";
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -7,7 +8,11 @@ test("STAFF selects student and subject, records marks and credit; personal stud
 }) => {
   test.setTimeout(180000);
   page.on("dialog", (d) => d.accept());
-  await signInWithSession(page, "staff@example.test", process.env.DEMO_STAFF_PASSWORD!);
+  await signInWithSession(
+    page,
+    "staff@example.test",
+    process.env.DEMO_STAFF_PASSWORD!,
+  );
   await page.goto("/staff/grades");
   if (process.env.CAMPUS_VPS_UPGRADE_REHEARSAL !== "1") {
     await expect(page.getByLabel("Студент", { exact: true })).toBeDisabled();
@@ -56,14 +61,17 @@ test("STAFF selects student and subject, records marks and credit; personal stud
     .selectOption({ label: title });
   await form().getByLabel("Результат", { exact: true }).selectOption("5");
   const [created] = await Promise.all([
-    page.waitForResponse(response => new URL(response.url()).pathname === "/api/staff/grades" && response.request().method() === "POST"),
-    form().getByRole("button", { name: "Выставить результат", exact: true }).click(),
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/staff/grades" &&
+        response.request().method() === "POST",
+    ),
+    form()
+      .getByRole("button", { name: "Выставить результат", exact: true })
+      .click(),
   ]);
   expect(created.status(), "HTTP-ответ создания оценки").toBe(200);
-  const rows = () =>
-    page
-      .getByTestId("grade-row")
-      .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+  const rows = () => gradeRows(page, title);
   await expect(rows()).toHaveCount(1);
   const savedResponse = await page.request.get(
     "/api/grades?membershipId=" + membershipId,
@@ -81,8 +89,14 @@ test("STAFF selects student and subject, records marks and credit; personal stud
   await form().getByLabel("Тип результата").selectOption("CREDIT");
   await form().getByLabel("Результат", { exact: true }).selectOption("PASSED");
   const [credited] = await Promise.all([
-    page.waitForResponse(response => new URL(response.url()).pathname === "/api/staff/grades" && response.request().method() === "POST"),
-    form().getByRole("button", { name: "Выставить результат", exact: true }).click(),
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/staff/grades" &&
+        response.request().method() === "POST",
+    ),
+    form()
+      .getByRole("button", { name: "Выставить результат", exact: true })
+      .click(),
   ]);
   expect(credited.status(), "HTTP-ответ создания зачёта").toBe(200);
   await expect(rows()).toHaveCount(2);
@@ -102,10 +116,7 @@ test("STAFF selects student and subject, records marks and credit; personal stud
       sp.getByRole("link", { name: "Все результаты", exact: true }),
     ).toHaveAttribute("href", "/grades");
     await sp.goto("/grades");
-    const own = () =>
-      sp
-        .getByTestId("grade-row")
-        .filter({ has: sp.getByRole("heading", { name: title, exact: true }) });
+    const own = () => gradeRows(sp, title);
     await expect(own()).toHaveCount(2);
     await expect(own().filter({ hasText: "Зачтено" })).toHaveCount(1);
     await expect(
@@ -173,16 +184,26 @@ test("STAFF selects student and subject, records marks and credit; personal stud
         [sp, "student"],
       ] as const) {
         await p.setViewportSize({ width, height: 900 });
-        await expect(p.getByRole("button", { name: "Выйти", exact: true })).toHaveCount(1);
-        const header = await p.locator(".campus-masthead").evaluate((element) => {
-          const brand = element.querySelector(".wordmark")!.getBoundingClientRect();
-          const exit = element.querySelector("button")!.getBoundingClientRect();
-          return {
-            aligned: Math.abs(brand.y + brand.height / 2 - exit.y - exit.height / 2),
-            right: exit.right,
-            height: exit.height,
-          };
-        });
+        await expect(
+          p.getByRole("button", { name: "Выйти", exact: true }),
+        ).toHaveCount(1);
+        const header = await p
+          .locator(".campus-masthead")
+          .evaluate((element) => {
+            const brand = element
+              .querySelector(".wordmark")!
+              .getBoundingClientRect();
+            const exit = element
+              .querySelector("button")!
+              .getBoundingClientRect();
+            return {
+              aligned: Math.abs(
+                brand.y + brand.height / 2 - exit.y - exit.height / 2,
+              ),
+              right: exit.right,
+              height: exit.height,
+            };
+          });
         expect(header.aligned).toBeLessThan(2);
         expect(header.right).toBeLessThanOrEqual(width);
         expect(header.height).toBeGreaterThanOrEqual(44);
@@ -197,11 +218,7 @@ test("STAFF selects student and subject, records marks and credit; personal stud
           path: `test-results/issue39-${role}-${width}.png`,
           fullPage: true,
         });
-        await p
-          .getByTestId("grade-row")
-          .filter({ has: p.getByRole("heading", { name: title, exact: true }) })
-          .first()
-          .scrollIntoViewIfNeeded();
+        await gradeRows(p, title).first().scrollIntoViewIfNeeded();
         await p.screenshot({
           path: `test-results/issue39-${role}-${width}-results.png`,
           fullPage: true,

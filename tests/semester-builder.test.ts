@@ -178,7 +178,7 @@ it("globally checks teacher/room across programs and atomic group conflicts on e
   for (const patch of [
     { groupIds: [groups[2]], teacherId: teachers[0], roomId: rooms[1] },
     { groupIds: [groups[2]], teacherId: teachers[1], roomId: rooms[0] },
-    { groupIds: [groups[0]], teacherId: null, roomId: null },
+    { groupIds: [groups[0]], teacherId: teachers[0], roomId: rooms[0] },
   ]) {
     const d = create(patch);
     await expect(commit(d)).rejects.toMatchObject({ status: 409 });
@@ -190,7 +190,7 @@ it("globally checks teacher/room across programs and atomic group conflicts on e
   }
   await expect(
     commit({
-      ...create({ groupIds: [otherGroup], roomId: null }),
+      ...create({ groupIds: [otherGroup], roomId: rooms[0] }),
       programId: otherProgram,
     } as BuilderCommand),
   ).rejects.toThrow(/преподаватель/);
@@ -306,14 +306,14 @@ it("rechecks preview at commit, serialises two concurrent batches and rejects re
   const one = create({
       recurrence: "ONCE",
       once: "2034-02-08",
-      teacherId: null,
-      roomId: null,
+      teacherId: teachers[0],
+      roomId: rooms[0],
     }),
     two = create({
       recurrence: "ONCE",
       once: "2034-02-08",
-      teacherId: null,
-      roomId: null,
+      teacherId: teachers[0],
+      roomId: rooms[0],
     });
   const [p1, p2] = await Promise.all([preview(one), preview(two)]);
   const result = await Promise.allSettled([
@@ -339,8 +339,8 @@ it("rechecks preview at commit, serialises two concurrent batches and rejects re
   const noConfirm = create({
     recurrence: "ONCE",
     once: "2034-02-09",
-    teacherId: null,
-    roomId: null,
+    teacherId: teachers[0],
+    roomId: rooms[0],
   });
   await expect(
     changeBuilder(staffId, uni, {
@@ -366,8 +366,8 @@ it("future regeneration preserves past, moved single slots and manual cancellati
         groupIds: [groups[2]],
         recurrence: "A",
         weekday: 7,
-        teacherId: null,
-        roomId: null,
+        teacherId: teachers[0],
+        roomId: rooms[0],
         startTime: "16:00",
         endTime: "17:00",
       },
@@ -389,8 +389,8 @@ it("future regeneration preserves past, moved single slots and manual cancellati
     version: 1,
     day,
     subjectId,
-    teacherId: null,
-    roomId: null,
+    teacherId: teachers[0],
+    roomId: rooms[0],
     startTime: "18:00",
     endTime: "19:00",
   });
@@ -405,8 +405,8 @@ it("future regeneration preserves past, moved single slots and manual cancellati
       groupIds: [groups[2]],
       recurrence: "A",
       weekday: 7,
-      teacherId: null,
-      roomId: null,
+      teacherId: teachers[0],
+      roomId: rooms[0],
       startTime: "14:00",
       endTime: "15:00",
     },
@@ -468,7 +468,12 @@ it("arbitrary years, overlapping semesters and duplicate names are explicit; rea
   await commit({ action: "SEMESTER_CREATE", operationId: sid, calendar: c });
   await commit(
     create(
-      { recurrence: "ONCE", once: "2140-02-02", teacherId: null, roomId: null },
+      {
+        recurrence: "ONCE",
+        once: "2140-02-02",
+        teacherId: teachers[0],
+        roomId: rooms[0],
+      },
       sid,
     ),
   );
@@ -579,8 +584,8 @@ it("calendar regeneration retains different effective rules before/after a futur
   const r: Rule = {
     ...rule,
     groupIds: [groups[2]],
-    teacherId: null,
-    roomId: null,
+    teacherId: teachers[0],
+    roomId: rooms[0],
     weekday: 2,
     startTime: "19:00",
     endTime: "20:00",
@@ -771,8 +776,8 @@ it("resource lifecycle, strict university references, stale versions and student
         recurrence: "ONCE",
         once: "2044-01-12",
         groupIds: [groupId],
-        teacherId: null,
-        roomId: null,
+        teacherId: teachers[0],
+        roomId: rooms[0],
       },
     });
     const mine = await readSchedule(a, { day: "2044-01-12" });

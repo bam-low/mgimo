@@ -501,3 +501,163 @@ it("deactivated program blocks approval but pending rejection remains available 
     });
   }
 });
+
+it("course belongs to each group; physical deletion refuses every linked record and retains audit", async () => {
+  const ids: string[] = [];
+  for (const course of [1, 2]) {
+    const row = await changeStructure(staffId, "demo-university", {
+      kind: "group",
+      operationId: randomUUID(),
+      parentId: programId,
+      name: `Демо курс ${course}`,
+      course,
+      active: true,
+    });
+    ids.push(row.id);
+  }
+  expect(
+    (
+      await db.studentGroup.findMany({
+        where: { id: { in: ids } },
+        orderBy: { course: "asc" },
+      })
+    ).map((g) => g.course),
+  ).toEqual([1, 2]);
+  await changeStructure(staffId, "demo-university", {
+    kind: "group",
+    id: ids[0],
+    name: "Демо курс 1",
+    version: 1,
+    active: true,
+    action: "DELETE",
+  });
+  expect(
+    await db.studentGroup.findUnique({ where: { id: ids[0] } }),
+  ).toBeNull();
+  expect(
+    await db.auditLog.count({
+      where: { targetId: ids[0], action: "STRUCTURE_DELETED" },
+    }),
+  ).toBe(1);
+  await db.scheduleEntry.create({
+    data: {
+      groupId: ids[1],
+      title: "Демо зависимость",
+      startsAt: new Date("2032-02-03T09:00:00Z"),
+      endsAt: new Date("2032-02-03T10:00:00Z"),
+    },
+  });
+  await expect(
+    changeStructure(staffId, "demo-university", {
+      kind: "group",
+      id: ids[1],
+      name: "Демо курс 2",
+      version: 1,
+      active: true,
+      action: "DELETE",
+    }),
+  ).rejects.toThrow("архивирование");
+  expect(
+    await db.studentGroup.findUnique({ where: { id: ids[1] } }),
+  ).not.toBeNull();
+  await expect(
+    changeStructure(staffId, "demo-university", {
+      kind: "program",
+      id: programId,
+      name: "Демо",
+      version: (
+        await db.program.findUniqueOrThrow({ where: { id: programId } })
+      ).version,
+      active: true,
+      action: "DELETE",
+    }),
+  ).rejects.toThrow("архивирование");
+  await expect(
+    changeStructure(staffId, "demo-university", {
+      kind: "group",
+      operationId: randomUUID(),
+      parentId: programId,
+      name: "Демо",
+      course: 0,
+      active: true,
+    }),
+  ).rejects.toThrow();
+  await db.scheduleEntry.deleteMany({ where: { groupId: ids[1] } });
+  await db.studentGroup.delete({ where: { id: ids[1] } });
+});
+
+it("deletes empty group, program and faculty in dependency order and rejects another actor", async () => {
+  const faculty = await changeStructure(staffId, "demo-university", {
+    kind: "faculty",
+    name: "Демо пустой факультет",
+    active: true,
+    operationId: randomUUID(),
+  });
+  const program = await changeStructure(staffId, "demo-university", {
+    kind: "program",
+    parentId: faculty.id,
+    name: "Демо пустое направление",
+    active: true,
+    operationId: randomUUID(),
+  });
+  const group = await changeStructure(staffId, "demo-university", {
+    kind: "group",
+    parentId: program.id,
+    name: "Демо пустая группа",
+    active: true,
+    course: null,
+    operationId: randomUUID(),
+  });
+  const remove = (kind: string, id: string) => ({
+    kind,
+    id,
+    name: "Демо",
+    active: true,
+    version: 1,
+    action: "DELETE",
+  });
+  expect(
+    (
+      await structure(
+        req("/api/staff/structure", studentHeaders, remove("group", group.id)),
+      )
+    ).status,
+  ).toBe(403);
+  await expect(
+    changeStructure(staffId, "another-university", remove("group", group.id)),
+  ).rejects.toMatchObject({ status: 403 });
+  await expect(
+    changeStructure(staffId, "demo-university", remove("faculty", faculty.id)),
+  ).rejects.toThrow("архивирование");
+  await expect(
+    changeStructure(staffId, "demo-university", remove("program", program.id)),
+  ).rejects.toThrow("архивирование");
+  const concurrent = await Promise.allSettled([
+    changeStructure(staffId, "demo-university", remove("group", group.id)),
+    changeStructure(staffId, "demo-university", remove("group", group.id)),
+  ]);
+  expect(concurrent.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+  await changeStructure(
+    staffId,
+    "demo-university",
+    remove("program", program.id),
+  );
+  await changeStructure(
+    staffId,
+    "demo-university",
+    remove("faculty", faculty.id),
+  );
+  expect(await db.faculty.findUnique({ where: { id: faculty.id } })).toBeNull();
+  expect(await db.program.findUnique({ where: { id: program.id } })).toBeNull();
+  expect(
+    await db.studentGroup.findUnique({ where: { id: group.id } }),
+  ).toBeNull();
+  expect(
+    await db.auditLog.count({
+      where: {
+        action: "STRUCTURE_DELETED",
+        targetId: { in: [faculty.id, program.id, group.id] },
+      },
+    }),
+  ).toBe(3);
+});

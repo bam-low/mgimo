@@ -218,6 +218,11 @@ async function visualChecks(page: Page, role: string) {
   await page.emulateMedia({ reducedMotion: "no-preference" });
 }
 test.use({ timezoneId: "America/Los_Angeles", locale: "ru-RU" });
+const manualSchedule =
+  process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+    ? "/staff/schedule"
+    : "/staff/schedule/manual";
+
 test("STAFF structure and schedule → real student today/week → edit/cancel/delete, preserving other groups", async ({
   page: initialPage,
   browser,
@@ -321,7 +326,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     await expect(
       page.getByRole("heading", { name: group, exact: true }),
     ).toBeVisible();
-    await page.goto("/staff/schedule");
+    await page.goto(manualSchedule);
     const id = await page
       .getByLabel("Учебная группа", { exact: true })
       .locator("option")
@@ -498,7 +503,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     ).toHaveCount(0);
     await logout();
     page = staffPage;
-    await page.goto(`/staff/schedule?groupId=${id}&day=${today}`);
+    await page.goto(`${manualSchedule}?groupId=${id}&day=${today}`);
     const tile = (label: string) =>
       page.getByRole("button", {
         name: `Открыть занятие: ${label}, ${today} ${hm(start)}`,
@@ -583,7 +588,7 @@ test("STAFF structure and schedule → real student today/week → edit/cancel/d
     ).toBeVisible();
     await page.unroute("**/api/schedule?*");
     page = staffPage;
-    await page.goto(`/staff/schedule?groupId=${id}&day=${today}`);
+    await page.goto(`${manualSchedule}?groupId=${id}&day=${today}`);
     await tile(title + " обновлён").click();
     page.removeListener("dialog", acceptDialog);
     page.once("dialog", (dialog) => dialog.dismiss());

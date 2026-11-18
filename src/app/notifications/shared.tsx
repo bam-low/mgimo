@@ -24,9 +24,7 @@ export function NotificationShell({
         <header className="editorial-heading">
           <p className="eyebrow">Деканат / Личные события</p>
           <h1>Уведомления</h1>
-          <p>
-            Решения по прикреплению, обращениям и демонстрационным справкам.
-          </p>
+          <p>Решения по прикреплению, обращениям и справкам, отмены занятий.</p>
         </header>
         {children}
       </Workspace>
