@@ -45,7 +45,7 @@ jobs:
       - run: npm run test:picomatch
       - run: npm audit --omit=dev
       - run: npm run db:generate
-      - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs
+      - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs tests/vps-migration-contract.test.mjs
       - run: python3 tests/vps_release_test.py
       - run: python3 tests/vps_ci_disk_test.py
       - run: python3 scripts/vps-ci-disk.py snapshot dependencies-after

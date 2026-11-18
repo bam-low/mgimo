@@ -13,6 +13,17 @@ BASELINE = "287912fe19df75404b81dd36ea1df5bb62187c71"
 REPORTS = ("campus24-runtime.json", "campus24-tools.json", "campus24-db.json",
            "scanner-metadata.json", "npm-all.json", "npm-production.json", "vps-upgrade.json")
 IMAGES = ("runtimeImage", "toolsImage", "databaseImage")
+CONTRACT = json.loads((Path(__file__).parent / "migration-contract.json").read_text())
+BASELINE_POLICY = "baseline-migrations-unchanged"
+ADDITIVE_POLICY = "baseline-preserved-approved-additive"
+
+
+def migration_policy(migrations):
+    if migrations == CONTRACT["baseline"]:
+        return BASELINE_POLICY
+    if migrations == CONTRACT["baseline"] + CONTRACT["additive"]:
+        return ADDITIVE_POLICY
+    raise ValueError("Unapproved migration inventory or checksum")
 
 
 def digest(data):
@@ -48,9 +59,9 @@ def validate(m, evidence):
     require(len(set(ids)) == 3 and all(re.fullmatch(r"sha256:[0-9a-f]{64}", value) for value in ids), "Invalid image IDs")
     require(m["state"] == "UNSIGNED_OWNER_REVIEW_REQUIRED", "Release is not signed or approved")
     require(m["compatibility"] == {"upgradeFrom": BASELINE, "appRollbackTo": BASELINE,
-                                  "schemaPolicy": "baseline-migrations-unchanged"}, "Unsupported compatibility claim")
+                                  "schemaPolicy": migration_policy(m["migrations"])}, "Unsupported compatibility claim")
     migrations = m["migrations"]
-    require(isinstance(migrations, list) and len(migrations) == 8, "Unexpected migration inventory")
+    require(isinstance(migrations, list) and len(migrations) in (8, 9), "Unexpected migration inventory")
     names = []
     for row in migrations:
         require(set(row) == {"name", "sha256"} and re.fullmatch(r"[0-9]{14}_[a-z_]+", row["name"])
@@ -74,6 +85,10 @@ def validate(m, evidence):
     upgrade = loads(evidence["vps-upgrade.json"])
     require(upgrade["status"] == "PASS" and upgrade["baselineSource"] == BASELINE
             and upgrade["candidateImages"] == {key: m[key] for key in IMAGES}, "Upgrade evidence/image mismatch")
+    require(upgrade.get("schema") == m["compatibility"]["schemaPolicy"], "Schema upgrade proof mismatch")
+    if m["compatibility"]["schemaPolicy"] == ADDITIVE_POLICY:
+        require(upgrade.get("approvedAdditiveMigrations") == CONTRACT["additive"]
+                and upgrade.get("addedTables") == CONTRACT["addedTables"], "Additive upgrade proof missing")
     for name in ("npm-all.json", "npm-production.json"):
         audit = loads(evidence[name])
         require("error" not in audit and "metadata" in audit and "vulnerabilities" in audit["metadata"], "Invalid npm audit")
@@ -91,6 +106,12 @@ def verify(directory):
         require(len(set(names)) == len(names), "Duplicate archive member")
         require({"ops/vps/compose.yaml", "ops/vps/preflight.py", "ops/vps/verify-delivery.sh",
                  "ops/vps/release_manifest.py"}.issubset(names), "Required configuration missing")
+        contract_name = "ops/vps/migration-contract.json"
+        if m["compatibility"]["schemaPolicy"] == ADDITIVE_POLICY or contract_name in names:
+            require(contract_name in names, "Migration contract missing")
+            member = archive.getmember(contract_name)
+            require(member.isfile() and member.size < 65536
+                    and loads(archive.extractfile(member).read()) == CONTRACT, "Unapproved migration contract")
         evidence = {}
         for name in REPORTS:
             member = archive.getmember("evidence/" + name)
@@ -110,9 +131,8 @@ def create(directory, reports):
             "Untracked release configuration")
     migrations = []
     for file in sorted(Path("prisma/migrations").glob("*/migration.sql")):
-        old = subprocess.check_output(["git", "show", BASELINE + ":" + file.as_posix()])
-        require(old == file.read_bytes(), "Baseline migration changed")
-        migrations.append({"name": file.parent.name, "sha256": digest(old)})
+        migrations.append({"name": file.parent.name, "sha256": digest(file.read_bytes())})
+    policy = migration_policy(migrations)
     evidence = {name: (reports / name).read_bytes() for name in REPORTS}
     image_ids = {}
     for key, role in zip(IMAGES, ("runtime", "tools", "db")):
@@ -123,7 +143,7 @@ def create(directory, reports):
          "ciChecksUrl": "https://github.com/bam-low/mgimo/commit/" + source + "/checks",
          "architecture": "linux/amd64", **image_ids, "nodeVersion": "24.22.1", "postgresMajor": 17,
          "migrations": migrations, "compatibility": {"upgradeFrom": BASELINE, "appRollbackTo": BASELINE,
-         "schemaPolicy": "baseline-migrations-unchanged"},
+         "schemaPolicy": policy},
          "evidence": {name: digest(data) for name, data in evidence.items()},
          "state": "UNSIGNED_OWNER_REVIEW_REQUIRED"}
     validate(m, evidence)

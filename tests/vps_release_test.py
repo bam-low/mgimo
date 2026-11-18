@@ -22,14 +22,14 @@ def fixture():
     values["scanner-metadata.json"] = {"scanner": {"Version": "0.76.2", "VulnerabilityDB": {"Version": 2}}, "databaseFileSHA256": "a" * 64}
     for name in ("npm-all.json", "npm-production.json"):
         values[name] = {"metadata": {"vulnerabilities": {"total": 0}}}
-    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids}
+    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"]}
     evidence = {name: json.dumps(value).encode() for name, value in values.items()}
     migrations = [{"name": p.parent.name, "sha256": rc.digest(p.read_bytes())} for p in sorted((Path(__file__).parents[1] / "prisma/migrations").glob("*/migration.sql"))]
     m = {"releaseVersion": rc.VERSION, "manifestSchemaVersion": 1, "sourceCommit": rc.BASELINE,
          "ciChecksUrl": "https://github.com/bam-low/mgimo/commit/" + rc.BASELINE + "/checks",
          "architecture": "linux/amd64", **ids, "nodeVersion": "24.22.1", "postgresMajor": 17,
          "migrations": migrations, "compatibility": {"upgradeFrom": rc.BASELINE, "appRollbackTo": rc.BASELINE,
-         "schemaPolicy": "baseline-migrations-unchanged"}, "evidence": {k: rc.digest(v) for k, v in evidence.items()},
+         "schemaPolicy": rc.migration_policy(migrations)}, "evidence": {k: rc.digest(v) for k, v in evidence.items()},
          "state": "UNSIGNED_OWNER_REVIEW_REQUIRED"}
     return m, evidence
 
@@ -39,7 +39,7 @@ def write_fixture(directory):
     m, evidence = fixture()
     (root / "release.json").write_text(json.dumps(m))
     with tarfile.open(root / "config.tar", "w") as archive:
-        for name in ("compose.yaml", "preflight.py", "verify-delivery.sh", "release_manifest.py"):
+        for name in ("compose.yaml", "preflight.py", "verify-delivery.sh", "release_manifest.py", "migration-contract.json"):
             archive.add(Path(__file__).parents[1] / "ops/vps" / name, arcname="ops/vps/" + name)
         for name, content in evidence.items():
             info = tarfile.TarInfo("evidence/" + name)
@@ -48,6 +48,43 @@ def write_fixture(directory):
 
 
 class MetadataTests(unittest.TestCase):
+    def test_legacy_inventory_remains_valid(self):
+        m, evidence = fixture()
+        m["migrations"] = copy.deepcopy(rc.CONTRACT["baseline"])
+        m["compatibility"]["schemaPolicy"] = rc.BASELINE_POLICY
+        upgrade = json.loads(evidence["vps-upgrade.json"])
+        upgrade["schema"] = rc.BASELINE_POLICY
+        evidence["vps-upgrade.json"] = json.dumps(upgrade).encode()
+        m["evidence"]["vps-upgrade.json"] = rc.digest(evidence["vps-upgrade.json"])
+        rc.validate(m, evidence)
+
+    def test_unapproved_checksum_extra_migration_and_false_policy_fail(self):
+        for change in ["checksum", "extra", "policy"]:
+            m, evidence = fixture()
+            if change == "checksum":
+                m["migrations"][-1]["sha256"] = "0" * 64
+            elif change == "extra":
+                m["migrations"].append({"name": "20261119000000_unapproved", "sha256": "a" * 64})
+            else:
+                m["compatibility"]["schemaPolicy"] = rc.BASELINE_POLICY
+            with self.assertRaises(ValueError):
+                rc.validate(m, evidence)
+
+    def test_changed_embedded_contract_is_rejected(self):
+        with tempfile.TemporaryDirectory() as path:
+            write_fixture(path)
+            target = Path(path) / "config.tar"
+            with tarfile.open(target) as archive:
+                files = [(info, archive.extractfile(info).read()) for info in archive.getmembers()]
+            with tarfile.open(target, "w") as archive:
+                for info, data in files:
+                    if info.name == "ops/vps/migration-contract.json":
+                        data = b"{}"
+                        info.size = len(data)
+                    archive.addfile(info, io.BytesIO(data))
+            with self.assertRaises(ValueError):
+                rc.verify(path)
+
     def test_complete_unsigned_fixture(self):
         with tempfile.TemporaryDirectory() as path:
             write_fixture(path)

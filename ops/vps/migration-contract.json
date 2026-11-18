@@ -1,0 +1,46 @@
+{
+  "baseline": [
+    {
+      "name": "20261104204232_initial_enrollment",
+      "sha256": "493ed2cbac21334b5078102ff73b16ee9de2c4a61c8aa1634868f544ed7bb08a"
+    },
+    {
+      "name": "20261105090000_rate_bucket_expiry",
+      "sha256": "c5162f6f5a914336b338592672e67a0f388865d352ceb5118c8a87749b04aa1c"
+    },
+    {
+      "name": "20261106100000_foundation_query_indexes",
+      "sha256": "30d1f3bb498bd31fb28b65b4e458c9ea9a7db4af00b7f75fa29624223b7a17aa"
+    },
+    {
+      "name": "20261106180000_schedule",
+      "sha256": "6c5b1307ad691f5668723f076cacb0ecad773a2ac8c19049a53a58c8546aaeca"
+    },
+    {
+      "name": "20261107120000_grades",
+      "sha256": "eb25244d02659afad9f6b0eeade79c3e8fbf0c7e4f69ccf3a96b5f4e2ad8fbf9"
+    },
+    {
+      "name": "20261111000000_semester_builder",
+      "sha256": "cb6503d1556058c8f5be2db924576523d3521c8c6adef60189719f48e774ad1b"
+    },
+    {
+      "name": "20261112000000_applications",
+      "sha256": "9166887e93a814c61b32f3bb8da25a1d5fac00c1de70398cbbe009897a531612"
+    },
+    {
+      "name": "20261114123000_notifications",
+      "sha256": "173c87693497c7d1d6222a39a2b0431e92148801ec0d5f95268d6ff0585678bc"
+    }
+  ],
+  "additive": [
+    {
+      "name": "20261117190000_teaching_assignments",
+      "sha256": "2c0fe1b4dae3f12d8fcdf2e6e3d68b88330cd3ba4ef1c81df05b76ec04edd7d5"
+    }
+  ],
+  "addedTables": [
+    "TeachingAssignment",
+    "TeachingAssignmentGroup"
+  ]
+}

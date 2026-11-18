@@ -112,7 +112,8 @@ test("delivery needs independently pinned signer and rejects tampered payload/ma
       dir + "/allowed_signers",
       dir,
     ]);
-  assert.equal(verify().status, 0);
+  const validDelivery = verify();
+  assert.equal(validDelivery.status, 0, validDelivery.stderr.toString());
   await writeFile(dir + "/runtime.tar.gz", "tampered");
   assert.notEqual(verify().status, 0);
   await writeFile(dir + "/runtime.tar.gz", "synthetic-test-only");
