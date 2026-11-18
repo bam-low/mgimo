@@ -354,7 +354,12 @@ test("STAFF: два курса, вторник и числитель → отм�
       .getByRole("button", { name: "Открыть результаты", exact: true })
       .click();
     for (const mark of [3, 5]) {
-      const form = page.getByRole("form", {
+      const card = page
+        .locator(".grade-subject")
+        .filter({ has: page.getByRole("heading", { name, exact: true }) });
+      if (mark === 5)
+        await card.getByText("Добавить оценку", { exact: true }).click();
+      const form = (mark === 3 ? page : card).getByRole("form", {
         name: "Выставить результат",
         exact: true,
       });

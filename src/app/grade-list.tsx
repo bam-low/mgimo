@@ -76,13 +76,13 @@ export function GradeList({
                   }) ?? "—"}
               </strong>
             </p>
-            {membershipId && groupId && (
+            {membershipId && groupId && subject.active && (
               <details>
                 <summary>Добавить оценку</summary>
                 <GradeForm
                   membershipId={membershipId}
                   groupId={groupId}
-                  subjects={subjectList!}
+                  subjects={subjectList!.filter((s) => s.id === subjectId)}
                   today={today!}
                   initialSubjectId={subjectId}
                 />
