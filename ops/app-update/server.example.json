@@ -1,0 +1,13 @@
+{
+  "stateDir": "/var/lib/campus-app-update",
+  "envFile": "/etc/campus/release.env",
+  "compose": "/opt/campus/releases/INSTALLED_RELEASE/ops/vps/compose.yaml",
+  "project": "campus",
+  "baselineManifest": "/opt/campus/releases/INSTALLED_RELEASE/release.json",
+  "sourceContract": "/etc/campus/app-update-source-contract.json",
+  "inbox": "/home/OPERATOR/campus-inbox",
+  "signers": "/etc/campus/allowed_signers",
+  "backupDir": "/var/backups/campus",
+  "exportDir": "/srv/campus-backup-export",
+  "backupRecipients": "/etc/campus/backup-recipients.txt"
+}

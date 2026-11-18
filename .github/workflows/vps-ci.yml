@@ -10,6 +10,14 @@ on:
         type: boolean
         default: false
         description: "Owner reviewed SHA/security and approved available Actions storage budget"
+      store_app_update_artifact:
+        type: boolean
+        default: false
+        description: "Owner approved app-only export and Actions storage budget"
+      app_update_target:
+        type: string
+        default: ""
+        description: "Non-secret target.json from the installed trusted app updater"
 permissions:
   contents: read
 jobs:
@@ -26,6 +34,28 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Validate app-only export target before building
+        if: github.event_name == 'workflow_dispatch' && inputs.store_app_update_artifact
+        env:
+          APP_UPDATE_TARGET: ${{ inputs.app_update_target }}
+          ALSO_FULL_EXPORT: ${{ inputs.store_release_artifact }}
+        run: |
+          python3 - <<'PYEARLY'
+          import importlib.util, json, os, subprocess
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location('app_format', 'ops/app-update/package.py')
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          if os.environ['ALSO_FULL_EXPORT'] != 'false':
+              raise SystemExit('STOP choose one export type')
+          value = os.environ['APP_UPDATE_TARGET']
+          if not value or len(value) > 100000:
+              raise SystemExit('STOP target.json required; no secrets')
+          target = module.loads(value)
+          module.target_valid(target)
+          source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          module.require(module.contract(source) == target['contract'], 'STOP use full update: schema/configuration changed')
+          PYEARLY
       - name: Start bounded disk telemetry and job ownership registry
         run: |
           python3 scripts/vps-ci-disk.py init
@@ -47,6 +77,7 @@ jobs:
       - run: npm run db:generate
       - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs tests/vps-migration-contract.test.mjs
       - run: python3 tests/vps_release_test.py
+      - run: python3 tests/app_update_test.py
       - run: python3 tests/vps_ci_disk_test.py
       - run: python3 scripts/vps-ci-disk.py snapshot dependencies-after
       - run: python3 scripts/vps-ci-disk.py snapshot candidate-build-running
@@ -121,6 +152,12 @@ jobs:
           name: vps-pre-scan-evidence
           path: .runtime-evidence/vps-pre-scan-evidence/
           retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: app-update-rehearsal
+          path: .runtime-evidence/app-update-rehearsal.json
+          retention-days: 7
       - name: Addressed successful test cleanup and measured Trivy budget
         run: |
           python3 scripts/vps-ci-disk.py snapshot tests-cleanup-before
@@ -184,6 +221,13 @@ jobs:
           gzip -t /tmp/campus-vps-release/runtime.tar.gz /tmp/campus-vps-release/tools.tar.gz /tmp/campus-vps-release/database.tar.gz
           python3 scripts/vps-ci-disk.py verify-images
           python3 scripts/vps-ci-disk.py snapshot package-complete
+      - name: Verify app-only packaging on the isolated rehearsal target
+        run: |
+          python3 ops/app-update/package.py create /tmp/campus-vps-release .runtime-evidence/app-update-target.json /tmp/campus-app-update-check "$GITHUB_RUN_ID"
+          python3 ops/app-update/package.py verify /tmp/campus-app-update-check
+          test ! -e /tmp/campus-app-update-check/database.tar.gz
+          test ! -e /tmp/campus-app-update-check/tools.tar.gz
+          rm -r /tmp/campus-app-update-check
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: vps-release-manifest
@@ -196,6 +240,28 @@ jobs:
         with:
           name: campus-vps-v1.0.0-rc.1-unsigned-${{ github.event.pull_request.head.sha || github.sha }}-linux-amd64
           path: /tmp/campus-vps-release/*
+          compression-level: 0
+          retention-days: 7
+      - name: Package application-only update for the owner-pinned live database
+        if: github.event_name == 'workflow_dispatch' && inputs.store_app_update_artifact
+        env:
+          APP_UPDATE_TARGET: ${{ inputs.app_update_target }}
+        run: |
+          python3 - <<'PYTARGET'
+          import os
+          from pathlib import Path
+          value = os.environ['APP_UPDATE_TARGET']
+          if not value or len(value) > 100000:
+              raise SystemExit('STOP app_update_target required; no secrets')
+          Path('/tmp/campus-app-target.json').write_text(value)
+          PYTARGET
+          python3 scripts/vps-ci-disk.py budget 6 app-update-package
+          python3 ops/app-update/package.py create /tmp/campus-vps-release /tmp/campus-app-target.json /tmp/campus-app-update "$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: github.event_name == 'workflow_dispatch' && inputs.store_app_update_artifact
+        with:
+          name: campus-app-update-${{ github.sha }}-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: /tmp/campus-app-update/*
           compression-level: 0
           retention-days: 7
       - name: Final disk telemetry (including failures)

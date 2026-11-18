@@ -21,7 +21,7 @@ PREFIXES = {"candidate-context": "campus-vps-context-", "candidate-runtime": "ca
             "baseline-archive": "campus-vps-baseline-", "baseline-context": "campus-vps-context-",
             "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
             "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-",
-            "candidate-build-output": ".next"}
+            "candidate-build-output": ".next", "app-update-fixture": "campus-app-update-fixture-"}
 BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime"}
 REHEARSAL_IMAGES = (
     "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
@@ -129,9 +129,23 @@ class Disk:
         require(len(browser) == 1, "Job-owned browser path required")
         build = [x for x in data["paths"] if x["role"] == "candidate-build-output" and not x.get("removed")]
         require(len(build) == 1, "Fresh job-owned build output required")
+        app = [x for x in data["paths"] if x["role"] == "app-update-fixture" and not x.get("removed")]
+        require(len(app) <= 1, "Unexpected app-update fixture inventory")
+        if app:
+            proof = self.evidence / "app-update-rehearsal.json"
+            require(proof.is_file() and proof.stat().st_size < 1024 * 1024, "App-update proof missing")
+            result = json.loads(proof.read_bytes())
+            require(result["status"] == "PASS" and result["ownerVpsContacted"] is False
+                    and result["manualRollback"] == "PASS" and result["databaseBefore"]["image"] == data["candidate"]["db"]["id"]
+                    and {x["case"] for x in result["cases"]} == {"success", "automatic-rollback", "incompatible"}
+                    and all(x["status"] == "PASS" and x["database"] == result["databaseBefore"]
+                            and x["allTableHashesUnchanged"] is True for x in result["cases"]), "App-update proof incomplete")
+            data["appUpdateProofHash"] = hashlib.sha256(proof.read_bytes()).hexdigest()
+            self.save(data)
         resources = {"images": data["rehearsalImages"], "browserAllocatedBytes": int(subprocess.check_output(
             ["du", "-s", "-B1", browser[0]["path"]]).split()[0]), "buildOutputAllocatedBytes": int(subprocess.check_output(
             ["du", "-s", "-B1", build[0]["path"]]).split()[0]), "imageSizeIsLogicalNotReclaimed": True}
+        resources["appUpdateAllocatedBytes"] = sum(int(subprocess.check_output(["du", "-s", "-B1", item["path"]]).split()[0]) for item in app)
         (self.metrics / "rehearsal-resources.json").write_text(json.dumps(resources, indent=2) + "\n")
         # Validate the whole image plan before removing anything, including browser files.
         plan = []
@@ -148,6 +162,9 @@ class Disk:
         self.snapshot("rehearsal-browsers-cleaned")
         self.remove_paths({"candidate-build-output"})
         self.snapshot("rehearsal-build-output-cleaned")
+        if app:
+            self.remove_paths({"app-update-fixture"})
+            self.snapshot("app-update-fixture-cleaned")
         for number, ref in enumerate(plan):
             self.docker(["image", "rm", ref])  # Exact newly pulled reference, no force or global prune.
             self.verify_images()
