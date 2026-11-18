@@ -5,6 +5,7 @@ import io
 import json
 from pathlib import Path
 import sys
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -48,6 +49,15 @@ def write_fixture(directory):
 
 
 class MetadataTests(unittest.TestCase):
+    def test_baseline_contract_is_pinned_to_historical_git_source(self):
+        files = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", rc.BASELINE, "prisma/migrations"], text=True).splitlines()
+        expected = [{"name": Path(name).parent.name,
+                     "sha256": rc.digest(subprocess.check_output(["git", "show", rc.BASELINE + ":" + name]))}
+                    for name in files if name.endswith("/migration.sql")]
+        self.assertEqual(rc.CONTRACT["baseline"], expected)
+        for row in expected:
+            self.assertEqual(rc.digest((Path(__file__).parents[1] / "prisma/migrations" / row["name"] / "migration.sql").read_bytes()), row["sha256"])
+
     def test_legacy_inventory_remains_valid(self):
         m, evidence = fixture()
         m["migrations"] = copy.deepcopy(rc.CONTRACT["baseline"])

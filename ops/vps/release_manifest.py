@@ -129,6 +129,11 @@ def create(directory, reports):
     subprocess.run(["git", "diff", "--quiet", "HEAD"], check=True)
     require(not subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "ops/vps", "prisma/migrations"]),
             "Untracked release configuration")
+    baseline_files = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", BASELINE, "prisma/migrations"], text=True).splitlines()
+    immutable_baseline = [{"name": Path(name).parent.name,
+                           "sha256": digest(subprocess.check_output(["git", "show", BASELINE + ":" + name]))}
+                          for name in baseline_files if name.endswith("/migration.sql")]
+    require(CONTRACT["baseline"] == immutable_baseline, "Baseline contract changed")
     migrations = []
     for file in sorted(Path("prisma/migrations").glob("*/migration.sql")):
         migrations.append({"name": file.parent.name, "sha256": digest(file.read_bytes())})
