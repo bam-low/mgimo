@@ -341,6 +341,18 @@ test("STAFF: два курса, вторник и числитель → отм�
           l.title === name && l.status === "CANCELLED",
       ),
     ).toBe(true);
+    // Standalone and Functions intentionally share history in Node CI.
+    // Preserve it and verify the exact increment, rather than assuming an empty period.
+    const beforeResponse = await student.request.get(
+      "/api/grades?from=2037-09-01&to=2037-09-30",
+    );
+    expect(beforeResponse.status()).toBe(200);
+    const before = (await beforeResponse.json()).summary;
+    const expectedAverage =
+      ((before.average ?? 0) * before.count + 8) / (before.count + 2);
+    const expectedDisplay = expectedAverage.toLocaleString("ru-RU", {
+      maximumFractionDigits: 2,
+    });
     await page.goto(`/staff/grades?groupId=${groups[0].id}`);
     const option = page
       .getByRole("combobox", { name: "Студент", exact: true })
@@ -391,7 +403,7 @@ test("STAFF: два курса, вторник и числитель → отм�
     await page.goto(
       `/staff/grades?groupId=${groups[0].id}&student=${membershipId}&from=2037-09-01&to=2037-09-30`,
     );
-    await expect(page.getByTestId("grade-average")).toHaveText("4");
+    await expect(page.getByTestId("grade-average")).toHaveText(expectedDisplay);
     await expect(
       page
         .locator(".grade-subject")
@@ -399,13 +411,25 @@ test("STAFF: два курса, вторник и числитель → отм�
     ).toHaveCount(1);
     await capture("05-grades", page.locator(".grade-summary"));
     await student.goto("/grades?from=2037-09-01&to=2037-09-30");
-    await expect(student.getByTestId("grade-average")).toHaveText("4");
+    await expect(student.getByTestId("grade-average")).toHaveText(
+      expectedDisplay,
+    );
     const summary = (
       await (
         await student.request.get("/api/grades?from=2037-09-01&to=2037-09-30")
       ).json()
     ).summary;
-    expect(summary).toEqual({ average: 4, count: 2, passed: 0, failed: 0 });
+    expect(summary.count).toBe(before.count + 2);
+    expect(summary.average).toBeCloseTo(expectedAverage, 12);
+    expect({ passed: summary.passed, failed: summary.failed }).toEqual({
+      passed: before.passed,
+      failed: before.failed,
+    });
+    const staffResponse = await page.request.get(
+      `/api/grades?membershipId=${encodeURIComponent(membershipId)}&from=2037-09-01&to=2037-09-30`,
+    );
+    expect(staffResponse.status()).toBe(200);
+    expect((await staffResponse.json()).summary).toEqual(summary);
   } finally {
     if (moved) await transfer("group-1");
     await peer.close();

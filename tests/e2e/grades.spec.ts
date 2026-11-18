@@ -109,9 +109,26 @@ test("STAFF selects student and subject, records marks and credit; personal stud
       process.env.DEMO_STUDENT1_PASSWORD!,
     );
     await sp.goto("/today");
-    await expect(
-      sp.getByRole("region", { name: "Последние результаты", exact: true }),
-    ).toContainText(title);
+    const overview = sp.getByRole("region", {
+      name: "Последние результаты",
+      exact: true,
+    });
+    if (process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1") {
+      await expect(overview).toContainText(title);
+    } else {
+      // Functions retains genuine history from standalone, including later dates.
+      const response = await sp.request.get("/api/grades");
+      expect(response.status()).toBe(200);
+      const latest = (await response.json()).rows.slice(0, 3);
+      await expect(overview.locator(".overview-caption")).toHaveText(
+        latest[0].subject.name,
+      );
+      await expect(overview.locator(".overview-more span")).toHaveText(
+        latest
+          .slice(1)
+          .map((r: { subject: { name: string } }) => r.subject.name),
+      );
+    }
     await expect(
       sp.getByRole("link", { name: "Все результаты", exact: true }),
     ).toHaveAttribute("href", "/grades");
