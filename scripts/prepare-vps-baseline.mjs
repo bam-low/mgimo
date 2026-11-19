@@ -13,8 +13,11 @@ for (const source of [
 ]) {
   const rollbackOnly = source === rollbackSource;
   execFileSync("git", ["cat-file", "-e", source + "^{commit}"]);
-  const directory = await mkdtemp(path.join(tmpdir(), "campus-vps-baseline-"));
-  disk("register-path", "baseline-archive", directory);
+  const prefix = rollbackOnly ? "rollback" : "baseline";
+  const directory = await mkdtemp(
+    path.join(tmpdir(), "campus-vps-" + prefix + "-"),
+  );
+  disk("register-path", prefix + "-archive", directory);
   const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
   for (const key of [
     "DOCKER_HOST",
@@ -48,10 +51,10 @@ for (const source of [
       "utf8",
     )
   ).trim();
-  disk("register-path", "baseline-context", context);
+  disk("register-path", prefix + "-context", context);
   disk(
     "register-path",
-    "baseline-runtime",
+    prefix + "-runtime",
     (
       await readFile(
         path.join(directory, ".runtime-evidence/runtime-root.txt"),
@@ -102,9 +105,9 @@ for (const source of [
   disk("snapshot", "baseline-built");
   disk(
     "cleanup-build",
-    "baseline-archive",
-    "baseline-context",
-    "baseline-runtime",
+    prefix + "-archive",
+    prefix + "-context",
+    prefix + "-runtime",
   );
   disk("snapshot", "baseline-scratch-cleaned");
   console.log(

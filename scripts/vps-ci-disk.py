@@ -19,10 +19,12 @@ GIB = 1024 ** 3
 ROLES = {"runtime": "runtime", "tools": "tools", "db": "database"}
 PREFIXES = {"candidate-context": "campus-vps-context-", "candidate-runtime": "campus-runtime-",
             "baseline-archive": "campus-vps-baseline-", "baseline-context": "campus-vps-context-",
-            "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
+            "baseline-runtime": "campus-runtime-",
+            "rollback-archive": "campus-vps-rollback-", "rollback-context": "campus-vps-context-",
+            "rollback-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
             "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-",
             "candidate-build-output": ".next", "app-update-fixture": "campus-app-update-fixture-"}
-BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime"}
+BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime", "rollback-archive", "rollback-context", "rollback-runtime"}
 REHEARSAL_IMAGES = (
     "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
     "nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609",
