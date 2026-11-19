@@ -46,13 +46,17 @@ export default async function Page({
           <Link className="card-action" prefetch={false} href={n.target.href!}>
             {n.kind.startsWith("ENROLLMENT")
               ? "Посмотреть состояние прикрепления"
-              : "Открыть заявку"}
+              : n.kind === "SCHEDULE_CANCELLED"
+                ? "Открыть расписание"
+                : "Открыть заявку"}
           </Link>
         ) : (
           <p role="status" className="notice">
             {n.target.reasonCode === "PREVIOUS_ENROLLMENT"
               ? "Решение относится к предыдущему запросу прикрепления."
-              : "Учебный доступ закрыт. Содержание обращения и документы сейчас недоступны."}
+              : n.kind === "SCHEDULE_CANCELLED"
+                ? "Доступ к этому расписанию закрыт. История уведомления сохранена."
+                : "Учебный доступ закрыт. Содержание обращения и документы сейчас недоступны."}
           </p>
         )}
       </article>

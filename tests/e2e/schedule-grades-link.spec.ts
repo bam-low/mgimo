@@ -1,3 +1,4 @@
+import { gradeRows } from "./grade-rows";
 import { test, expect, type Locator } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { signInWithSession } from "./ui-sign-in";
@@ -53,7 +54,9 @@ test("Расписание → успеваемость: общий Subject, о�
     .click();
   const subjectResponse = await created;
   expect(subjectResponse.status()).toBe(200);
-  const subjectId: string = subjectResponse.request().postDataJSON().operationId;
+  const subjectId: string = subjectResponse
+    .request()
+    .postDataJSON().operationId;
   const assignmentForm = page.locator(
     ".assignment-layout .editor-panel .builder-form",
   );
@@ -215,10 +218,7 @@ test("Расписание → успеваемость: общий Subject, о�
     subjectId,
   });
   const gradeId: string = written.request().postDataJSON().operationId;
-  const rows = () =>
-    page
-      .getByTestId("grade-row")
-      .filter({ has: page.getByRole("heading", { name, exact: true }) });
+  const rows = () => gradeRows(page, name);
   await expect(rows()).toHaveCount(2);
   await form()
     .getByLabel("Дисциплина", { exact: true })
@@ -365,11 +365,7 @@ test("Расписание → успеваемость: общий Subject, о�
     ).toBe(403);
     await student.setViewportSize({ width: 360, height: 900 });
     await student.goto("/grades");
-    await expect(
-      student
-        .getByTestId("grade-row")
-        .filter({ has: student.getByRole("heading", { name, exact: true }) }),
-    ).toHaveCount(2);
+    await expect(gradeRows(student, name)).toHaveCount(2);
     await student.screenshot({
       path: info.outputPath("07-student-own-history-360.png"),
     });

@@ -3669,3 +3669,18 @@ textarea:focus {
   padding: 0;
   margin: 0;
 }
+
+/* Учебная иерархия и единое рабочее расписание. */
+.group-course { color: var(--muted); font-size: .8rem; font-weight: 400; }
+.structure-program ul { padding-left: 14px; margin: 0; }
+.structure-program li { border-left: 2px solid var(--line); padding-left: 12px; }
+.semester-setup { margin-bottom: 20px; }
+.semester-setup > summary, .inline-assignment > summary { cursor: pointer; color: var(--brand); padding: 12px 0; font-weight: 600; }
+.inline-assignment { margin-bottom: 18px; }
+.grade-subject > h3 { margin-bottom: 16px; }
+.grade-subject .grade-result { border: 0; border-top: 1px solid var(--line); border-radius: 0; margin-bottom: 0; padding: 16px 0; }
+.grade-period { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.grade-period > p { flex-basis: 100%; margin: 0; }
+.grade-period .localized-field { min-width: 0; flex: 1 1 180px; }
+
+.structure-program h4 { display: inline; }

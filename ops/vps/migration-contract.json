@@ -37,10 +37,27 @@
     {
       "name": "20261117190000_teaching_assignments",
       "sha256": "2c0fe1b4dae3f12d8fcdf2e6e3d68b88330cd3ba4ef1c81df05b76ec04edd7d5"
+    },
+    {
+      "name": "20261118160000_group_course",
+      "sha256": "8f348aff5413e616ac675a7b9e0bc907799c2aa8d651fa156a052d999167774b"
+    },
+    {
+      "name": "20261118163000_schedule_cancellation",
+      "sha256": "367c124773c2a4a6a864f24f8379858038b73dd08a7af0bfaa2097a62da464d3"
     }
   ],
   "addedTables": [
     "TeachingAssignment",
-    "TeachingAssignmentGroup"
-  ]
+    "TeachingAssignmentGroup",
+    "ScheduleCancellation"
+  ],
+  "addedColumns": {
+    "StudentGroup": [
+      "course"
+    ],
+    "Notification": [
+      "cancellationId"
+    ]
+  }
 }

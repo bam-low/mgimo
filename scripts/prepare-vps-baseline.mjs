@@ -6,88 +6,117 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
-const source = "287912fe19df75404b81dd36ea1df5bb62187c71";
-execFileSync("git", ["cat-file", "-e", source + "^{commit}"]);
-const directory = await mkdtemp(path.join(tmpdir(), "campus-vps-baseline-"));
-disk("register-path", "baseline-archive", directory);
-const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
-for (const key of [
-  "DOCKER_HOST",
-  "DOCKER_CONTEXT",
-  "DOCKER_TLS",
-  "DOCKER_TLS_VERIFY",
-  "DOCKER_CERT_PATH",
-])
-  delete environment[key];
-const run = (cmd, args, cwd = directory) =>
-  execFileSync(
-    cmd,
-    cmd === "docker" ? ["--host=unix:///var/run/docker.sock", ...args] : args,
-    {
-      cwd,
-      stdio: "inherit",
-      env: environment,
-    },
+const rollbackSource = "f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3";
+for (const source of [
+  "287912fe19df75404b81dd36ea1df5bb62187c71",
+  rollbackSource,
+]) {
+  const rollbackOnly = source === rollbackSource;
+  execFileSync("git", ["cat-file", "-e", source + "^{commit}"]);
+  const prefix = rollbackOnly ? "rollback" : "baseline";
+  const directory = await mkdtemp(
+    path.join(tmpdir(), "campus-vps-" + prefix + "-"),
   );
-execFileSync("tar", ["-xf", "-", "-C", directory], {
-  input: execFileSync("git", ["archive", source], {
-    maxBuffer: 100 * 1024 * 1024,
-  }),
-});
-run("npm", ["ci", "--ignore-scripts"]);
-run("npm", ["run", "db:generate"]);
-run(process.execPath, ["scripts/prepare-vps-context.mjs"]);
-const context = (
-  await readFile(
-    path.join(directory, ".runtime-evidence/vps-context.txt"),
-    "utf8",
-  )
-).trim();
-disk("register-path", "baseline-context", context);
-disk(
-  "register-path",
-  "baseline-runtime",
-  (
+  disk("register-path", prefix + "-archive", directory);
+  // The current job registers fixture paths below. Archived lifecycle helpers
+  // must not access the live ownership registry as if they were the candidate.
+  const environment = {
+    ...process.env,
+    NEXT_TELEMETRY_DISABLED: "1",
+    CAMPUS_CI_DISK_CLEANUP: "0",
+  };
+  for (const key of [
+    "DOCKER_HOST",
+    "DOCKER_CONTEXT",
+    "DOCKER_TLS",
+    "DOCKER_TLS_VERIFY",
+    "DOCKER_CERT_PATH",
+  ])
+    delete environment[key];
+  const run = (cmd, args, cwd = directory) =>
+    execFileSync(
+      cmd,
+      cmd === "docker" ? ["--host=unix:///var/run/docker.sock", ...args] : args,
+      {
+        cwd,
+        stdio: "inherit",
+        env: environment,
+      },
+    );
+  execFileSync("tar", ["-xf", "-", "-C", directory], {
+    input: execFileSync("git", ["archive", source], {
+      maxBuffer: 100 * 1024 * 1024,
+    }),
+  });
+  run("npm", ["ci", "--ignore-scripts"]);
+  run("npm", ["run", "db:generate"]);
+  run(process.execPath, ["scripts/prepare-vps-context.mjs"]);
+  const context = (
     await readFile(
-      path.join(directory, ".runtime-evidence/runtime-root.txt"),
+      path.join(directory, ".runtime-evidence/vps-context.txt"),
       "utf8",
     )
-  ).trim(),
-);
-const images = { sourceCommit: source };
-for (const [role, subdir] of [
-  ["runtime", "runtime"],
-  ["tools", "tools"],
-  ["db", "database"],
-]) {
-  const name = "campus54-baseline-" + role;
-  run("docker", [
-    "build",
-    "--network=none",
-    "-t",
-    name,
-    path.join(context, subdir),
-  ]);
-  images[role] = JSON.parse(
-    execFileSync(
-      "docker",
-      ["--host=unix:///var/run/docker.sock", "image", "inspect", name],
-      { env: environment },
-    ),
-  )[0].Id;
+  ).trim();
+  disk("register-path", prefix + "-context", context);
+  disk(
+    "register-path",
+    prefix + "-runtime",
+    (
+      await readFile(
+        path.join(directory, ".runtime-evidence/runtime-root.txt"),
+        "utf8",
+      )
+    ).trim(),
+  );
+  const images = { sourceCommit: source };
+  for (const [role, subdir] of [
+    ["runtime", "runtime"],
+    ["tools", "tools"],
+    ["db", "database"],
+  ].filter(([role]) => !rollbackOnly || role === "runtime")) {
+    const name = rollbackOnly
+      ? "campus71-rollback-runtime"
+      : "campus54-baseline-" + role;
+    run("docker", [
+      "build",
+      "--network=none",
+      "-t",
+      name,
+      path.join(context, subdir),
+    ]);
+    images[role] = JSON.parse(
+      execFileSync(
+        "docker",
+        ["--host=unix:///var/run/docker.sock", "image", "inspect", name],
+        { env: environment },
+      ),
+    )[0].Id;
+  }
+  await writeFile(
+    ".runtime-evidence/vps-baseline.json",
+    JSON.stringify(
+      rollbackOnly
+        ? {
+            ...JSON.parse(
+              await readFile(".runtime-evidence/vps-baseline.json", "utf8"),
+            ),
+            rollbackSource,
+            rollbackRuntime: images.runtime,
+          }
+        : images,
+      null,
+      2,
+    ) + "\n",
+  );
+  disk("snapshot", "baseline-built");
+  disk(
+    "cleanup-build",
+    prefix + "-archive",
+    prefix + "-context",
+    prefix + "-runtime",
+  );
+  disk("snapshot", "baseline-scratch-cleaned");
+  console.log(
+    "PASS fixed baseline archive/images prepared; fixture only, not delivered",
+  );
 }
-await writeFile(
-  ".runtime-evidence/vps-baseline.json",
-  JSON.stringify(images, null, 2) + "\n",
-);
-disk("snapshot", "baseline-built");
-disk(
-  "cleanup-build",
-  "baseline-archive",
-  "baseline-context",
-  "baseline-runtime",
-);
-disk("snapshot", "baseline-scratch-cleaned");
-console.log(
-  "PASS fixed baseline archive/images prepared; fixture only, not delivered",
-);

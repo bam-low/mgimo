@@ -1,6 +1,7 @@
 import { civilDay } from "@/lib/semester";
 import { z } from "zod";
 import { db } from "./db";
+import { notifyCancellation } from "./notification-events";
 import { actor, staff, studentAccess, Denied } from "./security";
 import { lockUniversity, requireStaff, validGroup } from "./enrollment-guards";
 import {
@@ -119,6 +120,7 @@ export async function changeLesson(
     )
       throw new Denied(409);
     const data = {
+      universityId,
       groupId,
       startsAt: startsAt!,
       endsAt: endsAt!,
@@ -145,6 +147,8 @@ export async function changeLesson(
         newGroupId: groupId,
       },
     });
+    if (d.action === "CANCEL")
+      await notifyCancellation(tx, actorId, universityId, lesson, [groupId]);
     return { id: lesson.id };
   });
 }

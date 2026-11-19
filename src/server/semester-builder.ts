@@ -6,6 +6,7 @@ import type {
   Semester,
 } from "../generated/prisma/client";
 import { db } from "./db";
+import { notifyCancellation } from "./notification-events";
 import { Denied } from "./security";
 import { lockUniversity, requireStaff, validGroup } from "./enrollment-guards";
 import {
@@ -117,7 +118,9 @@ export const builderCommand = z.discriminatedUnion("action", [
       operationId: z.uuid(),
       semesterId: id,
       programId: id,
-      rule: ruleInput,
+      rule: ruleInput.refine((r) => !!r.teacherId && !!r.roomId, {
+        message: "Выберите преподавателя и аудиторию.",
+      }),
     })
     .strict(),
   z
@@ -126,7 +129,9 @@ export const builderCommand = z.discriminatedUnion("action", [
       id,
       version,
       from: civil,
-      rule: ruleInput,
+      rule: ruleInput.refine((r) => !!r.teacherId && !!r.roomId, {
+        message: "Выберите преподавателя и аудиторию.",
+      }),
     })
     .strict(),
   z
@@ -1235,6 +1240,14 @@ export async function changeBuilder(
           old ?? null,
           c,
         );
+        if (old && old.status === "SCHEDULED" && c.status === "CANCELLED")
+          await notifyCancellation(
+            tx,
+            actorId,
+            universityId,
+            { ...old, version: old.version + 1 },
+            groupIds,
+          );
       }
       return summary;
     },
@@ -1281,7 +1294,9 @@ export async function builderCatalog(universityId: string) {
               id: true,
               name: true,
               active: true,
-              groups: { select: { id: true, name: true, active: true } },
+              groups: {
+                select: { id: true, name: true, active: true, course: true },
+              },
             },
           },
         },

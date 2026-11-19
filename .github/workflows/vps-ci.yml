@@ -76,6 +76,7 @@ jobs:
       - run: npm audit --omit=dev
       - run: npm run db:generate
       - run: node --test tests/vps-config.test.mjs tests/vps-tools.test.mjs tests/vps-migration-contract.test.mjs
+      - run: python3 tests/vps_rollback_test.py
       - run: python3 tests/vps_release_test.py
       - run: python3 tests/app_update_test.py
       - run: python3 tests/vps_ci_disk_test.py

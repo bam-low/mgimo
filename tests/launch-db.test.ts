@@ -89,12 +89,13 @@ it("grant is idempotent, authenticated runtime audit passes, pre-existing audit 
     .rows;
   expect(JSON.stringify(before) === JSON.stringify(after)).toBe(true);
 });
-it("limited role cannot delete structure/history, read migrations, DDL, escalate or disable audit", async () => {
+it("limited role cannot delete history, read migrations, DDL, escalate or disable audit", async () => {
   const owner =
     '"' + decodeURIComponent(url.username).replaceAll('"', '""') + '"';
   const statements = [
-    'DELETE FROM "StudentGroup"',
     'DELETE FROM "ScheduleEntry"',
+    'DELETE FROM "ScheduleCancellation"',
+    'UPDATE "ScheduleCancellation" SET title=title',
     'DELETE FROM "Subject"',
     'DELETE FROM "Grade"',
     'DELETE FROM "Application"',
@@ -234,4 +235,20 @@ it("real application signup, STAFF reject/retry/approve, foreign-group denial an
   );
   // Only booleans go to the parent report; child output can contain no owner secrets.
   expect(result.status === 0).toBe(true);
+});
+
+it("runtime deletes only empty structure; database foreign keys still protect linked groups", async () => {
+  for (const table of ["Faculty", "Program", "StudentGroup"]) {
+    expect(
+      (await limited.query(`DELETE FROM "${table}" WHERE false`)).rowCount,
+    ).toBe(0);
+  }
+  await limited.query("BEGIN");
+  try {
+    await expect(
+      limited.query('DELETE FROM "StudentGroup" WHERE id=$1', ["group-1"]),
+    ).rejects.toMatchObject({ code: "23503" });
+  } finally {
+    await limited.query("ROLLBACK");
+  }
 });

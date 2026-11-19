@@ -146,7 +146,7 @@ export function TeachingAssignments({
     </>
   );
 }
-function AssignmentEditor({
+export function AssignmentEditor({
   catalog,
   program,
   selected,
@@ -320,7 +320,21 @@ function AssignmentEditor({
         {subjectId && !teachers.length && (
           <p className="notice">
             Нет преподавателя, связанного с дисциплиной.{" "}
-            <Link href="/staff/schedule/resources">
+            <Link
+              href={
+                back.startsWith("#")
+                  ? "#schedule-resources"
+                  : "/staff/schedule/resources"
+              }
+              onClick={() => {
+                if (back.startsWith("#")) {
+                  const resources =
+                    document.getElementById("schedule-resources");
+                  if (resources instanceof HTMLDetailsElement)
+                    resources.open = true;
+                }
+              }}
+            >
               Добавьте связь в справочнике преподавателей
             </Link>
             , затем вернитесь сюда.

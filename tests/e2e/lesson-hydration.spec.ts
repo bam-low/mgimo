@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { signInWithSession } from "./ui-sign-in";
 
+const manualSchedule =
+  process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+    ? "/staff/schedule"
+    : "/staff/schedule/manual";
+
 test("Форма занятия не отправляет GET до готовности JS и сохраняет невозможную дату", async ({
   page,
   browser,
@@ -46,13 +51,15 @@ test("Форма занятия не отправляет GET до готовн�
         observe &&
         r.isNavigationRequest() &&
         r.method() === "GET" &&
-        path === "/staff/schedule"
+        path === manualSchedule
       )
         gets++;
       if (r.method() === "POST" && path === "/api/staff/schedule") writes++;
     });
     try {
-      await p.goto("/staff/schedule?groupId=group-1", { waitUntil: "commit" });
+      await p.goto(`${manualSchedule}?groupId=group-1`, {
+        waitUntil: "commit",
+      });
       const form = p.getByRole("form", { name: "Занятие", exact: true });
       await expect(form).toBeVisible();
       await expect.poll(() => delayed).toBeGreaterThan(0);

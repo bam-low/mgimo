@@ -400,6 +400,64 @@ it("database enforces values and cross-university references; audit failure roll
     await db.university.delete({ where: { id: foreign } });
   }
 });
+it("both roles aggregate the full selected period across pages, excluding voided marks and credits", async () => {
+  for (let i = 0; i < 28; i++) {
+    const d = {
+      ...input(),
+      issuedOn: "2020-02-03",
+      result: { kind: "MARK", mark: i % 2 ? 5 : 3 },
+    };
+    await changeGrade(staffId, "demo-university", d);
+    made.push(d.operationId);
+  }
+  const query = { from: "2020-02-01", to: "2020-02-28" };
+  const student = await readGrades(await actor(uh), query);
+  const employee = await readGrades(await actor(sh), {
+    ...query,
+    membershipId: mid,
+  });
+  expect(student.summary).toEqual({
+    average: 4,
+    count: 28,
+    passed: 0,
+    failed: 0,
+  });
+  expect(employee.summary).toEqual(student.summary);
+  const second = await readGrades(await actor(uh), {
+    ...query,
+    cursor: student.next!,
+  });
+  expect(second.rows).toHaveLength(3);
+  expect(second.summary).toEqual(student.summary);
+  const focused = await readGrades(await actor(uh), { ...query, subjectId });
+  expect(focused.disciplines).toHaveLength(1);
+  expect(focused.disciplines[0].count).toBe(28);
+  expect(focused.rows.every((r) => r.subjectId === subjectId)).toBe(true);
+  expect(focused.summary).toEqual(student.summary);
+  expect(
+    (
+      await readGrades(await actor(uh), {
+        subjectId,
+        from: "2020-03-01",
+        to: "2020-03-31",
+      })
+    ).disciplines[0].count,
+  ).toBe(0);
+  expect(
+    (
+      await readGrades(await actor(uh), {
+        from: "2020-03-01",
+        to: "2020-03-31",
+      })
+    ).summary.average,
+  ).toBeNull();
+  await expect(
+    readGrades(await actor(uh), { from: "2020-02-31" }),
+  ).rejects.toThrow();
+  await expect(
+    readGrades(await actor(uh), { from: "2020-03-01", to: "2020-02-01" }),
+  ).rejects.toThrow();
+});
 it("paginates stable personal results and scoped staff audit without duplicates", async () => {
   for (let i = 0; i < 26; i++) {
     const d = { ...input(), issuedOn: "2026-11-09" };

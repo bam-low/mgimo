@@ -2,14 +2,15 @@
 export const runtimeRole = "campus_runtime";
 export const tablePolicy = {
   University: ["SELECT"],
-  Faculty: ["SELECT", "INSERT", "UPDATE"],
-  Program: ["SELECT", "INSERT", "UPDATE"],
-  StudentGroup: ["SELECT", "INSERT", "UPDATE"],
+  Faculty: ["SELECT", "INSERT", "UPDATE", "DELETE"],
+  Program: ["SELECT", "INSERT", "UPDATE", "DELETE"],
+  StudentGroup: ["SELECT", "INSERT", "UPDATE", "DELETE"],
   Subject: ["SELECT", "INSERT", "UPDATE"],
   Application: ["SELECT", "INSERT", "UPDATE"],
   ApplicationDocument: ["SELECT", "INSERT"],
   ApplicationEvent: ["SELECT", "INSERT"],
   Notification: ["SELECT", "INSERT"],
+  ScheduleCancellation: ["SELECT", "INSERT"],
   Grade: ["SELECT", "INSERT", "UPDATE"],
   Semester: ["SELECT", "INSERT", "UPDATE"],
   Teacher: ["SELECT", "INSERT", "UPDATE"],
@@ -109,6 +110,7 @@ END;`,
     ["AuditLog", "immutable_audit"],
     ["ApplicationDocument", "immutable_application_document"],
     ["ApplicationEvent", "immutable_application_event"],
+    ["ScheduleCancellation", "immutable_cancellation"],
   ]) {
     const triggers = await client.query(
       `SELECT t.tgenabled,p.proname FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE t.tgrelid=$1::regclass AND t.tgname=$2 AND NOT t.tgisinternal AND t.tgfoid='public.prevent_audit_mutation()'::regprocedure AND t.tgtype=27 AND t.tgqual IS NULL AND t.tgattr::text=''`,

@@ -5,6 +5,7 @@ import { actor, Denied, studentAccess } from "./security";
 import { lockMembership } from "./enrollment-guards";
 import { cursorId, listCursor, listPage, pageSize } from "@/lib/pagination";
 import { notificationText } from "@/lib/notifications";
+import { dayKey, timeLabel } from "@/lib/schedule-time";
 type Actor = Awaited<ReturnType<typeof actor>>;
 async function recipient(
   tx: Prisma.TransactionClient,
@@ -65,6 +66,7 @@ async function recipient(
     canStudy,
     latestRequestId: m.requests[0]?.id,
     timezone: m.university.timezone,
+    groupIds: m.enrollments.map((e) => e.groupId),
   };
 }
 const select = {
@@ -77,23 +79,39 @@ const select = {
   applicationId: true,
   application: { select: { currentDocumentId: true } },
   applicationEvent: { select: { documentId: true } },
+  cancellation: {
+    select: { title: true, startsAt: true, endsAt: true, groupIds: true },
+  },
 } satisfies Prisma.NotificationSelect;
 type Row = Prisma.NotificationGetPayload<{ select: typeof select }>;
 function dto(n: Row, scope: Awaited<ReturnType<typeof recipient>>) {
   if (n.schemaVersion !== 1) throw new Denied(503);
-  const target = n.enrollmentRequestId
-    ? scope.latestRequestId === n.enrollmentRequestId
-      ? { available: true, href: "/cabinet" }
-      : { available: false, reasonCode: "PREVIOUS_ENROLLMENT" }
-    : scope.canStudy
+  const target = n.cancellation
+    ? scope.canStudy &&
+      Array.isArray(n.cancellation.groupIds) &&
+      n.cancellation.groupIds.some(
+        (id) => typeof id === "string" && scope.groupIds.includes(id),
+      )
       ? {
           available: true,
-          href: `/applications/${encodeURIComponent(n.applicationId!)}`,
+          href: `/schedule?day=${dayKey(n.cancellation.startsAt, scope.timezone)}`,
         }
-      : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" };
-  const message = n.enrollmentRequestId
-    ? "Решение по вашему запросу прикрепления сохранено."
-    : "В истории вашего обращения появилось новое событие.";
+      : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
+    : n.enrollmentRequestId
+      ? scope.latestRequestId === n.enrollmentRequestId
+        ? { available: true, href: "/cabinet" }
+        : { available: false, reasonCode: "PREVIOUS_ENROLLMENT" }
+      : scope.canStudy
+        ? {
+            available: true,
+            href: `/applications/${encodeURIComponent(n.applicationId!)}`,
+          }
+        : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" };
+  const message = n.cancellation
+    ? `${n.cancellation.title} · ${dayKey(n.cancellation.startsAt, scope.timezone).split("-").reverse().join(".")} · ${timeLabel(n.cancellation.startsAt, scope.timezone)}–${timeLabel(n.cancellation.endsAt, scope.timezone)}. Занятие отменено.`
+    : n.enrollmentRequestId
+      ? "Решение по вашему запросу прикрепления сохранено."
+      : "В истории вашего обращения появилось новое событие.";
   const newerDocument =
     target.available &&
     !!n.applicationEvent?.documentId &&

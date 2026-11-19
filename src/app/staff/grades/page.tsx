@@ -9,6 +9,7 @@ import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
 import { RefreshContext } from "../../forms";
 import { GradeList } from "../../grade-list";
+import { GradePeriod } from "../../grade-period";
 import { GradeGroupScope } from "../../grade-group-scope";
 import { GradeForm, SubjectForm } from "../../grade-forms";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,9 @@ export default async function Page({
     cursor?: string;
     auditCursor?: string;
     history?: string;
+    subjectId?: string;
+    from?: string;
+    to?: string;
   }>;
 }) {
   const q = await searchParams;
@@ -49,6 +53,9 @@ export default async function Page({
           membershipId: selected.id,
           cursor: q.cursor,
           auditCursor: q.auditCursor,
+          from: q.from,
+          to: q.to,
+          subjectId: q.subjectId,
         }),
       )
     : null;
@@ -183,6 +190,7 @@ export default async function Page({
           </details>
           {selected && data && (
             <>
+              <GradePeriod query={q} />
               <h2>
                 {selected.name} · {selected.group}
               </h2>
@@ -203,6 +211,8 @@ export default async function Page({
               )}
               <GradeList
                 data={data}
+                query={q}
+                groupId={selected.eligible && !history ? q.groupId : undefined}
                 membershipId={selected.id}
                 subjectList={subjectList}
                 today={today}
@@ -236,7 +246,7 @@ export default async function Page({
                 >
                   К началу результатов
                 </Link>
-                {data.next && (
+                {data.subjectId && data.next && (
                   <Link
                     href={{
                       pathname: "/staff/grades",

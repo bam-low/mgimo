@@ -19,10 +19,12 @@ GIB = 1024 ** 3
 ROLES = {"runtime": "runtime", "tools": "tools", "db": "database"}
 PREFIXES = {"candidate-context": "campus-vps-context-", "candidate-runtime": "campus-runtime-",
             "baseline-archive": "campus-vps-baseline-", "baseline-context": "campus-vps-context-",
-            "baseline-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
+            "baseline-runtime": "campus-runtime-",
+            "rollback-archive": "campus-vps-rollback-", "rollback-context": "campus-vps-context-",
+            "rollback-runtime": "campus-runtime-", "trivy-work": "campus-trivy-work-",
             "rehearsal-browsers": "campus-vps-browsers-", "disk-pressure": "campus-disk-pressure-",
             "candidate-build-output": ".next", "app-update-fixture": "campus-app-update-fixture-"}
-BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime"}
+BUILD_ROLES = {"candidate-context", "candidate-runtime", "baseline-archive", "baseline-context", "baseline-runtime", "rollback-archive", "rollback-context", "rollback-runtime"}
 REHEARSAL_IMAGES = (
     "postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
     "nginx:stable-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609",
@@ -271,6 +273,11 @@ class Disk:
             require(image["Id"] == baseline[key], "Historical image identity changed")
             if image["Id"] not in protected:
                 image_names.append(name)
+        if "rollbackRuntime" in baseline:
+            require(baseline.get("rollbackSource") == "f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3", "Unexpected rollback fixture source")
+            image = json.loads(self.docker(["image", "inspect", "campus71-rollback-runtime"]))[0]
+            require(image["Id"] == baseline["rollbackRuntime"] and image["Id"] not in protected, "Rollback fixture identity changed")
+            image_names.append("campus71-rollback-runtime")
         for project in data["projects"]:
             require(re.fullmatch(r"campus24-test-[0-9]+", project), "Invalid project record")
             require(not self.docker(["ps", "-aq", "--filter", "label=com.docker.compose.project=" + project]).strip(), "Test containers still present")

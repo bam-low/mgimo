@@ -1,3 +1,4 @@
+import { rollbackRehearsal } from "./vps-rollback-rehearsal.mjs";
 import { URL } from "node:url";
 import { Buffer } from "node:buffer";
 import console from "node:console";
@@ -8,17 +9,35 @@ import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import https from "node:https";
 import assert from "node:assert/strict";
-const migrationContract = JSON.parse(await readFile(new URL("../ops/vps/migration-contract.json", import.meta.url), "utf8"));
-const additive = migrationContract.additive[0];
+const migrationContract = JSON.parse(
+  await readFile(
+    new URL("../ops/vps/migration-contract.json", import.meta.url),
+    "utf8",
+  ),
+);
+const additive = migrationContract.additive;
 const additivePolicy = "baseline-preserved-approved-additive";
 export function assertAdditiveHistory(actual, before) {
-  const empty = { count: 0, sha256: createHash("sha256").update("[]").digest("hex") };
-  const additions = Object.fromEntries(migrationContract.addedTables.map(name => [name, empty]));
+  const empty = {
+    count: 0,
+    sha256: createHash("sha256").update("[]").digest("hex"),
+  };
+  const additions = Object.fromEntries(
+    migrationContract.addedTables.map((name) => [name, empty]),
+  );
   assert.deepEqual(actual, { ...before, ...additions });
 }
 export function assertAppliedMigrations(rows) {
-  assert.deepEqual(rows.map(row => ({ name: row.migration_name, sha256: row.checksum })), [...migrationContract.baseline, ...migrationContract.additive]);
-  assert.ok(rows.every(row => row.finished_at && !row.rolled_back_at && row.applied_steps_count === 1));
+  assert.deepEqual(
+    rows.map((row) => ({ name: row.migration_name, sha256: row.checksum })),
+    [...migrationContract.baseline, ...migrationContract.additive],
+  );
+  assert.ok(
+    rows.every(
+      (row) =>
+        row.finished_at && !row.rolled_back_at && row.applied_steps_count === 1,
+    ),
+  );
 }
 export function rehearsal({
   dc,
@@ -36,7 +55,7 @@ export function rehearsal({
   const started = performance.now();
   let auditBaselineIDs, auditEvent;
   const snapshotCode = (auditAdditions = 0) =>
-    `import pg from 'pg';import {createHash} from 'node:crypto';const c=new pg.Client({connectionString:process.env.DATABASE_URL});await c.connect();const tables=(await c.query("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename")).rows;const out={};for(const {tablename:t} of tables){if(t==='RateBucket')continue;if(!/^[A-Za-z_]+$/.test(t))throw Error('Unexpected table');let rows=(await c.query('SELECT to_jsonb(t) AS row FROM "'+t+'" t ORDER BY to_jsonb(t)::text')).rows;if(t==='_prisma_migrations'){const added=rows.filter(r=>r.row.migration_name===${JSON.stringify(additive.name)});for(const {row}of added)if(row.checksum!==${JSON.stringify(additive.sha256)}||!row.finished_at||row.rolled_back_at||row.applied_steps_count!==1)throw Error('Invalid additive ledger');rows=rows.filter(r=>r.row.migration_name!==${JSON.stringify(additive.name)});}const keep=${JSON.stringify(auditBaselineIDs ?? null)};if(t==='AuditLog'&&keep){const old=new Set(keep),extra=rows.filter(r=>!old.has(r.row.id));if(extra.length!==${auditAdditions})throw Error('Unexpected audit additions');const expected=${JSON.stringify(auditEvent ?? null)};for(const {row} of extra)for(const k of Object.keys(expected))if(row[k]!==expected[k])throw Error('Unexpected audit event');rows=rows.filter(r=>old.has(r.row.id));}out[t]={count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};}await c.end();console.log(JSON.stringify(out));`;
+    `import pg from 'pg';import {createHash} from 'node:crypto';const c=new pg.Client({connectionString:process.env.DATABASE_URL});await c.connect();const tables=(await c.query("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename")).rows;const out={};for(const {tablename:t} of tables){if(t==='RateBucket')continue;if(!/^[A-Za-z_]+$/.test(t))throw Error('Unexpected table');let rows=(await c.query('SELECT to_jsonb(t) AS row FROM "'+t+'" t ORDER BY to_jsonb(t)::text')).rows;if(t==='_prisma_migrations'){const expected=${JSON.stringify(additive)};for(const approved of expected){const added=rows.filter(r=>r.row.migration_name===approved.name);for(const {row}of added)if(row.checksum!==approved.sha256||!row.finished_at||row.rolled_back_at||row.applied_steps_count!==1)throw Error('Invalid additive ledger');}rows=rows.filter(r=>!expected.some(a=>a.name===r.row.migration_name));}for(const column of (${JSON.stringify(migrationContract.addedColumns)}[t]??[])){for(const {row}of rows){if(Object.hasOwn(row,column)&&row[column]!==null)throw Error('Non-null new column changes baseline data');delete row[column];}}rows.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b),'en'));const keep=${JSON.stringify(auditBaselineIDs ?? null)};if(t==='AuditLog'&&keep){const old=new Set(keep),extra=rows.filter(r=>!old.has(r.row.id));if(extra.length!==${auditAdditions})throw Error('Unexpected audit additions');const expected=${JSON.stringify(auditEvent ?? null)};for(const {row} of extra)for(const k of Object.keys(expected))if(row[k]!==expected[k])throw Error('Unexpected audit event');rows=rows.filter(r=>old.has(r.row.id));}out[t]={count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};}await c.end();console.log(JSON.stringify(out));`;
   function toolJSON(code) {
     return JSON.parse(
       dc(
@@ -57,7 +76,7 @@ export function rehearsal({
   function snapshot(auditAdditions = 0) {
     return toolJSON(snapshotCode(auditAdditions));
   }
-  async function call(url, account, auth = true) {
+  async function call(url, account, auth = true, data) {
     let cookie;
     if (account) {
       const rows = JSON.parse(
@@ -68,10 +87,11 @@ export function rehearsal({
       cookie = rows[0].name + "=" + rows[0].value;
     }
     return new Promise((resolve, reject) => {
-      const r = https.get(
+      const r = https.request(
         "https://localhost:18443" + url,
         {
           ca,
+          method: data ? "POST" : "GET",
           headers: {
             ...(auth
               ? {
@@ -80,6 +100,12 @@ export function rehearsal({
                 }
               : {}),
             ...(cookie ? { Cookie: cookie } : {}),
+            ...(data
+              ? {
+                  Origin: "https://localhost:18443",
+                  "Content-Type": "application/json",
+                }
+              : {}),
           },
         },
         (s) => {
@@ -92,6 +118,7 @@ export function rehearsal({
       );
       r.setTimeout(5000, () => r.destroy(Error("Rehearsal HTTP timeout")));
       r.on("error", reject);
+      r.end(data ? JSON.stringify(data) : undefined);
     });
   }
   async function json(url, account) {
@@ -158,7 +185,9 @@ export function rehearsal({
   }
   let before, expected, recoveryStarted;
   function checkLedger(restored = false) {
-    const rows = toolJSON(`import pg from 'pg';const u=new URL(process.env.DATABASE_URL);if(${restored})u.pathname='/campus_restore_test';const c=new pg.Client({connectionString:u.href});await c.connect();const rows=(await c.query('SELECT migration_name,checksum,finished_at,rolled_back_at,applied_steps_count FROM "_prisma_migrations" ORDER BY migration_name')).rows;await c.end();console.log(JSON.stringify(rows));`);
+    const rows = toolJSON(
+      `import pg from 'pg';const u=new URL(process.env.DATABASE_URL);if(${restored})u.pathname='/campus_restore_test';const c=new pg.Client({connectionString:u.href});await c.connect();const rows=(await c.query('SELECT migration_name,checksum,finished_at,rolled_back_at,applied_steps_count FROM "_prisma_migrations" ORDER BY migration_name')).rows;await c.end();console.log(JSON.stringify(rows));`,
+    );
     assertAppliedMigrations(rows);
   }
   async function freeze() {
@@ -315,7 +344,22 @@ export function rehearsal({
     console.log(
       "PASS fresh separate DB: full history/bytes/versions/notifications/readAt/ownership/session hashes and protected restored-app smoke",
     );
+    const rollbackGuard = await rollbackRehearsal({
+      dc,
+      docker,
+      root,
+      project,
+      candidate,
+      fixture,
+      toolJSON,
+      call,
+      json,
+      ready,
+      runtime,
+      contract: migrationContract,
+    });
     const result = {
+      rollbackGuard,
       status: "PASS",
       baselineSource: "287912fe19df75404b81dd36ea1df5bb62187c71",
       candidateImages: {
@@ -331,6 +375,7 @@ export function rehearsal({
       schema: additivePolicy,
       approvedAdditiveMigrations: migrationContract.additive,
       addedTables: migrationContract.addedTables,
+      addedColumns: migrationContract.addedColumns,
       tables: before,
       checks: [
         "baseline-populated-E2E",

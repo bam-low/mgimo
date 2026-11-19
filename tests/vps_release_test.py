@@ -23,7 +23,9 @@ def fixture():
     values["scanner-metadata.json"] = {"scanner": {"Version": "0.76.2", "VulnerabilityDB": {"Version": 2}}, "databaseFileSHA256": "a" * 64}
     for name in ("npm-all.json", "npm-production.json"):
         values[name] = {"metadata": {"vulnerabilities": {"total": 0}}}
-    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"]}
+    values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"], "addedColumns": rc.CONTRACT["addedColumns"]}
+    values["vps-upgrade.json"]["rollbackGuard"] = {"status":"PASS", "source":"f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3", "runtimeImage":"sha256:"+"4"*64,
+        "beforeCancellation":"OLD_RUNTIME_HEALTHY_DATA_UNCHANGED", "afterCancellation":"BLOCKED_BEFORE_SWITCH", "recovery":"COMPATIBLE_RUNTIME_SAME_DATABASE_ALL_ROWS_UNCHANGED"}
     evidence = {name: json.dumps(value).encode() for name, value in values.items()}
     migrations = [{"name": p.parent.name, "sha256": rc.digest(p.read_bytes())} for p in sorted((Path(__file__).parents[1] / "prisma/migrations").glob("*/migration.sql"))]
     m = {"releaseVersion": rc.VERSION, "manifestSchemaVersion": 1, "sourceCommit": rc.BASELINE,
@@ -78,6 +80,16 @@ class MetadataTests(unittest.TestCase):
             else:
                 m["compatibility"]["schemaPolicy"] = rc.BASELINE_POLICY
             with self.assertRaises(ValueError):
+                rc.validate(m, evidence)
+
+    def test_missing_or_incomplete_guarded_rollback_proof_is_rejected(self):
+        for guard in ({}, {"status":"PASS", "afterCancellation":"BLOCKED_BEFORE_SWITCH"}):
+            m, evidence = fixture()
+            upgrade = json.loads(evidence["vps-upgrade.json"])
+            upgrade["rollbackGuard"] = guard
+            evidence["vps-upgrade.json"] = json.dumps(upgrade).encode()
+            m["evidence"]["vps-upgrade.json"] = rc.digest(evidence["vps-upgrade.json"])
+            with self.assertRaisesRegex(ValueError, "Guarded f29"):
                 rc.validate(m, evidence)
 
     def test_changed_embedded_contract_is_rejected(self):

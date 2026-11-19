@@ -20,9 +20,9 @@ it("catalog keeps shared lectures whole, seminars separate, and explains inactiv
             name: "Демо направление",
             active: true,
             groups: [
-              { id: "g1", name: "Демо 1", active: true },
-              { id: "g2", name: "Демо 2", active: true },
-              { id: "g3", name: "Демо новая", active: true },
+              { id: "g1", name: "Демо 1", active: true, course: 1 },
+              { id: "g2", name: "Демо 2", active: true, course: 2 },
+              { id: "g3", name: "Демо новая", active: true, course: null },
             ],
           },
         ],

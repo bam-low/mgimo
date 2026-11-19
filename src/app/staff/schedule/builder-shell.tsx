@@ -18,9 +18,11 @@ export async function builderPage() {
 export function BuilderShell({
   title,
   children,
+  unified = false,
 }: {
   title: string;
   children: ReactNode;
+  unified?: boolean;
 }) {
   return (
     <main className="campus-shell staff-schedule-page">
@@ -35,7 +37,7 @@ export function BuilderShell({
           <h1>{title}</h1>
           <p>Учебный календарь и занятия · Только вымышленные данные</p>
         </header>
-        <ScheduleManagement />
+        <ScheduleManagement unified={unified} />
 
         {children}
       </Workspace>

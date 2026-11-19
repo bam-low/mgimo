@@ -113,7 +113,8 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     name: subjectName,
   });
   const teachers = [randomUUID(), randomUUID(), randomUUID()],
-    room = randomUUID();
+    room = randomUUID(),
+    seminarRoom = randomUUID();
   for (const [i, id] of teachers.entries())
     await publish({
       action: "TEACHER_CREATE",
@@ -126,6 +127,12 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     operationId: room,
     building: `Учебный корпус · ${suffix}`,
     number: "305",
+  });
+  await publish({
+    action: "ROOM_CREATE",
+    operationId: seminarRoom,
+    building: `Учебный корпус · ${suffix}`,
+    number: "306",
   });
   const semesterId = randomUUID();
   await publish({
@@ -252,14 +259,15 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     .getByRole("combobox", { name: "Готовая лекция или семинар", exact: true })
     .selectOption(lecture.id);
   await expect(
-    inspector.getByRole("combobox", { name: "День недели", exact: true }),
-  ).toHaveValue("2");
-  await expect(
     inspector.getByText("Общая лекция появится у всех групп:"),
   ).toBeVisible();
   await inspector
     .getByRole("combobox", { name: "Повторение", exact: true })
     .selectOption("B");
+  await expect(
+    inspector.getByRole("combobox", { name: "День недели", exact: true }),
+  ).toHaveValue("2");
+
   await inspector
     .getByRole("combobox", { name: "Аудитория", exact: true })
     .selectOption(room);
@@ -337,6 +345,9 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     await inspector
       .getByRole("combobox", { name: "Повторение", exact: true })
       .selectOption("A");
+    await inspector
+      .getByRole("combobox", { name: "Аудитория", exact: true })
+      .selectOption(i ? seminarRoom : room);
     await inspector.getByLabel("Начало занятия", { exact: true }).fill("14:00");
     await inspector.getByLabel("Конец занятия", { exact: true }).fill("15:00");
     await save(inspector.locator("form").first());
@@ -361,6 +372,9 @@ test("staff configures a shared lecture and separate seminars; previews partial 
       .sort(),
   );
   expect(first.entries).toHaveLength(2);
+  expect(
+    new Set(first.entries.map((e: { roomId: string }) => e.roomId)),
+  ).toEqual(new Set([room, seminarRoom]));
   for (let i = 0; i < 2; i++)
     expect(
       first.entries.find((e: { groupIds: string[] }) =>

@@ -16,6 +16,7 @@ import { addDays, monday, dayKey, timeLabel } from "@/lib/schedule-time";
 import { assignmentBlocks } from "@/lib/teaching-assignment";
 import { ScheduleField } from "./schedule-field";
 import { displayDate } from "./schedule-input-values";
+import { AssignmentEditor } from "./teaching-assignments-ui";
 import type {
   builderCatalog,
   builderWeek,
@@ -69,7 +70,9 @@ export function BuilderMutation({
   command,
   children,
   onSaved,
+  blocked = false,
 }: {
+  blocked?: boolean;
   command: () => BuilderCommand;
   children: ReactNode;
   onSaved?: (preview: Preview) => void;
@@ -148,7 +151,7 @@ export function BuilderMutation({
       >
         {error || (done ? "Изменения сохранены" : busy ? "Проверяем…" : "")}
       </p>
-      <button disabled={busy || !ready} type="submit">
+      <button disabled={busy || !ready || blocked} type="submit">
         Проверить изменения
       </button>
       {preview && (
@@ -222,12 +225,32 @@ export function SemesterCalendar({
 }) {
   const [cursor, C] = useState(initial ?? calendar.start);
   const parsed = calendarInput.safeParse(calendar);
+  if (
+    !calendar.name.trim() ||
+    !calendar.start ||
+    !calendar.end ||
+    !calendar.anchor
+  )
+    return (
+      <p className="notice">
+        Заполните название и даты, чтобы увидеть календарь и чередование недель.
+      </p>
+    );
   if (!parsed.success)
     return (
       <ul className="form-message is-error" aria-label="Ошибки календаря">
         {parsed.error.issues.map((e, i) => (
           <li key={i}>
-            {e.path.join(" / ")}: {e.message}
+            {(
+              {
+                name: "Название",
+                start: "Начало",
+                end: "Окончание",
+                anchor: "Опорный понедельник",
+                exclusions: "Исключения",
+              } as Record<string, string>
+            )[String(e.path[0])] ?? "Календарь"}
+            : {e.code === "custom" ? e.message : "Проверьте значение поля."}
           </li>
         ))}
       </ul>
@@ -307,7 +330,7 @@ export function SemesterEditor({
   onCreated,
 }: {
   semester?: Catalog["semesters"][number];
-  onCreated?: (id: string) => void;
+  onCreated?: (id: string, start?: string) => void;
 }) {
   const [calendar, C] = useState<Calendar>(
       semester?.calendar ?? {
@@ -340,7 +363,7 @@ export function SemesterEditor({
         <h2>{semester ? "Настроить семестр" : "Создать семестр"}</h2>
         <BuilderMutation
           onSaved={() => {
-            if (!semester) onCreated?.(op);
+            if (!semester) onCreated?.(op, calendar.start);
           }}
           command={() =>
             semester
@@ -372,28 +395,30 @@ export function SemesterEditor({
             value={calendar.end}
             onValueChange={(v) => update("end", v)}
           />
-          {!semester && (
-            <label>
-              Неделя с датой начала
-              <select
-                value={firstWeek}
-                onChange={(e) => {
-                  const v = e.target.value as "A" | "B";
-                  FW(v);
-                  if (civilDay(calendar.start))
-                    update(
-                      "anchor",
-                      v === "A"
-                        ? monday(calendar.start)
-                        : addDays(monday(calendar.start), -7),
-                    );
-                }}
-              >
-                <option value="A">Числитель</option>
-                <option value="B">Знаменатель</option>
-              </select>
-            </label>
-          )}
+          <label>
+            Неделя с датой начала
+            <select
+              value={
+                civilDay(calendar.start) && civilDay(calendar.anchor)
+                  ? parity(calendar.start, calendar.anchor)
+                  : firstWeek
+              }
+              onChange={(e) => {
+                const v = e.target.value as "A" | "B";
+                FW(v);
+                if (civilDay(calendar.start))
+                  update(
+                    "anchor",
+                    v === "A"
+                      ? monday(calendar.start)
+                      : addDays(monday(calendar.start), -7),
+                  );
+              }}
+            >
+              <option value="A">Числитель</option>
+              <option value="B">Знаменатель</option>
+            </select>
+          </label>
           {civilDay(calendar.start) && civilDay(calendar.anchor) && (
             <p className="notice">
               Дата начала {displayDate(calendar.start)} —{" "}
@@ -766,11 +791,12 @@ function ResourceFields({
           <label>
             Преподаватель
             <select
+              required
               disabled={locked}
               value={value.teacherId ?? ""}
               onChange={(e) => onChange({ teacherId: e.target.value || null })}
             >
-              <option value="">Не назначен — занятость не проверяется</option>
+              <option value="">Выберите преподавателя</option>
               {catalog.teachers
                 .filter(
                   (t) =>
@@ -790,10 +816,11 @@ function ResourceFields({
       <label>
         Аудитория
         <select
+          required
           value={value.roomId ?? ""}
           onChange={(e) => onChange({ roomId: e.target.value || null })}
         >
-          <option value="">Не назначена — занятость не проверяется</option>
+          <option value="">Выберите аудиторию</option>
           {catalog.rooms
             .filter((r) => r.active || r.id === value.roomId)
             .map((r) => (
@@ -830,6 +857,7 @@ export function ScheduleBuilder({
   initialDay = "",
   initialGroup = "",
   initialDraft = "",
+  workspace = false,
 }: {
   catalog: Catalog;
   initialSemester?: string;
@@ -837,6 +865,7 @@ export function ScheduleBuilder({
   initialDay?: string;
   initialGroup?: string;
   initialDraft?: string;
+  workspace?: boolean;
 }) {
   const [semesterId, S] = useState(initialSemester),
     [programId, P] = useState(initialProgram),
@@ -845,6 +874,7 @@ export function ScheduleBuilder({
         f.programs.some((p) => p.id === initialProgram),
       )?.id ?? "",
     ),
+    [course, Course] = useState(""),
     [mode, M] = useState(initialGroup ? "ONE" : "ALL"),
     [groupId, G] = useState(initialGroup),
     [mobileGroup, MG] = useState(""),
@@ -873,7 +903,11 @@ export function ScheduleBuilder({
       })),
     ),
     program = programs.find((p) => p.id === programId),
-    groups = program?.groups ?? [];
+    groups = (program?.groups ?? []).filter(
+      (g) =>
+        !course ||
+        (course === "unset" ? g.course == null : String(g.course) === course),
+    );
   const from = civilDay(day)
     ? monday(day)
     : semester
@@ -1026,12 +1060,50 @@ export function ScheduleBuilder({
   }
   return (
     <>
-      <div className="builder-entrypoints">
-        <Link href="/staff/schedule/assignments">
-          1. Настроить дисциплину и группы
-        </Link>
-        <a href="#builder-filters">2. Добавить занятие в расписание</a>
-      </div>
+      <details
+        id="semester-setup"
+        className="editor-panel semester-setup"
+        open={!catalog.semesters.length}
+      >
+        <summary>
+          {semester
+            ? `Настройка семестра · ${semester.calendar.name}`
+            : "Настроить учебный семестр"}
+        </summary>
+        <SemesterEditor
+          key={`${semester?.id ?? "new"}:${semester?.version ?? 0}`}
+          semester={semester}
+          onCreated={(id, start) => {
+            S(id);
+            D(start ?? "");
+            invalidate();
+          }}
+        />
+        {semester && (
+          <button
+            type="button"
+            onClick={() => {
+              S("");
+              invalidate();
+            }}
+          >
+            Создать другой семестр
+          </button>
+        )}
+      </details>
+      {workspace ? (
+        <p className="notice">
+          Выберите семестр и направление, затем откройте свободную ячейку.
+          Дисциплину, лекцию или семинар можно настроить прямо в форме занятия.
+        </p>
+      ) : (
+        <div className="builder-entrypoints">
+          <Link href="/staff/schedule/assignments">
+            1. Настроить дисциплину и группы
+          </Link>
+          <a href="#builder-filters">2. Добавить занятие в расписание</a>
+        </div>
+      )}
       <form
         id="builder-filters"
         className="builder-filters"
@@ -1068,6 +1140,7 @@ export function ScheduleBuilder({
             onChange={(e) => {
               F(e.target.value);
               P("");
+              Course("");
               G("");
               MG("");
               invalidate();
@@ -1090,6 +1163,7 @@ export function ScheduleBuilder({
             value={programId}
             onChange={(e) => {
               P(e.target.value);
+              Course("");
               G("");
               MG("");
               invalidate();
@@ -1104,6 +1178,37 @@ export function ScheduleBuilder({
                   {!p.available ? " (неактивно)" : ""}
                 </option>
               ))}
+          </select>
+        </label>
+        <label>
+          Курс
+          <select
+            value={course}
+            disabled={!programId}
+            onChange={(e) => {
+              Course(e.target.value);
+              G("");
+              MG("");
+              invalidate();
+            }}
+          >
+            <option value="">Все курсы</option>
+            {[
+              ...new Set(
+                (program?.groups ?? [])
+                  .map((g) => g.course)
+                  .filter((c) => c != null),
+              ),
+            ]
+              .sort((a, b) => a - b)
+              .map((c) => (
+                <option key={c} value={c}>
+                  {c} курс
+                </option>
+              ))}
+            {(program?.groups ?? []).some((g) => g.course == null) && (
+              <option value="unset">Курс не указан</option>
+            )}
           </select>
         </label>
         <label>
@@ -1359,7 +1464,7 @@ export function ScheduleBuilder({
                 <p>
                   Прежнее занятие сохраняет исходную историю.{" "}
                   <Link
-                    href={`/staff/schedule?groupId=${chosen.groupIds[0]}&day=${day}`}
+                    href={`/staff/schedule/manual?groupId=${chosen.groupIds[0]}&day=${day}`}
                   >
                     Открыть редактор прежнего расписания
                   </Link>
@@ -1368,11 +1473,14 @@ export function ScheduleBuilder({
               )
             ) : (
               <TemplateEditor
+                readyOnly={workspace}
                 key={`${semester.id}:${program.id}:${mode}:${groupId}:${slot.day}:${slot.groupId}:${newRevision}`}
                 catalog={catalog}
                 semester={semester}
                 programId={program.id}
-                groups={groups.filter((g) => g.active && program.available)}
+                groups={program.groups.filter(
+                  (g) => g.active && program.available,
+                )}
                 defaultGroup={
                   slot.groupId || (mode === "ONE" ? groupId : visibleGroup)
                 }
@@ -1389,6 +1497,7 @@ export function ScheduleBuilder({
   );
 }
 function TemplateEditor({
+  readyOnly = false,
   catalog,
   semester,
   programId,
@@ -1401,6 +1510,7 @@ function TemplateEditor({
   initialDraft,
   viewGroup = "",
 }: {
+  readyOnly?: boolean;
   catalog: Catalog;
   semester: Catalog["semesters"][number];
   programId: string;
@@ -1428,7 +1538,7 @@ function TemplateEditor({
           teacherId: null,
           roomId: null,
           groupIds: defaultGroup ? [defaultGroup] : [],
-          recurrence: "EVERY",
+          recurrence: "ONCE",
           weekday:
             slot && civilDay(slot.day)
               ? ((new Date(slot.day).getUTCDay() + 6) % 7) + 1
@@ -1440,7 +1550,8 @@ function TemplateEditor({
     ),
     [from, F] = useState(today ?? semester.calendar.start),
     [op] = useState(() => crypto.randomUUID()),
-    [blockKey, BK] = useState("");
+    [blockKey, BK] = useState(""),
+    [setupOpen, Setup] = useState(false);
   const blocks = assignmentBlocks(
       catalog,
       programId,
@@ -1459,6 +1570,9 @@ function TemplateEditor({
   const setupHref =
     "/staff/schedule/assignments?" +
     new URLSearchParams({ programId, returnTo });
+  const program = catalog.faculties
+    .flatMap((f) => f.programs)
+    .find((p) => p.id === programId)!;
   let generated: ReturnType<typeof dates> | undefined;
   try {
     if (ruleInput.safeParse(rule).success)
@@ -1473,7 +1587,25 @@ function TemplateEditor({
           ? "Изменяются только будущие повторения с выбранной даты. Прошедшие и ручные занятия, включая отмены, сохраняются."
           : "Выберите одну группу или несколько для одной общей лекции. Сначала проверьте все конкретные даты."}
       </p>
+      {!template && readyOnly && (
+        <details
+          open={setupOpen}
+          onToggle={(e) => Setup(e.currentTarget.open)}
+          className="inline-assignment"
+        >
+          <summary>
+            Создать дисциплину и настроить лекцию или семинар здесь
+          </summary>
+          <AssignmentEditor
+            catalog={catalog}
+            program={program}
+            back="#builder-inspector"
+            onSaved={() => Setup(false)}
+          />
+        </details>
+      )}
       <BuilderMutation
+        blocked={readyOnly && !template && !block}
         onSaved={reload}
         command={() =>
           template
@@ -1489,7 +1621,7 @@ function TemplateEditor({
                 operationId: op,
                 semesterId: semester.id,
                 programId,
-                rule,
+                rule: readyOnly && !block ? { ...rule, subjectId: "" } : rule,
                 ...(block
                   ? {
                       assignment: {
@@ -1535,7 +1667,24 @@ function TemplateEditor({
             {!blocks.length && (
               <p>Для выбранной группы пока нет готовых занятий.</p>
             )}
-            <Link href={setupHref}>Настроить дисциплину и группы →</Link>
+            {readyOnly ? (
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => {
+                  Setup(true);
+                  requestAnimationFrame(() =>
+                    document
+                      .querySelector("#builder-inspector .inline-assignment")
+                      ?.scrollIntoView({ block: "start" }),
+                  );
+                }}
+              >
+                Настроить дисциплину и группы здесь
+              </button>
+            ) : (
+              <Link href={setupHref}>Настроить дисциплину и группы →</Link>
+            )}
             {block && (
               <div className="notice">
                 <h3>
@@ -1564,7 +1713,7 @@ function TemplateEditor({
               ))}
           </section>
         )}
-        {!block && (
+        {!block && !readyOnly && (
           <fieldset>
             <legend>Участвующие группы</legend>
             {groups.map((g) => (
@@ -1589,9 +1738,15 @@ function TemplateEditor({
         <ResourceFields
           catalog={catalog}
           value={rule}
-          locked={!!block}
+          locked={!!block || (readyOnly && !template)}
           onChange={(patch) => R({ ...rule, ...patch })}
         />
+        {readyOnly && !template && !block && (
+          <p className="notice">
+            Выберите готовую лекцию или семинар выше. При необходимости
+            настройте их прямо здесь — публикация доступна после выбора.
+          </p>
+        )}
         <p>
           Открыта неделя:{" "}
           {slot && civilDay(slot.day)
@@ -1746,8 +1901,8 @@ function OccurrenceEditor({
       <label>
         Область изменения
         <select value={mode} onChange={(e) => M(e.target.value)}>
-          <option value="ONE">Одно занятие — все участвующие группы</option>
-          {template && <option value="FUTURE">Все будущие повторения</option>}
+          <option value="ONE">Только эту · все участвующие группы</option>
+          {template && <option value="FUTURE">Эту и последующие</option>}
           {entry.groupIds.length > 1 && entry.status === "SCHEDULED" && (
             <option value="DETACH">Отделить одну группу</option>
           )}
@@ -1761,7 +1916,7 @@ function OccurrenceEditor({
           programId={program.id}
           groups={program.groups.filter((g) => g.active)}
           template={template}
-          today={week.today}
+          today={dayKey(new Date(entry.startsAt), week.timezone)}
           reload={reload}
         />
       ) : (

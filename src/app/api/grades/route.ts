@@ -9,6 +9,9 @@ export async function GET(request: Request) {
         membershipId: q.get("membershipId") ?? undefined,
         cursor: q.get("cursor") ?? undefined,
         auditCursor: q.get("auditCursor") ?? undefined,
+        from: q.get("from") ?? undefined,
+        to: q.get("to") ?? undefined,
+        subjectId: q.get("subjectId") ?? undefined,
       }),
       { headers: { "Cache-Control": "private, no-store" } },
     );
