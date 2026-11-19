@@ -18,7 +18,13 @@ for (const source of [
     path.join(tmpdir(), "campus-vps-" + prefix + "-"),
   );
   disk("register-path", prefix + "-archive", directory);
-  const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
+  // The current job registers fixture paths below. Archived lifecycle helpers
+  // must not access the live ownership registry as if they were the candidate.
+  const environment = {
+    ...process.env,
+    NEXT_TELEMETRY_DISABLED: "1",
+    CAMPUS_CI_DISK_CLEANUP: "0",
+  };
   for (const key of [
     "DOCKER_HOST",
     "DOCKER_CONTEXT",
