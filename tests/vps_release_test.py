@@ -24,6 +24,8 @@ def fixture():
     for name in ("npm-all.json", "npm-production.json"):
         values[name] = {"metadata": {"vulnerabilities": {"total": 0}}}
     values["vps-upgrade.json"] = {"status": "PASS", "baselineSource": rc.BASELINE, "candidateImages": ids, "schema": rc.ADDITIVE_POLICY, "approvedAdditiveMigrations": rc.CONTRACT["additive"], "addedTables": rc.CONTRACT["addedTables"], "addedColumns": rc.CONTRACT["addedColumns"]}
+    values["vps-upgrade.json"]["rollbackGuard"] = {"status":"PASS", "source":"f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3", "runtimeImage":"sha256:"+"4"*64,
+        "beforeCancellation":"OLD_RUNTIME_HEALTHY_DATA_UNCHANGED", "afterCancellation":"BLOCKED_BEFORE_SWITCH", "recovery":"COMPATIBLE_RUNTIME_SAME_DATABASE_ALL_ROWS_UNCHANGED"}
     evidence = {name: json.dumps(value).encode() for name, value in values.items()}
     migrations = [{"name": p.parent.name, "sha256": rc.digest(p.read_bytes())} for p in sorted((Path(__file__).parents[1] / "prisma/migrations").glob("*/migration.sql"))]
     m = {"releaseVersion": rc.VERSION, "manifestSchemaVersion": 1, "sourceCommit": rc.BASELINE,

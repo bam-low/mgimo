@@ -127,6 +127,27 @@ class DiskTests(unittest.TestCase):
         self.assertEqual(removed, [["image", "rm", "campus54-baseline-" + k] for k in module.ROLES])
         self.assertFalse(any("--force" in c for c in removed))
 
+    def test_f29_fixture_removed_only_with_matching_recorded_non_candidate_id(self):
+        for mismatch in (False, True):
+            with self.subTest(mismatch=mismatch):
+                self.proof()
+                baseline = json.loads((self.disk.evidence / "vps-baseline.json").read_text())
+                baseline.update(rollbackSource="f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3", rollbackRuntime="sha256:" + "d" * 64)
+                (self.disk.evidence / "vps-baseline.json").write_text(json.dumps(baseline))
+                self.calls.clear()
+                def inspect(args):
+                    if args == ["image", "inspect", "campus71-rollback-runtime"]:
+                        self.calls.append(args)
+                        return json.dumps([{"Id": "sha256:" + ("e" if mismatch else "d") * 64}]).encode()
+                    return self.docker(args)
+                self.disk.docker = inspect
+                if mismatch:
+                    with self.assertRaises(ValueError): self.disk.cleanup_tests()
+                    self.assertFalse(any(c[:2] == ["image", "rm"] for c in self.calls))
+                else:
+                    self.disk.cleanup_tests()
+                    self.assertIn(["image", "rm", "campus71-rollback-runtime"], self.calls)
+
     def test_foreign_project_registration_rejected(self):
         with patch.object(os, "getppid", return_value=100):
             with self.assertRaises(ValueError): self.disk.register_project("campus24-test-999")
