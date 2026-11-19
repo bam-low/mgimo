@@ -37,6 +37,9 @@ def trusted_directory(path):
 
 def trusted(path):
     path = Path(path)
+    require(path.is_absolute() and '..' not in path.parts, 'Нужен абсолютный доверенный путь.')
+    for parent in path.parents:
+        trusted_directory(parent)
     info = path.lstat()
     require(stat.S_ISREG(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o022,
             'Нужен проверенный root-owned файл без прав записи группы/остальных.')
@@ -150,7 +153,7 @@ def main():
     args = p.parse_args()
     try:
         require(os.geteuid() == 0 and args.owner_approved, 'Нужен root и отдельное разрешение владельца.')
-        directory = trusted_directory(Path(args.current_env).parent)
+        directory = trusted(args.current_env).parent
         fd = os.open(directory / '.campus-rollback.lock', os.O_CREAT | os.O_NOFOLLOW | os.O_RDWR, 0o600)
         with os.fdopen(fd, 'r+') as lock:
             info = os.fstat(lock.fileno())

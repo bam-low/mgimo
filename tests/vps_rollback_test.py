@@ -72,6 +72,17 @@ class GuardTests(unittest.TestCase):
         self.assertIs(r.dc.call_args_list[-1].args[0], False)
         self.assertEqual(r.dc.call_args_list[-1].args[-1], 'app')
 
+    def test_symlink_or_writable_parent_is_rejected(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)/'manifest.json'
+            p.write_text('{}')
+            alias = Path(d)/'alias.json'
+            alias.symlink_to(p)
+            # A /tmp/user-owned tree must not authorize a root rollback.
+            for candidate in (p, alias):
+                with self.assertRaises(ValueError): m.trusted(candidate)
+
     def test_f29_migration_prefix_matches_historical_source(self):
         import subprocess, hashlib
         source = self.manifest['sourceCommit']

@@ -1,6 +1,6 @@
 // Execute the real host procedure against the isolated restored database only.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
+import { spawnSync, execFileSync } from "node:child_process";
 import assert from "node:assert/strict";
 import process from "node:process";
 import console from "node:console";
@@ -78,6 +78,37 @@ export async function rollbackRehearsal({
   fixture(
     "chown -R 0:0 /test/rollback-guard; chmod 700 /test/rollback-guard; chmod 600 /test/rollback-guard/*",
   );
+  const trusted = "/run/campus-rollback-" + project;
+  execFileSync("sudo", [
+    "-n",
+    "install",
+    "-d",
+    "-o",
+    "root",
+    "-g",
+    "root",
+    "-m",
+    "700",
+    trusted,
+  ]);
+  for (const name of [
+    "current.env",
+    "target.env",
+    "release.json",
+    "compose.yaml",
+  ])
+    execFileSync("sudo", [
+      "-n",
+      "install",
+      "-o",
+      "root",
+      "-g",
+      "root",
+      "-m",
+      "600",
+      directory + "/" + name,
+      trusted + "/" + name,
+    ]);
   const guard = () =>
     spawnSync(
       "sudo",
@@ -86,13 +117,13 @@ export async function rollbackRehearsal({
         "python3",
         process.cwd() + "/ops/vps/rollback-app.py",
         "--current-env",
-        directory + "/current.env",
+        trusted + "/current.env",
         "--target-env",
-        directory + "/target.env",
+        trusted + "/target.env",
         "--target-manifest",
-        directory + "/release.json",
+        trusted + "/release.json",
         "--compose",
-        directory + "/compose.yaml",
+        trusted + "/compose.yaml",
         "--project",
         project,
         "--owner-approved",
@@ -161,6 +192,15 @@ export async function rollbackRehearsal({
   console.log(
     "PASS SCHEDULE_CANCELLED: rollback refused before container switch; compatible-runtime recovery preserves every row, document byte/version, notification and audit; PostgreSQL never restarted",
   );
+  for (const name of [
+    "current.env",
+    "target.env",
+    "release.json",
+    "compose.yaml",
+    ".campus-rollback.lock",
+  ])
+    execFileSync("sudo", ["-n", "unlink", trusted + "/" + name]);
+  execFileSync("sudo", ["-n", "rmdir", trusted]);
   return {
     status: "PASS",
     source: baseline.rollbackSource,
