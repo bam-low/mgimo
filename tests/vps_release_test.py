@@ -82,6 +82,16 @@ class MetadataTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rc.validate(m, evidence)
 
+    def test_missing_or_incomplete_guarded_rollback_proof_is_rejected(self):
+        for guard in ({}, {"status":"PASS", "afterCancellation":"BLOCKED_BEFORE_SWITCH"}):
+            m, evidence = fixture()
+            upgrade = json.loads(evidence["vps-upgrade.json"])
+            upgrade["rollbackGuard"] = guard
+            evidence["vps-upgrade.json"] = json.dumps(upgrade).encode()
+            m["evidence"]["vps-upgrade.json"] = rc.digest(evidence["vps-upgrade.json"])
+            with self.assertRaisesRegex(ValueError, "Guarded f29"):
+                rc.validate(m, evidence)
+
     def test_changed_embedded_contract_is_rejected(self):
         with tempfile.TemporaryDirectory() as path:
             write_fixture(path)

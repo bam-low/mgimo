@@ -48,15 +48,15 @@ bash /PATH/TO/TRUSTED/ops/vps/verify-delivery.sh /etc/campus/allowed_signers /PA
 Историческая репетиция `287912fe` сохраняется отдельно. Для `f29c61109a761f2a20a0ecaf02ca6b7bf74f43c3` проверяется именно его собранный runtime на восстановленной копии БД с новым ledger. До первого уведомления отмены он совместим; после появления `SCHEDULE_CANCELLED` его декодер уведомлений несовместим. Одних аддитивных миграций недостаточно для разрешения отката.
 
 1. Закрыть доступ к записи, остановить timers/cleanup и прочих writers, сделать свежую зашифрованную копию. Текущее совместимое приложение пока оставить healthy: его остановкой управляет процедура. Не понижать PostgreSQL/схему. Независимо проверить подпись, SHA-256 и image ID старого подписанного комплекта по [проверке доставки](../ops/vps/verify-delivery.sh), используя независимо проверенный скрипт/контракт **старого A**: текущий валидатор B с одиннадцатью миграциями не заменяет валидатор A с девятью. **Манифест нельзя составлять вручную из желаемых значений**: нужен проверенный `release.json` старого комплекта, установленный владельцем root-owned без записи группы/остальных.
-2. В новом root-owned каталоге сохранить `current.env` — точные пять ссылок работающего выпуска. Подготовить `rollback.env`, изменив **только** `CAMPUS_APP_IMAGE` на runtimeImage проверенного старого `release.json`; DB/tools, secrets и loopback-порт оставить текущими. Compose и `rollback-app.py` берутся из проверенной текущей конфигурации. Другие старые SHA, неизвестный ledger/checksum и несовпадающие DB/image IDs означают STOP.
+2. В новом root-owned каталоге сохранить `current.env` — точные пять ссылок работающего выпуска. Подготовить `rollback.env`, изменив **только** `CAMPUS_APP_IMAGE` на runtimeImage проверенного старого `release.json`; DB/tools, secrets и loopback-порт оставить текущими. Compose и `rollback-app.py` берутся из проверенной текущей конфигурации B по физическому пути; symlink `current` в путях входных файлов запрещён. Другие старые SHA, неизвестный ledger/checksum и несовпадающие DB/image IDs означают STOP.
 3. После отдельного разрешения владельца выполнить (пути/project заменить на сверенные реальные, секреты в команду не передаются):
 
    ```bash
-   sudo python3 /opt/campus/current/ops/vps/rollback-app.py \
+   sudo python3 /opt/campus/releases/verified-B/ops/vps/rollback-app.py \
      --current-env /opt/campus/rollback/current.env \
      --target-env /opt/campus/rollback/rollback.env \
      --target-manifest /opt/campus/releases/verified-f29c611/release.json \
-     --compose /opt/campus/current/ops/vps/compose.yaml \
+     --compose /opt/campus/releases/verified-B/ops/vps/compose.yaml \
      --project campus --owner-approved
    ```
 
