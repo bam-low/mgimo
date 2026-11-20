@@ -20,11 +20,11 @@ export function NotificationShell({
       <AppNav role="STUDENT" active="/notifications" canStudy={canStudy} />
       <Workspace>
         <RefreshContext />
-        <NotificationRefresh />
-        <header className="editorial-heading">
+        <header className="editorial-heading notifications-heading">
           <p className="eyebrow">Деканат / Личные события</p>
           <h1>Уведомления</h1>
           <p>Решения по прикреплению, обращениям и справкам, отмены занятий.</p>
+          <NotificationRefresh />
         </header>
         {children}
       </Workspace>
