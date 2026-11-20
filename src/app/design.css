@@ -2028,6 +2028,8 @@ form button + .secondary,
 @media (min-width: 900px) {
   .public-shell,
   .public-landing {
+    width: 100%;
+    max-width: none;
     height: var(--campus-viewport, 100dvh);
     min-height: 0;
     overflow: hidden;
