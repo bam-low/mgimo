@@ -73,46 +73,56 @@ done
 
 ## 5. Проверки
 
-Порядок как в `node-ci.yml`. Удобнее запускать блоками и после каждого смотреть, что нет ошибки.
+Порядок как в `node-ci.yml`. Каждый блок идёт в отдельной оболочке: при ошибке он останавливается и пишет, какая команда упала, а терминал остаётся открытым. **Не используйте `set -e` прямо в терминале** — он закрывает терминал вместе с текстом ошибки.
+
+Если `/workspaces` заполнен больше чем на ~80 %, держите копию и кеши в `/tmp`: `export npm_config_cache=/tmp/npm-cache PLAYWRIGHT_BROWSERS_PATH=/tmp/ms-playwright`.
 
 ```bash
-set -e
-npm ci --ignore-scripts
-npm run security:prepare
-npm run test:picomatch
-npm audit --omit=dev
-npm run db:generate
-npm run db:migrate
-npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
-npm run db:seed && npm run db:seed
+bash -c '
+run() { echo; echo "=== $*"; "$@" || { echo; echo "!!! УПАЛО: $*"; exit 1; }; }
+run npm ci --ignore-scripts
+run npm run security:prepare
+run npm run test:picomatch
+run npm audit --omit=dev
+run npm run db:generate
+run npm run db:migrate
+run npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+run npm run db:seed
+run npm run db:seed
+run npm run lint
+run npm run typecheck
+run npm test -- --run
+run npm run test:vercel-checker
+run npm run test:launch-tools
+run npm run test:integration
+echo; echo "=== ЧАСТЬ 1 ПРОШЛА"
+' 2>&1 | tee /tmp/check-part1.log
 ```
 
 ```bash
-set -e
-npm run lint
-npm run typecheck
-npm test -- --run
-npm run test:vercel-checker
-npm run test:launch-tools
-npm run test:integration
+bash -c '
+run() { echo; echo "=== $*"; "$@" || { echo; echo "!!! УПАЛО: $*"; exit 1; }; }
+run npm run build
+run npm run check:runtime
+run npx --no-install playwright install --with-deps chromium
+run npm run test:e2e
+echo; echo "=== ЧАСТЬ 2 ПРОШЛА"
+' 2>&1 | tee /tmp/check-part2.log
 ```
 
 ```bash
-set -e
-npm run build
-npm run check:runtime
-npx --no-install playwright install --with-deps chromium
-npm run test:e2e
+bash -c '
+run() { echo; echo "=== $*"; "$@" || { echo; echo "!!! УПАЛО: $*"; exit 1; }; }
+run npm run build:vercel
+run npm run check:vercel-runtime
+run npm run test:vercel-e2e
+echo; echo "=== ЧАСТЬ 3 ПРОШЛА"
+' 2>&1 | tee /tmp/check-part3.log
 ```
 
-```bash
-set -e
-npm run build:vercel
-npm run check:vercel-runtime
-npm run test:vercel-e2e
-```
+При падении: `tail -40 /tmp/check-partN.log`. Если терминал закрылся, перед продолжением повторите шаги 2 и 4 (и `export` кешей, если задавали).
 
-Если терминал закрылся, перед продолжением повторите шаги 2 и 4.
+**Известное на 20.11.2026:** `npm audit --omit=dev` падает на `main` и на этой ветке из-за [GHSA-7589-6fvf-x4pw](https://github.com/advisories/GHSA-7589-6fvf-x4pw) (`effect@3.20.0` через `prisma@7.10.1`, опубликовано 19.11 вечером). Зависимости ветка не меняет; исправление — отдельный PR. Для проверки этой ветки уберите строку audit из части 1 и отметьте это в отчёте.
 
 ## 6. Что важно для этой ветки
 
