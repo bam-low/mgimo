@@ -2114,3 +2114,19 @@ form button + .secondary,
 @media (max-width: 479px) {
   .wordmark .brand-logo { height: 34px; }
 }
+@media (max-width: 899px) {
+  .public-landing .public-story-copy {
+    margin-top: 0;
+    padding-top: 22px;
+  }
+  .public-landing .public-story-copy h1 { margin-top: 10px; }
+  .public-landing .public-story-copy img {
+    max-height: 25vh;
+    width: 100%;
+    margin: 14px 0 0;
+    padding: 0;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+  .public-landing .public-content { padding-top: 14px; }
+}
