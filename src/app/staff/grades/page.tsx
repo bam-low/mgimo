@@ -130,7 +130,9 @@ export default async function Page({
                 ))}
               </select>
             </label>
-            <button disabled={!roster.rows.length}>Открыть результаты</button>
+            <button className="secondary" disabled={!roster.rows.length}>
+              Открыть результаты
+            </button>
             {!history && !q.groupId ? (
               <p>
                 Сначала выберите учебную группу. Затем появятся студенты с

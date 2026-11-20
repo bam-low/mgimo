@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { builderCatalog } from "@/server/semester-builder";
-import { BuilderMutation } from "./semester-ui";
+import { BuilderMutation, QuickResource } from "./semester-ui";
 import { assignmentBlocks } from "@/lib/teaching-assignment";
 type Catalog = Awaited<ReturnType<typeof builderCatalog>>;
 export function TeachingAssignments({
@@ -319,26 +319,19 @@ export function AssignmentEditor({
         )}
         {subjectId && !teachers.length && (
           <p className="notice">
-            Нет преподавателя, связанного с дисциплиной.{" "}
-            <Link
-              href={
-                back.startsWith("#")
-                  ? "#schedule-resources"
-                  : "/staff/schedule/resources"
-              }
-              onClick={() => {
-                if (back.startsWith("#")) {
-                  const resources =
-                    document.getElementById("schedule-resources");
-                  if (resources instanceof HTMLDetailsElement)
-                    resources.open = true;
-                }
-              }}
-            >
-              Добавьте связь в справочнике преподавателей
-            </Link>
-            , затем вернитесь сюда.
+            Нет преподавателя, связанного с дисциплиной. Добавьте его ниже — он
+            сразу будет выбран.
           </p>
+        )}
+        {subjectId && (
+          <QuickResource
+            kind="teacher"
+            subjectId={subjectId}
+            onCreated={(id) => {
+              T(id);
+              R(rows.map((g) => ({ ...g, teacherId: g.teacherId || id })));
+            }}
+          />
         )}
         <p className="notice">
           Без назначения:{" "}
@@ -396,7 +389,10 @@ function NewSubject({ onCreated }: { onCreated: (id: string) => void }) {
             }
             router.refresh();
             onCreated(op);
-            E("Дисциплина создана. Выберите группы и преподавателя.");
+            N("");
+            E(
+              `Дисциплина «${name.trim()}» создана и выбрана. Отметьте группы и преподавателя.`,
+            );
           } catch {
             E(
               "Не удалось создать дисциплину. Ввод сохранён. Обновите страницу перед повтором.",

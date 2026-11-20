@@ -1,0 +1,151 @@
+/*
+ * UX-аудит 20.11.2026 (docs/audit/ux-2026-11-20): финальная доводка поверх
+ * globals.css и student-polish.css. Подключается последним; только визуальные
+ * правила, без изменения палитры, шрифтов и бизнес-логики.
+ */
+
+/* 5. Минимальная читаемость: подписи навигации, кнопок и метаданных. */
+.campus-nav > a {
+  font-size: 0.8125rem;
+}
+.masthead-actions button,
+.logout-control button,
+.account-line > button,
+.segmented button,
+.date-arrows button,
+.form-message {
+  font-size: 0.8125rem;
+}
+.lesson-detail p,
+.student-schedule .week-days .lesson-detail p,
+.lesson-time time:last-child,
+.timetable-lesson small,
+.program-table th small {
+  font-size: 0.78rem;
+}
+.student-schedule .lesson-state,
+.student-schedule .badge,
+.lesson-state > span,
+.timetable thead th span {
+  font-size: 0.72rem;
+}
+@media (min-width: 1100px) {
+  .campus-nav > a {
+    font-size: 0.875rem;
+  }
+}
+
+/* 5. Заголовки блоков отделены от первого поля. */
+.campus-shell .editor-panel h2,
+.campus-shell .editor-panel h3,
+.campus-shell .builder-form h3,
+.campus-shell .builder-preview h3 {
+  margin-bottom: 0.75rem;
+}
+
+/* 5. «Выйти» у сотрудника на широком экране живёт внизу боковой колонки, а не поверх контента. */
+@media (min-width: 1100px) {
+  .campus-masthead[data-role="STAFF"] .masthead-actions {
+    top: auto;
+    right: auto;
+    bottom: 76px;
+    left: 36px;
+  }
+}
+
+/* 5. Активная вкладка справочника и переключателей видна. */
+.semester-links button[aria-pressed="true"] {
+  background: var(--rose);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* 5. День недели в строке сетки и недоступный день без вида кнопки. */
+.program-table th .weekday {
+  display: block;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+.empty-slot.is-unavailable {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* 3. Основное и вторичные действия не стоят вплотную. */
+.builder-form > button[type="submit"],
+.builder-preview > button,
+form > button[type="submit"] {
+  margin-top: 12px;
+}
+.builder-form button.secondary + button:not(.secondary),
+form button.secondary + button:not(.secondary),
+.builder-form > p + button {
+  margin-top: 16px;
+}
+.form-message.is-success {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #e8f3ee;
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* 3. Понятная подсказка о пересечении. */
+.form-message.is-error.is-conflict {
+  border-left: 3px solid var(--error);
+}
+
+/* 1. Встроенное добавление преподавателя или аудитории. */
+.quick-resource {
+  margin: 8px 0 4px;
+  border: 1px dashed var(--control-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fcfaf7;
+}
+.quick-resource > summary {
+  cursor: pointer;
+  color: var(--brand);
+  font-weight: 600;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.quick-resource[open] > summary {
+  margin-bottom: 8px;
+}
+.quick-resource .quick-resource-fields {
+  display: grid;
+  gap: 8px;
+}
+
+/* 4. Свёрнутые фильтры: сводка в заголовке, результаты выше сгиба. */
+.filters-disclosure {
+  margin-bottom: 16px;
+}
+.compose-jump + .filters-disclosure {
+  margin-top: 12px;
+}
+.filters-disclosure > summary {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--brand);
+  font-weight: 600;
+}
+.filters-disclosure > summary small {
+  color: var(--muted);
+  font-weight: 500;
+}
+.filters-disclosure[open] > summary {
+  margin-bottom: 10px;
+}

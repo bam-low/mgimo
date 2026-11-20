@@ -1,5 +1,11 @@
 "use client";
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,6 +22,7 @@ import { addDays, monday, dayKey, timeLabel } from "@/lib/schedule-time";
 import { assignmentBlocks } from "@/lib/teaching-assignment";
 import { ScheduleField } from "./schedule-field";
 import { displayDate } from "./schedule-input-values";
+import { readableBuilderError, weekdayShort } from "./builder-messages";
 import { AssignmentEditor } from "./teaching-assignments-ui";
 import type {
   builderCatalog,
@@ -66,6 +73,23 @@ function Field({
     </label>
   );
 }
+/** Drops a leftover #anchor so router.refresh() does not scroll the page away from the form. */
+function clearHash() {
+  if (window.location.hash)
+    window.history.replaceState(
+      window.history.state,
+      "",
+      window.location.pathname + window.location.search,
+    );
+}
+async function builderRequest(body: unknown) {
+  const response = await fetch("/api/staff/schedule/builder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return { response, data: await response.json() };
+}
 export function BuilderMutation({
   command,
   children,
@@ -98,26 +122,21 @@ export function BuilderMutation({
     E("");
     D(false);
     try {
-      const body = {
+      const { response, data } = await builderRequest({
         command: command(),
         preview: !commit,
         ...(commit ? { token: preview?.token, confirmed: true } : {}),
-      };
-      const response = await fetch("/api/staff/schedule/builder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
       });
-      const data = await response.json();
       if (sequence.current !== serial) return;
       if (!response.ok) {
-        E(data.error ?? "Не удалось сохранить");
+        E(readableBuilderError(data.error ?? "Не удалось сохранить"));
         P(null);
         return;
       }
       if (commit) {
         P(null);
         D(true);
+        clearHash();
         router.refresh();
         onSaved?.(data);
       } else P(data);
@@ -147,7 +166,13 @@ export function BuilderMutation({
       <fieldset disabled={busy || !ready}>{children}</fieldset>
       <p
         role="status"
-        className={error ? "form-message is-error" : "form-message"}
+        className={
+          error
+            ? `form-message is-error${error.startsWith("Пересечение:") ? " is-conflict" : ""}`
+            : done
+              ? "form-message is-success"
+              : "form-message"
+        }
       >
         {error || (done ? "Изменения сохранены" : busy ? "Проверяем…" : "")}
       </p>
@@ -160,11 +185,15 @@ export function BuilderMutation({
           aria-label="Предпросмотр изменений"
         >
           <h3>Предпросмотр перед сохранением</h3>
-          <p>
-            Новых / изменяемых занятий: {preview.dates.length}. Прежних
-            затронуто: {preview.affected.length}. Исключённых занятий:{" "}
-            {preview.skippedCount}.
-          </p>
+          {(preview.dates.length > 0 ||
+            preview.affected.length > 0 ||
+            preview.skippedCount > 0) && (
+            <p>
+              Новых / изменяемых занятий: {preview.dates.length}. Прежних
+              затронуто: {preview.affected.length}. Исключённых занятий:{" "}
+              {preview.skippedCount}.
+            </p>
+          )}
           {preview.warnings.map((w) => (
             <p className="notice" key={w}>
               {w}
@@ -184,7 +213,14 @@ export function BuilderMutation({
               </p>
             </div>
           )}
-          <details open>
+          <details
+            open
+            hidden={
+              !preview.dates.length &&
+              !preview.affected.length &&
+              !preview.skipped.length
+            }
+          >
             <summary>Конкретные даты и затронутые занятия</summary>
             <ul className="preview-dates">
               {preview.dates.map((d, i) => (
@@ -205,8 +241,8 @@ export function BuilderMutation({
             </ul>
           </details>
           <p>
-            Изменения применятся ко всем указанным группам атомарно. История
-            сохранится. При конфликте ничего не будет записано.
+            Изменения сохранятся сразу для всех указанных групп. История
+            сохранится. Если найдётся пересечение, ничего не запишется.
           </p>
           <button type="button" disabled={busy} onClick={() => void send(true)}>
             Подтвердить и сохранить
@@ -583,6 +619,7 @@ export function Resources({ catalog }: { catalog: Catalog }) {
       <div className="semester-links">
         <button
           className="secondary"
+          aria-pressed={kind === "teacher"}
           onClick={() => {
             K("teacher");
             S("");
@@ -592,6 +629,7 @@ export function Resources({ catalog }: { catalog: Catalog }) {
         </button>
         <button
           className="secondary"
+          aria-pressed={kind === "room"}
           onClick={() => {
             K("room");
             S("");
@@ -603,6 +641,13 @@ export function Resources({ catalog }: { catalog: Catalog }) {
       <div className="semester-edit-grid">
         <section>
           <h2>{kind === "teacher" ? "Преподаватели" : "Аудитории"}</h2>
+          {!(kind === "teacher" ? catalog.teachers : catalog.rooms).length && (
+            <p className="notice">
+              {kind === "teacher"
+                ? "Преподавателей пока нет. Добавьте первого в форме рядом."
+                : "Аудиторий пока нет. Добавьте первую в форме рядом."}
+            </p>
+          )}
           {(kind === "teacher"
             ? catalog.teachers.map((t) => ({ ...t, title: t.name }))
             : catalog.rooms.map((r) => ({
@@ -629,6 +674,184 @@ export function Resources({ catalog }: { catalog: Catalog }) {
           onCreated={S}
         />
       </div>
+    </>
+  );
+}
+/** Returns from the directory to the open lesson form (or the filters) without leaving a #hash behind. */
+export function BackToBuilder() {
+  return (
+    <a
+      href="#builder-filters"
+      onClick={(e) => {
+        e.preventDefault();
+        clearHash();
+        (
+          document.querySelector("#builder-inspector .ready-lessons") ??
+          document.getElementById("builder-inspector") ??
+          document.getElementById("builder-filters")
+        )?.scrollIntoView({ block: "start" });
+      }}
+    >
+      Вернуться к форме занятия →
+    </a>
+  );
+}
+/**
+ * Inline "add teacher / room" inside a lesson form. Uses the same builder
+ * commands as the directory (check, then confirm) and is not a nested <form>.
+ */
+export function QuickResource({
+  kind,
+  subjectId = "",
+  onCreated,
+}: {
+  kind: "teacher" | "room";
+  subjectId?: string;
+  onCreated: (id: string) => void;
+}) {
+  const [open, O] = useState(false),
+    [name, N] = useState(""),
+    [building, Bld] = useState(""),
+    [number, Num] = useState(""),
+    [message, M] = useState(""),
+    [failed, Fail] = useState(false),
+    [busy, B] = useState(false),
+    [op, Op] = useState(() => crypto.randomUUID());
+  const router = useRouter();
+  const ready =
+    kind === "teacher"
+      ? !!name.trim() && !!subjectId
+      : !!building.trim() && !!number.trim();
+  async function create() {
+    if (!ready || busy) return;
+    B(true);
+    M("");
+    Fail(false);
+    const command: BuilderCommand =
+      kind === "teacher"
+        ? {
+            action: "TEACHER_CREATE",
+            operationId: op,
+            name: name.trim(),
+            subjectIds: [subjectId],
+          }
+        : {
+            action: "ROOM_CREATE",
+            operationId: op,
+            building: building.trim(),
+            number: number.trim(),
+          };
+    try {
+      const checked = await builderRequest({ command, preview: true });
+      if (!checked.response.ok) throw new Error(checked.data.error);
+      const saved = await builderRequest({
+        command,
+        preview: false,
+        token: checked.data.token,
+        confirmed: true,
+      });
+      if (!saved.response.ok) throw new Error(saved.data.error);
+      clearHash();
+      router.refresh();
+      onCreated(op);
+      M(
+        kind === "teacher"
+          ? `Преподаватель «${name.trim()}» добавлен и выбран.`
+          : `Аудитория ${building.trim()} · ${number.trim()} добавлена и выбрана.`,
+      );
+      N("");
+      Bld("");
+      Num("");
+      Op(crypto.randomUUID());
+      O(false);
+    } catch (e) {
+      Fail(true);
+      M(
+        readableBuilderError(
+          e instanceof Error && e.message
+            ? e.message
+            : "Не удалось добавить. Ввод сохранён.",
+        ),
+      );
+    } finally {
+      B(false);
+    }
+  }
+  const submitOnEnter = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void create();
+    }
+  };
+  return (
+    <>
+      <details
+        className="quick-resource"
+        open={open}
+        onToggle={(e) => O(e.currentTarget.open)}
+      >
+        <summary>
+          {kind === "teacher"
+            ? "+ Добавить преподавателя прямо здесь"
+            : "+ Добавить аудиторию прямо здесь"}
+        </summary>
+        <div className="quick-resource-fields">
+          {kind === "teacher" ? (
+            <label>
+              Вымышленное имя преподавателя
+              <input
+                value={name}
+                maxLength={120}
+                onChange={(e) => N(e.target.value)}
+                onKeyDown={submitOnEnter}
+              />
+            </label>
+          ) : (
+            <>
+              <label>
+                Корпус
+                <input
+                  value={building}
+                  maxLength={120}
+                  onChange={(e) => Bld(e.target.value)}
+                  onKeyDown={submitOnEnter}
+                />
+              </label>
+              <label>
+                Номер аудитории
+                <input
+                  value={number}
+                  maxLength={120}
+                  onChange={(e) => Num(e.target.value)}
+                  onKeyDown={submitOnEnter}
+                />
+              </label>
+            </>
+          )}
+          <button
+            type="button"
+            className="secondary"
+            disabled={!ready || busy}
+            onClick={() => void create()}
+          >
+            {busy
+              ? "Добавляем…"
+              : kind === "teacher"
+                ? "Добавить и выбрать преподавателя"
+                : "Добавить и выбрать аудиторию"}
+          </button>
+        </div>
+      </details>
+      {message && (
+        <p
+          role="status"
+          className={
+            failed ? "form-message is-error" : "form-message is-success"
+          }
+        >
+          {message}
+        </p>
+      )}
     </>
   );
 }
@@ -831,6 +1054,10 @@ function ResourceFields({
             ))}
         </select>
       </label>
+      <QuickResource
+        kind="room"
+        onCreated={(id) => onChange({ roomId: id })}
+      />
       <div className="time-fields">
         <ScheduleField
           label="Начало занятия"
@@ -951,6 +1178,18 @@ export function ScheduleBuilder({
         W(null);
       } else {
         W(data);
+        // Keep the choice in the address so a reload reopens the same grid.
+        if (workspace)
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}?${new URLSearchParams({
+              semesterId,
+              programId,
+              day: nextDay,
+              ...(mode === "ONE" ? { groupId } : {}),
+            })}`,
+          );
         if (!civilDay(slot.day))
           Slot({
             day:
@@ -970,6 +1209,15 @@ export function ScheduleBuilder({
       B(false);
     }
   }
+  // A reload with a remembered semester/program/day reopens the grid at once.
+  const autoLoaded = useRef(false);
+  useEffect(() => {
+    if (autoLoaded.current) return;
+    autoLoaded.current = true;
+    // Deferred: field effects may still call invalidate() during mount.
+    if (workspace && semester && program && civilDay(day))
+      setTimeout(() => void load(), 0);
+  }, []);
   function invalidate() {
     Slot({ day: "", groupId: "", startTime: "09:00", endTime: "10:30" });
     ++sequence.current;
@@ -1029,32 +1277,35 @@ export function ScheduleBuilder({
       <>
         {entries.length ? (
           entries.map(entryCard)
-        ) : (
+        ) : unavailable ? null : (
           <p className="empty-slot">Занятий нет</p>
         )}
-        <button
-          type="button"
-          className="secondary add-slot"
-          disabled={unavailable}
-          aria-label={`Добавить занятие ${displayDate(date)} · ${groups.find((x) => x.id === g)?.name}`}
-          onClick={() => {
-            Rev((n) => n + 1);
-            Sel("");
-            Slot({
-              day: date,
-              groupId: g,
-              startTime: "09:00",
-              endTime: "10:30",
-            });
-            requestAnimationFrame(() =>
-              document
-                .getElementById("builder-inspector")
-                ?.scrollIntoView({ block: "start" }),
-            );
-          }}
-        >
-          {unavailable ? "Вне учебных дней" : "+ Добавить занятие"}
-        </button>
+        {unavailable ? (
+          <p className="empty-slot is-unavailable">Вне учебных дней</p>
+        ) : (
+          <button
+            type="button"
+            className="secondary add-slot"
+            aria-label={`Добавить занятие ${displayDate(date)} · ${groups.find((x) => x.id === g)?.name}`}
+            onClick={() => {
+              Rev((n) => n + 1);
+              Sel("");
+              Slot({
+                day: date,
+                groupId: g,
+                startTime: "09:00",
+                endTime: "10:30",
+              });
+              requestAnimationFrame(() =>
+                document
+                  .getElementById("builder-inspector")
+                  ?.scrollIntoView({ block: "start" }),
+              );
+            }}
+          >
+            + Добавить занятие
+          </button>
+        )}
       </>
     );
   }
@@ -1388,6 +1639,7 @@ export function ScheduleBuilder({
                   <tr key={date}>
                     <th scope="row">
                       {displayDate(date)}
+                      <span className="weekday">{weekdayShort(date)}</span>
                       {(date < semester.calendar.start ||
                         date > semester.calendar.end) && (
                         <small>Вне семестра</small>
@@ -1426,7 +1678,7 @@ export function ScheduleBuilder({
             {days.map((date) => (
               <section className="mobile-timetable-day" key={date}>
                 <h3>
-                  {displayDate(date)} ·{" "}
+                  {displayDate(date)} ({weekdayShort(date)}) ·{" "}
                   {parity(date, semester.calendar.anchor) === "A"
                     ? "Числитель"
                     : "Знаменатель"}
@@ -1551,13 +1803,29 @@ function TemplateEditor({
     [from, F] = useState(today ?? semester.calendar.start),
     [op] = useState(() => crypto.randomUUID()),
     [blockKey, BK] = useState(""),
-    [setupOpen, Setup] = useState(false);
+    [setupOpen, Setup] = useState(false),
+    [pendingAssignment, Pending] = useState(""),
+    [setupRevision, SetupRev] = useState(0);
   const blocks = assignmentBlocks(
       catalog,
       programId,
       viewGroup || defaultGroup,
     ),
     block = blocks.find((b) => b.key === blockKey);
+  // A ready lesson created inline replaces the selection once the refreshed catalog has it.
+  const created = pendingAssignment
+    ? blocks.find((b) => b.assignment.id === pendingAssignment && !b.reason)
+    : undefined;
+  if (created) {
+    Pending("");
+    BK(created.key);
+    R({
+      ...rule,
+      subjectId: created.assignment.subjectId,
+      teacherId: created.teacherId,
+      groupIds: created.groupIds,
+    });
+  }
   const returnTo =
     "/staff/schedule/builder?" +
     new URLSearchParams({
@@ -1597,10 +1865,21 @@ function TemplateEditor({
             Создать дисциплину и настроить лекцию или семинар здесь
           </summary>
           <AssignmentEditor
+            key={setupRevision}
             catalog={catalog}
             program={program}
             back="#builder-inspector"
-            onSaved={() => Setup(false)}
+            onSaved={(id) => {
+              Setup(false);
+              Pending(id);
+              // Fresh editor (and operation id) for the next ready lesson.
+              SetupRev((n) => n + 1);
+              requestAnimationFrame(() =>
+                document
+                  .querySelector("#builder-inspector .ready-lessons")
+                  ?.scrollIntoView({ block: "start" }),
+              );
+            }}
           />
         </details>
       )}

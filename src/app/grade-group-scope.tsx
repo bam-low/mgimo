@@ -68,7 +68,9 @@ export function GradeGroupScope({
             <p>{current.context}</p>
           </details>
         )}
-        <button disabled={pending}>Показать студентов</button>
+        <button className="secondary" disabled={pending}>
+          Показать студентов
+        </button>
       </form>
       {pending || choice !== groupId ? (
         <p role="status" className="notice">
