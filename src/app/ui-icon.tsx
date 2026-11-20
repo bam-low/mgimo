@@ -71,6 +71,9 @@ const paths = {
     </>
   ),
   chevron: <path d="m9 5 7 7-7 7" />,
+  "chevron-left": <path d="m15 5-7 7 7 7" />,
+  "chevron-right": <path d="m9 5 7 7-7 7" />,
+  "chevron-down": <path d="m6 9 6 6 6-6" />,
 } satisfies Record<string, React.ReactNode>;
 export type IconName = keyof typeof paths;
 export function Icon({

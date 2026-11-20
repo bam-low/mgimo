@@ -41,9 +41,24 @@ const WINDOW: Record<DayPhase, string> = {
 
 const LIT = (phase: DayPhase) => phase === "evening" || phase === "night";
 
-function windows(x0: number, y: number, count: number, step: number, fill: string, h = 10) {
+function windows(
+  x0: number,
+  y: number,
+  count: number,
+  step: number,
+  fill: string,
+  h = 10,
+) {
   return Array.from({ length: count }, (_, i) => (
-    <rect key={`${x0}-${y}-${i}`} x={x0 + i * step} y={y} width={7} height={h} rx={1} fill={fill} />
+    <rect
+      key={`${x0}-${y}-${i}`}
+      x={x0 + i * step}
+      y={y}
+      width={7}
+      height={h}
+      rx={1}
+      fill={fill}
+    />
   ));
 }
 
@@ -73,28 +88,66 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
           <stop offset="1" stopColor={bottom} />
         </linearGradient>
         <radialGradient id="cs-glow">
-          <stop offset="0" stopColor={phase === "night" ? "#fff6d8" : "#fff4dc"} stopOpacity="0.95" />
-          <stop offset="1" stopColor={phase === "night" ? "#fff6d8" : "#fff4dc"} stopOpacity="0" />
+          <stop
+            offset="0"
+            stopColor={phase === "night" ? "#fff6d8" : "#fff4dc"}
+            stopOpacity="0.95"
+          />
+          <stop
+            offset="1"
+            stopColor={phase === "night" ? "#fff6d8" : "#fff4dc"}
+            stopOpacity="0"
+          />
         </radialGradient>
         <radialGradient id="cs-lamp">
           <stop offset="0" stopColor="#ffd98a" stopOpacity="0.9" />
           <stop offset="1" stopColor="#ffd98a" stopOpacity="0" />
         </radialGradient>
         <filter id="cs-wc" x="-5%" y="-5%" width="110%" height="110%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.045"
+            numOctaves="2"
+            seed="7"
+          />
           <feDisplacementMap in="SourceGraphic" scale="3.2" />
         </filter>
         <filter id="cs-paper">
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="2" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.85"
+            numOctaves="2"
+            seed="2"
+          />
           <feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0.35 0" />
         </filter>
         <filter id="cs-ragged" x="-10%" y="-10%" width="120%" height="120%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="11" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.035"
+            numOctaves="3"
+            seed="11"
+          />
           <feDisplacementMap in="SourceGraphic" scale="14" />
           <feGaussianBlur stdDeviation="2.2" />
         </filter>
-        <mask id="cs-edge" maskUnits="userSpaceOnUse" x="0" y="0" width="380" height="170">
-          <rect x="9" y="8" width="362" height="154" rx="16" fill="#fff" filter="url(#cs-ragged)" />
+        <mask
+          id="cs-edge"
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="380"
+          height="170"
+        >
+          <rect
+            x="9"
+            y="8"
+            width="362"
+            height="154"
+            rx="16"
+            fill="#fff"
+            filter="url(#cs-ragged)"
+          />
         </mask>
         <filter id="cs-soft">
           <feGaussianBlur stdDeviation="1.6" />
@@ -124,14 +177,27 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
         )}
         {phase === "evening" && (
           <g>
-            <circle cx="352" cy="104" r="40" fill="#f6b183" opacity="0.45" filter="url(#cs-soft)" />
+            <circle
+              cx="352"
+              cy="104"
+              r="40"
+              fill="#f6b183"
+              opacity="0.45"
+              filter="url(#cs-soft)"
+            />
             <circle cx="352" cy="106" r="13" fill="#f0a072" />
             <circle cx="96" cy="30" r="5" fill="#f8efe0" opacity="0.8" />
           </g>
         )}
         {night && (
           <g>
-            <circle cx="318" cy="34" r="26" fill="url(#cs-glow)" opacity="0.5" />
+            <circle
+              cx="318"
+              cy="34"
+              r="26"
+              fill="url(#cs-glow)"
+              opacity="0.5"
+            />
             <circle cx="318" cy="34" r="10" fill="#f3ead2" />
             <circle cx="323" cy="30" r="9" fill={top} />
             {[
@@ -142,14 +208,25 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
               [120, 44],
               [240, 40],
             ].map(([x, y]) => (
-              <circle key={`${x}-${y}`} cx={x} cy={y} r="0.9" fill="#f3ead2" opacity="0.8" />
+              <circle
+                key={`${x}-${y}`}
+                cx={x}
+                cy={y}
+                r="0.9"
+                fill="#f3ead2"
+                opacity="0.8"
+              />
             ))}
           </g>
         )}
 
         {/* Облака */}
         {!night && (
-          <g fill="#fff" opacity={phase === "evening" ? 0.35 : 0.6} filter="url(#cs-soft)">
+          <g
+            fill="#fff"
+            opacity={phase === "evening" ? 0.35 : 0.6}
+            filter="url(#cs-soft)"
+          >
             <ellipse cx="150" cy="40" rx="30" ry="6" />
             <ellipse cx="270" cy="58" rx="22" ry="5" />
           </g>
@@ -166,13 +243,39 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
           {/* Часовая башня */}
           <rect x="212" y="46" width="26" height="34" fill={stone} />
           <rect x="212" y="46" width="26" height="3" fill={stoneShade} />
-          <circle cx="225" cy="60" r="7.2" fill="#fbf6ec" stroke={stoneShade} strokeWidth="1.2" />
-          <path d="M225 60V55.4M225 60L228.4 61.6" stroke="#5b4b4f" strokeWidth="1" strokeLinecap="round" />
+          <circle
+            cx="225"
+            cy="60"
+            r="7.2"
+            fill="#fbf6ec"
+            stroke={stoneShade}
+            strokeWidth="1.2"
+          />
+          <path
+            d="M225 60V55.4M225 60L228.4 61.6"
+            stroke="#5b4b4f"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
           <rect x="215.5" y="70" width="5" height="8" rx="2.5" fill={glass} />
           <rect x="229.5" y="70" width="5" height="8" rx="2.5" fill={glass} />
           <rect x="216" y="34" width="18" height="12" fill={stone} />
-          <rect x="219" y="36.5" width="4" height="8" rx="2" fill={night ? "#3c3f5a" : "#b9a998"} />
-          <rect x="227" y="36.5" width="4" height="8" rx="2" fill={night ? "#3c3f5a" : "#b9a998"} />
+          <rect
+            x="219"
+            y="36.5"
+            width="4"
+            height="8"
+            rx="2"
+            fill={night ? "#3c3f5a" : "#b9a998"}
+          />
+          <rect
+            x="227"
+            y="36.5"
+            width="4"
+            height="8"
+            rx="2"
+            fill={night ? "#3c3f5a" : "#b9a998"}
+          />
           <rect x="214" y="32" width="22" height="2.6" fill={stoneShade} />
           <path d="M215 32L225 16L235 32Z" fill={slate} />
           <path d="M225 16V10" stroke={slate} strokeWidth="1.2" />
@@ -196,42 +299,126 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
 
           {/* Центральный корпус с портиком */}
           <rect x="192" y="80" width="66" height="70" fill={stone} />
-          <path d="M188 96L225 76L262 96Z" fill={stone} stroke={stoneShade} strokeWidth="1.4" strokeLinejoin="round" />
-          <circle cx="225" cy="89" r="4.6" fill="#fbf6ec" stroke={stoneShade} strokeWidth="1" />
-          <path d="M225 89V86.2M225 89L227.2 90" stroke="#5b4b4f" strokeWidth="0.8" strokeLinecap="round" />
+          <path
+            d="M188 96L225 76L262 96Z"
+            fill={stone}
+            stroke={stoneShade}
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="225"
+            cy="89"
+            r="4.6"
+            fill="#fbf6ec"
+            stroke={stoneShade}
+            strokeWidth="1"
+          />
+          <path
+            d="M225 89V86.2M225 89L227.2 90"
+            stroke="#5b4b4f"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+          />
           <rect x="188" y="96" width="74" height="5" fill={stoneShade} />
-          <rect x="196" y="104" width="58" height="34" fill={night ? "#8f8794" : "#e6d6c1"} />
+          <rect
+            x="196"
+            y="104"
+            width="58"
+            height="34"
+            fill={night ? "#8f8794" : "#e6d6c1"}
+          />
           {windows(200, 108, 5, 11, glass, 11)}
-          <path d="M219 138V124a6 6 0 0 1 12 0V138Z" fill={lit ? "#e8b25c" : "#8c6c5d"} />
+          <path
+            d="M219 138V124a6 6 0 0 1 12 0V138Z"
+            fill={lit ? "#e8b25c" : "#8c6c5d"}
+          />
           {[195, 206, 217, 229, 240, 251].map((x) => (
             <g key={x}>
               <rect x={x} y="101" width="4.4" height="38" fill="#fbf4e8" />
-              <rect x={x - 0.8} y="101" width="6" height="2" fill={stoneShade} />
-              <rect x={x - 0.8} y="137" width="6" height="2" fill={stoneShade} />
+              <rect
+                x={x - 0.8}
+                y="101"
+                width="6"
+                height="2"
+                fill={stoneShade}
+              />
+              <rect
+                x={x - 0.8}
+                y="137"
+                width="6"
+                height="2"
+                fill={stoneShade}
+              />
             </g>
           ))}
 
           {/* Парадная лестница */}
           <path d="M190 139H260L268 150H182Z" fill={stoneShade} />
-          <path d="M187 143.4H263M184.5 147H265.5" stroke={stone} strokeWidth="1.1" />
+          <path
+            d="M187 143.4H263M184.5 147H265.5"
+            stroke={stone}
+            strokeWidth="1.1"
+          />
 
           {/* Фонари */}
           {[176, 274].map((x) => (
             <g key={x}>
-              <rect x={x - 0.7} y="130" width="1.4" height="20" fill="#5b4b4f" />
-              <rect x={x - 2.2} y="126" width="4.4" height="5" rx="1" fill={lit ? "#ffd98a" : "#5b4b4f"} />
+              <rect
+                x={x - 0.7}
+                y="130"
+                width="1.4"
+                height="20"
+                fill="#5b4b4f"
+              />
+              <rect
+                x={x - 2.2}
+                y="126"
+                width="4.4"
+                height="5"
+                rx="1"
+                fill={lit ? "#ffd98a" : "#5b4b4f"}
+              />
             </g>
           ))}
 
           {/* Деревья */}
           <g opacity="0.92">
             <ellipse cx="104" cy="128" rx="17" ry="22" fill={leaf[0]} />
-            <ellipse cx="90" cy="138" rx="12" ry="14" fill={leaf[1]} opacity="0.85" />
-            <ellipse cx="116" cy="140" rx="11" ry="10" fill={leaf[1]} opacity="0.7" />
+            <ellipse
+              cx="90"
+              cy="138"
+              rx="12"
+              ry="14"
+              fill={leaf[1]}
+              opacity="0.85"
+            />
+            <ellipse
+              cx="116"
+              cy="140"
+              rx="11"
+              ry="10"
+              fill={leaf[1]}
+              opacity="0.7"
+            />
             <rect x="102.5" y="140" width="3" height="10" fill="#7a5f58" />
             <ellipse cx="348" cy="126" rx="18" ry="24" fill={leaf[0]} />
-            <ellipse cx="362" cy="138" rx="12" ry="14" fill={leaf[1]} opacity="0.85" />
-            <ellipse cx="336" cy="141" rx="10" ry="9" fill={leaf[1]} opacity="0.7" />
+            <ellipse
+              cx="362"
+              cy="138"
+              rx="12"
+              ry="14"
+              fill={leaf[1]}
+              opacity="0.85"
+            />
+            <ellipse
+              cx="336"
+              cy="141"
+              rx="10"
+              ry="9"
+              fill={leaf[1]}
+              opacity="0.7"
+            />
             <rect x="346.5" y="140" width="3" height="10" fill="#7a5f58" />
           </g>
         </g>
@@ -246,9 +433,18 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
 
         {/* Дорожка и земля */}
         <path d="M60 150H380V170H60Z" fill={night ? "#4a4d63" : "#e7dccb"} />
-        <path d="M182 150H268L300 170H150Z" fill={night ? "#5b5c70" : "#efe5d4"} />
+        <path
+          d="M182 150H268L300 170H150Z"
+          fill={night ? "#5b5c70" : "#efe5d4"}
+        />
 
-        <rect width="380" height="170" filter="url(#cs-paper)" opacity="0.26" style={{ mixBlendMode: "multiply" }} />
+        <rect
+          width="380"
+          height="170"
+          filter="url(#cs-paper)"
+          opacity="0.26"
+          style={{ mixBlendMode: "multiply" }}
+        />
       </g>
     </svg>
   );
