@@ -22,6 +22,9 @@
   font-display: swap;
 }
 
+/* Legacy layer: superseded by design.css (unlayered), kept as fallback. */
+@layer legacy {
+
 /* Four brand values are APPROVED. Supporting values are delegated implementation
    choices for Issue #34, documented in TOKENS.md, not extracted Figma variables. */
 :root {
@@ -3684,3 +3687,4 @@ textarea:focus {
 .grade-period .localized-field { min-width: 0; flex: 1 1 180px; }
 
 .structure-program h4 { display: inline; }
+}

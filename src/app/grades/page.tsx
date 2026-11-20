@@ -7,7 +7,7 @@ import { AppNav } from "../app-nav";
 import { Workspace } from "../workspace";
 import { RefreshContext } from "../forms";
 import { GradeList } from "../grade-list";
-import { GradePeriod } from "../grade-period";
+import { GradePeriod, checkedPeriod } from "../grade-period";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -20,8 +20,13 @@ export default async function Page({
   }>;
 }) {
   const q = await searchParams;
+  const period = checkedPeriod(q);
   const data = await protectedPage(async () =>
-    readGrades(await actor(await headers()), q),
+    readGrades(await actor(await headers()), {
+      ...q,
+      from: period.from,
+      to: period.to,
+    }),
   );
   return (
     <main className="campus-shell">
@@ -38,7 +43,7 @@ export default async function Page({
             Оценки и зачёты, сохранённые сотрудником. Даты в календаре вуза.
           </p>
         </header>
-        <GradePeriod query={q} />
+        <GradePeriod query={q} error={period.error} />
         <GradeList data={data} query={q} />
         <nav className="grades-pages" aria-label="Страницы результатов">
           <Link

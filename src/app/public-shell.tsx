@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { Icon } from "./ui-icon";
 
 export function PublicShell({
   children,
@@ -24,12 +23,11 @@ export function PublicShell({
       )}
       <section className="public-story" aria-label="О Кампусе">
         <Link className="wordmark" href="/">
-          <span className="brand-building">
-            <Icon name="building" />
-          </span>
-          <span>
-            Кампус<small>ЦИФРОВОЙ ДЕКАНАТ</small>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVGs */}
+          <img className="brand-mark" src="/brand/campus-mark.svg" alt="" width={40} height={40} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVGs */}
+          <img className="brand-name" src="/brand/campus-wordmark.svg" alt="Кампус" width={124} height={28} />
+          <span className="brand-sub">Цифровой деканат</span>
         </Link>
         <div className="public-story-copy">
           <p className="eyebrow">Учёба. Люди. Возможности.</p>

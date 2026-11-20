@@ -27,15 +27,18 @@ export function ScheduleView({
   overview,
   study,
   initialView = "today",
+  initialDay = "",
 }: {
   home?: boolean;
   name?: string;
   overview?: ReactNode;
   study?: { faculty: string; program: string; group: string };
   initialView?: "today" | "week";
+  initialDay?: string;
 }) {
   const [view, V] = useState(initialView),
-    [day, D] = useState("");
+    [day, D] = useState(initialDay),
+    [focusToday, FocusToday] = useState(initialView === "week" && !initialDay);
   const [data, S] = useState<Data | null>(null),
     [now, N] = useState(0),
     [error, E] = useState(""),
@@ -124,6 +127,16 @@ export function ScheduleView({
     };
     // data is intentionally not a dependency: changing it must not restart polling.
   }, [day, view, home, retry]);
+  // Week view: bring today's day into view after «К сегодняшнему дню» or opening the week.
+  useEffect(() => {
+    if (!focusToday || !data || view !== "week" || home) return;
+    FocusToday(false);
+    requestAnimationFrame(() =>
+      document
+        .getElementById(`day-${data.today}`)
+        ?.scrollIntoView({ block: "start" }),
+    );
+  }, [focusToday, data, view, home]);
   const days = data
     ? Array.from({ length: home || view === "today" ? 1 : 7 }, (_, i) =>
         addDays(data.from, i),
@@ -173,9 +186,9 @@ export function ScheduleView({
             {!data && <p>Загружаем ваш университетский день</p>}
           </div>
           <Image
-            src="/design/campus-garden.svg"
-            width={270}
-            height={130}
+            src="/design/campus-sketch.svg"
+            width={380}
+            height={170}
             alt=""
             className="campus-illustration"
             priority
@@ -205,6 +218,7 @@ export function ScheduleView({
               onClick={() => {
                 S(null);
                 V("week");
+                FocusToday(true);
               }}
             >
               Неделя
@@ -239,6 +253,7 @@ export function ScheduleView({
                 D("");
                 R((v) => v + 1);
                 S(null);
+                FocusToday(true);
               }}
             >
               К сегодняшнему дню
@@ -382,7 +397,11 @@ export function ScheduleView({
                   (l) => dayKey(new Date(l.startsAt), data.timezone) === date,
                 );
                 return (
-                  <section className="schedule-day" key={date}>
+                  <section
+                    className={`schedule-day${!home && date === data.today ? " is-today" : ""}`}
+                    id={home ? undefined : `day-${date}`}
+                    key={date}
+                  >
                     <header>
                       <div>
                         <h2>

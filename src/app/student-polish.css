@@ -1,3 +1,4 @@
+@layer legacy {
 /* Issue 59: student editorial polish. Staff workspaces keep their own layout. */
 .study-context {
   display: flex;
@@ -671,4 +672,5 @@
   .public-landing .public-story-copy h1 {
     font-size: 1.8rem;
   }
+}
 }
