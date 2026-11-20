@@ -1985,3 +1985,10 @@ form button + .secondary,
 .staff-create-grid form > [role="status"]:empty {
   display: none;
 }
+
+.field-hint {
+  margin: -6px 0 4px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}

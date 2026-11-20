@@ -153,9 +153,16 @@ export function ApplicationForm() {
               maxLength={kind === "GENERAL_REQUEST" ? 3000 : 1000}
               rows={6}
               value={description}
+              aria-describedby="application-text-hint"
               onChange={(e) => D(e.target.value)}
             />
           </label>
+          {/* F13: the rule is visible before sending, not only after an error. */}
+          <p className="field-hint" id="application-text-hint">
+            {kind === "GENERAL_REQUEST"
+              ? `Не меньше 10 символов · сейчас ${description.trim().length}`
+              : "Можно оставить пустым"}
+          </p>
           <button>{m.busy ? "Отправляем…" : "Отправить заявку"}</button>
         </fieldset>
         <p role="status" className="form-message">
