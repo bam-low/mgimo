@@ -2003,9 +2003,9 @@ progress::-moz-progress-bar {
   inset: 1px 1px 1px auto;
   width: 40px;
   min-height: 0;
-  padding: 8px !important;
-  border: 0 !important;
-  border-left: 1px solid var(--line) !important;
+  padding: 8px;
+  border: 0;
+  border-left: 1px solid var(--line);
   border-radius: 0 6px 6px 0;
 }
 .picker-trigger .ui-icon {

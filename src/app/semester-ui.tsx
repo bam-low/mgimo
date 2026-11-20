@@ -1530,6 +1530,8 @@ export function ScheduleBuilder({
       )}
       {week && semester && program && (
         <>
+          <div className="builder-workspace">
+          <div className="builder-board">
           <nav className="week-nav" aria-label="Недели конструктора">
             <button
               type="button"
@@ -1694,6 +1696,7 @@ export function ScheduleBuilder({
               </section>
             ))}
           </div>
+          </div>
           <section id="builder-inspector" className="editor-panel">
             <div className="semester-links">
               <h2>{chosen ? "Изменить занятие" : "Добавить занятия"}</h2>
@@ -1743,6 +1746,7 @@ export function ScheduleBuilder({
               />
             )}
           </section>
+          </div>
         </>
       )}
     </>
@@ -1862,7 +1866,7 @@ function TemplateEditor({
           className="inline-assignment"
         >
           <summary>
-            Создать дисциплину и настроить лекцию или семинар здесь
+            Нет нужного занятия? Создайте дисциплину, лекцию или семинар
           </summary>
           <AssignmentEditor
             key={setupRevision}
@@ -1917,7 +1921,7 @@ function TemplateEditor({
       >
         {!template && (
           <section className="ready-lessons">
-            <p className="eyebrow">Шаг 2 / Готовое занятие</p>
+            <p className="form-step">1 · Какое занятие</p>
             <label>
               Готовая лекция или семинар
               <select
@@ -2014,6 +2018,7 @@ function TemplateEditor({
             ))}
           </fieldset>
         )}
+        <p className="form-step">2 · Аудитория и время</p>
         <ResourceFields
           catalog={catalog}
           value={rule}
@@ -2026,12 +2031,13 @@ function TemplateEditor({
             настройте их прямо здесь — публикация доступна после выбора.
           </p>
         )}
-        <p>
+        <p className="form-step">3 · Когда и как часто</p>
+        <p className="footnote">
           Открыта неделя:{" "}
           {slot && civilDay(slot.day)
             ? `${displayDate(monday(slot.day))}–${displayDate(addDays(monday(slot.day), 6))} · ${parity(slot.day, semester.calendar.anchor) === "A" ? "числитель" : "знаменатель"}`
             : "по выбранной дате"}
-          . Правило повторения выбирается отдельно.
+          .
         </p>
         <label>
           Повторение
