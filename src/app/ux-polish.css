@@ -43,16 +43,6 @@
   margin-bottom: 0.75rem;
 }
 
-/* 5. «Выйти» у сотрудника на широком экране живёт внизу боковой колонки, а не поверх контента. */
-@media (min-width: 1100px) {
-  .campus-masthead[data-role="STAFF"] .masthead-actions {
-    top: auto;
-    right: auto;
-    bottom: 76px;
-    left: 36px;
-  }
-}
-
 /* 5. Активная вкладка справочника и переключателей видна. */
 .semester-links button[aria-pressed="true"] {
   background: var(--rose);
