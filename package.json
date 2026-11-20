@@ -67,6 +67,7 @@
   },
   "type": "module",
   "overrides": {
+    "effect": "3.22.5",
     "picomatch@<3": "file:./vendor/picomatch-v2-2.3.2-campus.1.tgz",
     "picomatch@>=3": "file:./vendor/picomatch-v4-4.0.7-campus.1.tgz"
   }
