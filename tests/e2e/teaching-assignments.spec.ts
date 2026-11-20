@@ -246,7 +246,13 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     page.locator(".program-mobile").getByRole("button", {
       name: `Добавить занятие 31.08.2026 · ${groups[0].name}`,
     }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
+  await expect(
+    page
+      .locator(".program-mobile .mobile-timetable-day")
+      .filter({ hasText: "31.08.2026" })
+      .getByText("Вне учебных дней", { exact: true }),
+  ).toBeVisible();
   await capture("partial-first-week", page.locator(".program-mobile"));
   await page
     .locator(".program-mobile")
@@ -280,7 +286,7 @@ test("staff configures a shared lecture and separate seminars; previews partial 
     "аудитория 305",
   );
   await expect(inspector.getByRole("status").first()).toContainText(
-    "2026-09-08",
+    "08.09.2026 (вт)",
   );
   await expect(
     inspector.getByLabel("Начало занятия", { exact: true }),

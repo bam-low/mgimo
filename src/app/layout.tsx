@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { platformMetadata } from "@/lib/platform";
 import "./globals.css";
 import "./student-polish.css";
+import "./ux-polish.css";
 import { RussianValidation } from "./russian-validation";
 
 export const metadata: Metadata = platformMetadata;

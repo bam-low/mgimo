@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { BuilderShell, builderPage } from "./builder-shell";
-import { ScheduleBuilder, Resources } from "../../semester-ui";
+import {
+  ScheduleBuilder,
+  Resources,
+  BackToBuilder,
+} from "../../semester-ui";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -20,6 +24,10 @@ export default async function Page({
     catalog.faculties
       .flatMap((f) => f.programs)
       .find((p) => p.groups.some((g) => g.id === query.groupId))?.id;
+  // With a single semester there is nothing to choose: preselect it.
+  const semesterId =
+    query.semesterId ??
+    (catalog.semesters.length === 1 ? catalog.semesters[0].id : undefined);
   return (
     <BuilderShell unified title="Расписание занятий">
       <ScheduleBuilder
@@ -27,19 +35,18 @@ export default async function Page({
         catalog={catalog}
         initialGroup={query.groupId}
         initialDraft={query.draft}
-        initialSemester={query.semesterId}
+        initialSemester={semesterId}
         initialProgram={programId}
         initialDay={
           query.day ??
-          catalog.semesters.find((s) => s.id === query.semesterId)?.calendar
-            .start
+          catalog.semesters.find((s) => s.id === semesterId)?.calendar.start
         }
       />
       <details id="schedule-resources" className="editor-panel">
         <summary>Преподаватели и аудитории</summary>
         <Resources catalog={catalog} />
         <p>
-          <a href="#builder-filters">Вернуться к расписанию →</a>
+          <BackToBuilder />
         </p>
       </details>
       <p>

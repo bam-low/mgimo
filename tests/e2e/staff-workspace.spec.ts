@@ -197,7 +197,7 @@ test("STAFF: два курса, вторник и числитель → отм�
   await days
     .filter({
       has: page.getByRole("heading", {
-        name: "01.09.2037 · Числитель",
+        name: "01.09.2037 (вт) · Числитель",
         exact: true,
       }),
     })

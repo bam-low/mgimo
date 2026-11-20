@@ -23,6 +23,21 @@ export async function ApplicationList({
           Создать обращение или заказать справку
         </Link>
       )}
+      <details
+        className="filters-disclosure"
+        open={isStaff || Object.keys(q).some((k) => k !== "cursor")}
+      >
+        <summary>
+          Фильтры{" "}
+          <small>
+            {[
+              q.kind && kindLabel[q.kind as keyof typeof kindLabel],
+              q.status && statusLabel[q.status as keyof typeof statusLabel],
+            ]
+              .filter(Boolean)
+              .join(" · ") || "все заявки"}
+          </small>
+        </summary>
       <form
         action={base}
         className="application-filters"
@@ -74,9 +89,10 @@ export async function ApplicationList({
             />
           </>
         )}
-        <button>Применить фильтры</button>
+        <button className="secondary">Применить фильтры</button>
         <Link href={base}>Сбросить фильтры</Link>
       </form>
+      </details>
       <section aria-label="Список заявок">
         <h2>{isStaff ? "Поступившие обращения" : "Мои заявки"}</h2>
         <p className="footnote">

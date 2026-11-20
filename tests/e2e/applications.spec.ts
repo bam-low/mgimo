@@ -59,6 +59,8 @@ test("applications: genuine certificate bytes, completion, immutable replacement
     process.env.DEMO_STUDENT1_PASSWORD!,
   );
   await page.getByRole("link", { name: "Заявки", exact: true }).click();
+  // Student filters are collapsed so the list stays above the fold.
+  await page.locator(".filters-disclosure > summary").click();
   const studentFilters = page.getByRole("form", {
     name: "Фильтры заявок",
     exact: true,

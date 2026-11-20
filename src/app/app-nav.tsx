@@ -21,7 +21,7 @@ export function AppNav({
           },
           { href: "/staff/schedule", label: "Расписание", icon: "calendar" },
           { href: "/staff/grades", label: "Успеваемость", icon: "book" },
-          { href: "/staff", label: "Прикрепления", icon: "people" },
+          { href: "/staff", label: "Студенты", icon: "people" },
           { href: "/staff/applications", label: "Заявки", icon: "document" },
         ]
       : [
