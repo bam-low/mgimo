@@ -24,10 +24,10 @@ export default async function Page({
     catalog.faculties
       .flatMap((f) => f.programs)
       .find((p) => p.groups.some((g) => g.id === query.groupId))?.id;
-  // With a single semester there is nothing to choose: preselect it.
-  const semesterId =
-    query.semesterId ??
-    (catalog.semesters.length === 1 ? catalog.semesters[0].id : undefined);
+  // Only an explicit choice (kept in the address) selects a semester: the
+  // semester editor shares this state, and a silent preselect would turn
+  // "create semester" into editing the existing one.
+  const semesterId = query.semesterId;
   return (
     <BuilderShell unified title="Расписание занятий">
       <ScheduleBuilder
