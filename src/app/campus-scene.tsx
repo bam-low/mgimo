@@ -75,16 +75,17 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
       data-phase={phase}
     >
       <defs>
-        <radialGradient id="cs-wash" cx="0.5" cy="0.45" r="0.5">
-          <stop offset="0" stopColor={look.wash} stopOpacity="0.9" />
+        <radialGradient id="cs-wash" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor={look.wash} stopOpacity="0.85" />
+          <stop offset="0.55" stopColor={look.wash} stopOpacity="0.45" />
           <stop offset="1" stopColor={look.wash} stopOpacity="0" />
         </radialGradient>
       </defs>
       <ellipse
         cx="190"
-        cy="80"
-        rx="190"
-        ry="88"
+        cy="92"
+        rx="176"
+        ry="76"
         fill="url(#cs-wash)"
         stroke="none"
       />
