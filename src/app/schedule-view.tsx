@@ -3,6 +3,7 @@ import { ScheduleField } from "./schedule-field";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
+import { CampusScene, PHASES, phaseAt, type DayPhase } from "./campus-scene";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   dayKey,
@@ -42,7 +43,8 @@ export function ScheduleView({
   const [data, S] = useState<Data | null>(null),
     [now, N] = useState(0),
     [error, E] = useState(""),
-    [retry, R] = useState(0);
+    [retry, R] = useState(0),
+    [chosenPhase, setPhase] = useState<DayPhase | null>(null);
   useEffect(() => {
     let current = true,
       controller: AbortController | undefined,
@@ -157,6 +159,9 @@ export function ScheduleView({
         now,
       )
     : null;
+  const phase: DayPhase =
+    chosenPhase ?? (data && now ? phaseAt(now, data.timezone) : "day");
+  const greeting = PHASES.find((p) => p.id === phase)?.greeting ?? "Здравствуйте";
   const planned = data?.lessons.filter((l) => l.status === "SCHEDULED") ?? [];
   const nextId = planned
     .filter((l) => Date.parse(l.startsAt) > now)
@@ -168,16 +173,16 @@ export function ScheduleView({
     >
       {home ? (
         <header className="student-greeting">
-          <div>
+          <div className="greeting-copy">
             <p className="eyebrow">
               {data ? formatDate(data.today) : "Ваш учебный день"}
             </p>
             <h1>
-              Добрый день,
+              {greeting},
               <br /> <em>{name || "студент"}!</em>
             </h1>
             {study && (
-              <p className="study-context">
+              <p className="study-context" title={`${study.faculty} · ${study.program} · ${study.group}`}>
                 <span>{study.faculty}</span>
                 <span>{study.program}</span>
                 <strong>{study.group}</strong>
@@ -185,14 +190,21 @@ export function ScheduleView({
             )}
             {!data && <p>Загружаем ваш университетский день</p>}
           </div>
-          <Image
-            src="/design/campus-sketch.svg"
-            width={380}
-            height={170}
-            alt=""
-            className="campus-illustration"
-            priority
-          />
+          <figure className="greeting-scene">
+            <CampusScene phase={phase} />
+            <div className="phase-switch" role="group" aria-label="Время суток на иллюстрации">
+              {PHASES.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={phase === p.id}
+                  onClick={() => setPhase(p.id)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </figure>
         </header>
       ) : (
         <header className="editorial-heading">
@@ -472,7 +484,8 @@ export function ScheduleView({
             </div>
             <p className="footnote schedule-footnote">
               Время университета: {data.timezone}. Обновление каждые 30 секунд и
-              при возвращении на страницу.
+              при возвращении на страницу. Демонстрационный проект — не является
+              настоящим сервисом вуза.
             </p>
           </div>
           {home && (
