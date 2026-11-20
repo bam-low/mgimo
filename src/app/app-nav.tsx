@@ -47,10 +47,8 @@ export function AppNav({
                 : "/cabinet"
           }
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVGs */}
-          <img className="brand-mark" src="/brand/campus-mark.svg" alt="" width={38} height={38} />
-          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVGs */}
-          <img className="brand-name" src="/brand/campus-wordmark.svg" alt="Кампус" width={118} height={27} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVG */}
+          <img className="brand-logo" src="/brand/campus-logo.svg" alt="Кампус" width={115} height={38} />
           <span className="brand-sub">Цифровой деканат</span>
         </Link>
         <span className="edition">

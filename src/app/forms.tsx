@@ -247,7 +247,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </>
       )}
       {register && (
-        <>
+        <div className="register-picks">
           <label>
             Университет
             <select
@@ -325,11 +325,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               ))}
             </select>
           </label>
-          <p>
-            Выбор группы не открывает учебный доступ. Прикрепление проверяет
-            сотрудник.
-          </p>
-        </>
+        </div>
       )}
       <button disabled={busy || (register && (!ticket || !groups.length))}>
         {busy
@@ -348,10 +344,9 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         <p>Демонстрационная структура пока недоступна. Попробуйте позже.</p>
       )}
       {register && (
-        <p>
-          Имя, логин и случайный пароль создаёт сервер. Не вводите настоящие
-          данные. При потере ответа не отправляйте форму автоматически повторно;
-          новая попытка расходует лимит.
+        <p className="form-footnote">
+          Имя, логин и случайный пароль создаёт сервер. Если ответ потерялся, не
+          отправляйте форму повторно: новая попытка расходует лимит.
         </p>
       )}
       <p role="status" aria-live="polite">
