@@ -313,8 +313,11 @@ test("semester calendar and real shared timetable work at 360, 390 and 1280; for
   await inspector
     .getByRole("button", { name: "Проверить изменения", exact: true })
     .click();
+  // The historical runtime in the VPS upgrade rehearsal still says «Конфликт».
   await expect(inspector.getByRole("status").first()).toContainText(
-    "Пересечение",
+    process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+      ? "Конфликт"
+      : "Пересечение",
   );
   await expect(
     inspector.getByLabel("Начало занятия", { exact: true }),
