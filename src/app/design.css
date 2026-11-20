@@ -1890,3 +1890,98 @@ form button + .secondary,
 .mobile-timetable-day h3 {
   text-transform: none;
 }
+
+/* ---------- Учебная структура: дерево первым, действия не слипаются ---------- */
+.section-heading {
+  margin: 24px 0 12px;
+  font-size: 1.2rem;
+}
+.structure-branch {
+  margin: 0 0 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.structure-branch > h3,
+.structure-branch > header h3 {
+  font-size: 1.1rem;
+}
+.structure-program {
+  margin: 12px 0 0;
+  padding: 12px 0 0 16px;
+  border: 0;
+  border-left: 2px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+.structure-branch details,
+.structure-program details {
+  margin: 6px 0;
+}
+.structure-branch details > summary,
+.structure-program details > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--brand);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.structure-branch details[open] > form,
+.structure-program details[open] > form {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8f4f0;
+}
+.group-course {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.staff-create-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 0 0 16px;
+}
+.staff-create-grid > div {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.staff-create-grid h2 {
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+}
+.staff-create-grid form,
+.structure-branch form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.staff-create-grid form > label,
+.structure-branch form > label {
+  display: grid;
+  flex: 1 1 100%;
+  gap: 6px;
+}
+.staff-create-grid form > label.check-label,
+.structure-branch form > label.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.structure-branch form > button.danger {
+  margin-left: auto;
+}
+.structure-branch form > [role="status"],
+.staff-create-grid form > [role="status"] {
+  flex-basis: 100%;
+}
+.structure-branch form > [role="status"]:empty,
+.staff-create-grid form > [role="status"]:empty {
+  display: none;
+}

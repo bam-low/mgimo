@@ -182,21 +182,23 @@ function StructureForm({
       {record && (
         <button
           type="submit"
-          data-visibility="delete"
-          formNoValidate
-          disabled={busy}
-        >
-          Удалить
-        </button>
-      )}
-      {record && (
-        <button
-          type="submit"
+          className="secondary"
           data-visibility={record.active ? "archive" : "restore"}
           formNoValidate
           disabled={busy || (!record.active && !parentActive)}
         >
           {record.active ? "Убрать в архив" : "Восстановить"}
+        </button>
+      )}
+      {record && (
+        <button
+          type="submit"
+          className="danger"
+          data-visibility="delete"
+          formNoValidate
+          disabled={busy}
+        >
+          Удалить
         </button>
       )}
       <p role="status">{error}</p>
@@ -294,6 +296,12 @@ export function StructureEditor({ tree }: { tree: Tree }) {
   const archived = archivedStructure(tree);
   return (
     <>
+      <section aria-label="Активная учебная структура">
+        <h2 className="section-heading">Структура университета</h2>
+        {!active.length && <p>Активных факультетов пока нет.</p>}
+        <StructureTree tree={active} />
+      </section>
+      <h2 className="section-heading">Добавить в структуру</h2>
       <section className="staff-create-grid">
         <div>
           <h2>Новый факультет</h2>
@@ -319,11 +327,6 @@ export function StructureEditor({ tree }: { tree: Tree }) {
               )}
           />
         </div>
-      </section>
-      <section aria-label="Активная учебная структура">
-        <h2 className="section-heading">Структура университета</h2>
-        {!active.length && <p>Активных факультетов пока нет.</p>}
-        <StructureTree tree={active} />
       </section>
       <details>
         <summary>Архив учебной структуры</summary>
