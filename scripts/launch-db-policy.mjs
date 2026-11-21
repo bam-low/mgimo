@@ -11,6 +11,8 @@ export const tablePolicy = {
   ApplicationEvent: ["SELECT", "INSERT"],
   Notification: ["SELECT", "INSERT"],
   ScheduleCancellation: ["SELECT", "INSERT"],
+  GradeDismissal: ["SELECT", "INSERT", "DELETE"],
+  Announcement: ["SELECT", "INSERT", "DELETE"],
   Grade: ["SELECT", "INSERT", "UPDATE"],
   Semester: ["SELECT", "INSERT", "UPDATE"],
   Teacher: ["SELECT", "INSERT", "UPDATE"],
