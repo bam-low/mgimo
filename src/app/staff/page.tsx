@@ -26,7 +26,7 @@ export default async function Page({
   const params = await searchParams;
   const pendingAfter = listCursor(params.pendingAfter),
     membersAfter = listCursor(params.membersAfter);
-  const { queue, members, groups } = await protectedPage(async () => ({
+  const { queue, members, groups, portfolio } = await protectedPage(async () => ({
     queue: await staffRequestPage(a, pendingAfter),
     members: await staffMemberPage(a, membersAfter),
     groups: await db.studentGroup.findMany({
@@ -38,6 +38,9 @@ export default async function Page({
         },
       },
       select: { id: true, name: true },
+    }),
+    portfolio: await db.portfolioItem.count({
+      where: { universityId: a.membership.universityId, status: "PENDING" },
     }),
   }));
   const requests = queue.items;
@@ -56,6 +59,15 @@ export default async function Page({
             <p>Подтверждение учебной группы и управление доступом.</p>
           </div>
         </header>
+        <Link className="portfolio-entry" href="/staff/portfolio">
+          <span>
+            <strong>Портфолио студентов</strong>
+            {portfolio
+              ? `На модерации: ${portfolio}`
+              : "Новых работ на модерации нет"}
+          </span>
+          <span aria-hidden="true">→</span>
+        </Link>
         <details className="demo-details">
           <summary>Только вымышленные данные</summary>
           <p>

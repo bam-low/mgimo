@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { StaffNewsTabs } from "../../staff-news-tabs";
 import { actor, staff } from "@/server/security";
 import { protectedPage } from "@/server/page";
 import { staffStructure } from "@/server/structure";
@@ -32,6 +33,7 @@ export default async function Page() {
             группы. Только вымышленные данные.
           </p>
         </header>
+        <StaffNewsTabs active="announcements" />
         <div className="announcements-layout">
           <AnnouncementForm tree={tree} />
           <section aria-labelledby="active-announcements">

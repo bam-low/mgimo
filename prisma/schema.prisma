@@ -21,6 +21,9 @@ model User {
  applicationDocuments ApplicationDocument[]
  authoredGrades Grade[]
  announcements Announcement[]
+ portfolioReviews PortfolioItem[]
+ authoredExams Exam[]
+ authoredDeadlines Deadline[]
  memberships UniversityMembership[]
  sessions Session[]
  accounts Account[]
@@ -75,6 +78,8 @@ model University {
  faculties Faculty[]
  memberships UniversityMembership[]
  announcements Announcement[]
+ exams Exam[]
+ deadlines Deadline[]
 }
 model Faculty {
  active Boolean @default(true)
@@ -85,6 +90,7 @@ model Faculty {
  university University @relation(fields:[universityId],references:[id])
  programs Program[]
  announcements Announcement[]
+ deadlines Deadline[]
 }
 model Program {
  assignments TeachingAssignment[]
@@ -97,6 +103,7 @@ model Program {
  templates ScheduleTemplate[]
  groups StudentGroup[]
  announcements Announcement[]
+ deadlines Deadline[]
 }
 model StudentGroup {
  course Int?
@@ -114,6 +121,8 @@ model StudentGroup {
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
  announcements Announcement[]
+ examLinks ExamGroup[]
+ deadlines Deadline[]
 }
 model UniversityMembership {
  id String @id @default(cuid())
@@ -130,6 +139,8 @@ model UniversityMembership {
  grades Grade[]
  gradeDismissals GradeDismissal[]
  announcementReads AnnouncementRead[]
+ portfolioItems PortfolioItem[]
+ deadlineDone DeadlineDone[]
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
  @@unique([id,universityId])
@@ -197,6 +208,7 @@ model RateBucket {
 
 model ScheduleEntry {
  cancellations ScheduleCancellation[]
+ changes ScheduleChange[]
  @@unique([id,universityId])
  universityId String?
  semesterId String?
@@ -243,6 +255,7 @@ model Subject {
  lessons ScheduleEntry[]
  teachers TeacherSubject[]
  grades Grade[]
+ exams Exam[]
  @@unique([id,universityId])
  @@index([universityId,name,id])
 }
@@ -295,6 +308,7 @@ model Teacher {
  subjects TeacherSubject[]
  templates ScheduleTemplate[]
  lessons ScheduleEntry[]
+ exams Exam[]
  @@unique([id,universityId])
  @@index([universityId,name,id])
 }
@@ -309,6 +323,7 @@ model Room {
  version Int @default(1)
  templates ScheduleTemplate[]
  lessons ScheduleEntry[]
+ exams Exam[]
  @@unique([id,universityId])
  @@unique([universityId,nameKey])
 }
@@ -458,6 +473,14 @@ model Notification {
  application Application? @relation(fields:[applicationId,recipientMembershipId,universityId],references:[id,membershipId,universityId],onDelete:Restrict)
  applicationEventId String?
  applicationEvent ApplicationEvent? @relation(fields:[applicationEventId,applicationId,universityId],references:[id,applicationId,universityId],onDelete:Restrict)
+ portfolioItemId String?
+ scheduleChangeId String?
+ scheduleChange ScheduleChange? @relation(fields:[scheduleChangeId,universityId],references:[id,universityId],onDelete:Restrict)
+ examId String?
+ exam Exam? @relation(fields:[examId,universityId],references:[id,universityId],onDelete:Restrict)
+ deadlineId String?
+ deadline Deadline? @relation(fields:[deadlineId,universityId],references:[id,universityId],onDelete:Restrict)
+ portfolioItem PortfolioItem? @relation(fields:[portfolioItemId,recipientMembershipId,universityId],references:[id,membershipId,universityId],onDelete:Restrict)
  createdAt DateTime @default(now()) @db.Timestamptz(3)
  readAt DateTime? @db.Timestamptz(3)
  @@unique([universityId,recipientMembershipId,sourceKey])
@@ -548,5 +571,131 @@ model AnnouncementRead {
  membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Cascade)
  createdAt DateTime @default(now())
  @@id([announcementId,membershipId])
+ @@index([membershipId])
+}
+model PortfolioItem {
+ id String @id
+ universityId String
+ membershipId String
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Restrict)
+ status String
+ category String
+ activity String
+ eventDate DateTime @db.Date
+ title String
+ comment String?
+ format String
+ eventType String
+ rulesUrl String?
+ participants String
+ eventUrl String?
+ level String
+ organizers Json
+ byteSize Int
+ sha256 String
+ content Bytes
+ reviewRound Int @default(0)
+ reviewerId String?
+ reviewer User? @relation(fields:[reviewerId],references:[id],onDelete:Restrict)
+ reviewComment String?
+ reviewedAt DateTime? @db.Timestamptz(3)
+ submittedAt DateTime? @db.Timestamptz(3)
+ version Int @default(1)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ notifications Notification[]
+ @@unique([id,membershipId,universityId])
+ @@index([universityId,status,submittedAt,id])
+ @@index([membershipId,universityId,createdAt,id])
+}
+model ScheduleChange {
+ id String @id
+ universityId String
+ entryId String
+ entry ScheduleEntry @relation(fields:[entryId,universityId],references:[id,universityId],onDelete:Restrict)
+ entryVersion Int
+ title String
+ fromStartsAt DateTime @db.Timestamptz(3)
+ fromEndsAt DateTime @db.Timestamptz(3)
+ fromRoom String?
+ fromTeacher String?
+ toStartsAt DateTime @db.Timestamptz(3)
+ toEndsAt DateTime @db.Timestamptz(3)
+ toRoom String?
+ toTeacher String?
+ groupIds Json
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ notifications Notification[]
+ @@unique([id,universityId])
+ @@unique([entryId,entryVersion])
+}
+model Exam {
+ id String @id
+ universityId String
+ university University @relation(fields:[universityId],references:[id],onDelete:Restrict)
+ subjectId String
+ subject Subject @relation(fields:[subjectId,universityId],references:[id,universityId],onDelete:Restrict)
+ kind String
+ title String
+ startsAt DateTime @db.Timestamptz(3)
+ endsAt DateTime @db.Timestamptz(3)
+ teacherId String
+ teacher Teacher @relation(fields:[teacherId,universityId],references:[id,universityId],onDelete:Restrict)
+ teacherName String
+ roomId String
+ room Room @relation(fields:[roomId,universityId],references:[id,universityId],onDelete:Restrict)
+ roomName String
+ status String @default("SCHEDULED")
+ movedFromStartsAt DateTime? @db.Timestamptz(3)
+ movedFromRoom String?
+ version Int @default(1)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Restrict)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ groups ExamGroup[]
+ notifications Notification[]
+ @@unique([id,universityId])
+ @@index([universityId,startsAt,id])
+}
+model ExamGroup {
+ examId String
+ universityId String
+ exam Exam @relation(fields:[examId,universityId],references:[id,universityId],onDelete:Restrict)
+ groupId String
+ group StudentGroup @relation(fields:[groupId],references:[id],onDelete:Restrict)
+ @@id([examId,groupId])
+ @@unique([examId,groupId,universityId])
+ @@index([groupId])
+}
+model Deadline {
+ id String @id
+ universityId String
+ university University @relation(fields:[universityId],references:[id],onDelete:Restrict)
+ scope String
+ facultyId String?
+ faculty Faculty? @relation(fields:[facultyId],references:[id],onDelete:Cascade)
+ programId String?
+ program Program? @relation(fields:[programId],references:[id],onDelete:Cascade)
+ groupId String?
+ group StudentGroup? @relation(fields:[groupId],references:[id],onDelete:Cascade)
+ title String
+ body String?
+ dueAt DateTime @db.Timestamptz(3)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Restrict)
+ deletedAt DateTime? @db.Timestamptz(3)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ done DeadlineDone[]
+ notifications Notification[]
+ @@unique([id,universityId])
+ @@index([universityId,dueAt,id])
+}
+model DeadlineDone {
+ deadlineId String
+ membershipId String
+ universityId String
+ deadline Deadline @relation(fields:[deadlineId,universityId],references:[id,universityId],onDelete:Cascade)
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Cascade)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ @@id([deadlineId,membershipId])
  @@index([membershipId])
 }

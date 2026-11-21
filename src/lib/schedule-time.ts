@@ -75,6 +75,15 @@ export type Lesson = {
   status: string;
   version: number;
   semesterId?: string | null;
+  /** EXAM — экзамен или зачёт сессии в общем списке дня. */
+  kind?: "LESSON" | "EXAM";
+  examKind?: string;
+  /** Последний перенос: откуда перенесли (для плашки «Перенесено»). */
+  moved?: {
+    fromStartsAt: string;
+    fromEndsAt: string | null;
+    fromRoom: string | null;
+  } | null;
 };
 export function currentLesson(lessons: Lesson[], now: number) {
   const active = lessons

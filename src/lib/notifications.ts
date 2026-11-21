@@ -8,6 +8,13 @@ export const notificationTitles = {
   APPLICATION_REJECTED: "В заявке отказано",
   CERTIFICATE_READY: "Демонстрационная справка готова",
   CERTIFICATE_UPDATED: "Демонстрационная справка обновлена",
+  PORTFOLIO_APPROVED: "Достижение подтверждено деканатом",
+  PORTFOLIO_REJECTED: "Достижение отклонено деканатом",
+  SCHEDULE_MOVED: "Занятие перенесено",
+  EXAM_MOVED: "Изменение в сессии",
+  EXAM_CANCELLED: "Отмена в сессии",
+  DEADLINE_NEW: "Новый дедлайн",
+  DEADLINE_SOON: "Скоро дедлайн",
 } as const;
 export type NotificationKind = keyof typeof notificationTitles;
 export function applicationNotificationKind(

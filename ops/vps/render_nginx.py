@@ -73,7 +73,9 @@ common = text[start:end]
 upload = common.replace(' location / {', r' location ~ "^/api/staff/applications/[0-9a-fA-F-]{36}/documents$" {' + '\n  client_max_body_size 3136k;', 1)
 # Schedule import sends a CSV (up to 200 KB) inside JSON; the app caps it at 600 KB.
 schedule_import = common.replace(' location / {', ' location = /api/staff/schedule/import {' + '\n  client_max_body_size 640k;', 1)
-text = text[:start] + upload + '\n' + schedule_import + '\n' + text[start:]
+# Portfolio: a student uploads one PDF (up to 3 MiB) together with the form fields.
+portfolio = common.replace(' location / {', ' location = /api/portfolio {' + '\n  client_max_body_size 3136k;', 1)
+text = text[:start] + upload + '\n' + schedule_import + '\n' + portfolio + '\n' + text[start:]
 if a.public:
     # Owner-approved public demo: drop only the Basic Auth gate, keep every other limit.
     text = text.replace('  auth_basic "Campus private acceptance";\n', '').replace('  auth_basic_user_file /etc/campus/htpasswd;\n', '')

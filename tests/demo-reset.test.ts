@@ -85,6 +85,22 @@ afterAll(async () => {
     process.env.DEMO_STUDENT1_PASSWORD!,
     process.env.DEMO_STUDENT2_PASSWORD!,
   ]);
+  // И имена: seed и другие тесты ждут исходные «Демо Студент Один/Два».
+  for (const [n, name] of [
+    [1, "Демо Студент Один"],
+    [2, "Демо Студент Два"],
+  ] as const) {
+    const email = `student${n}@example.test`;
+    await client.query(`UPDATE "User" SET name = $1 WHERE email = $2`, [
+      name,
+      email,
+    ]);
+    await client.query(
+      `UPDATE "StudentProfile" SET "firstName" = 'Демо', "lastName" = $1
+       WHERE "membershipId" IN (SELECT m.id FROM "UniversityMembership" m JOIN "User" u ON u.id = m."userId" WHERE u.email = $2)`,
+      [`Студент ${n}`, email],
+    );
+  }
   await client.end();
   await db.$disconnect();
 });
@@ -134,11 +150,12 @@ it("Очистка демо: устаревший код не срабатыва
         "immutable_application_document",
         "immutable_application_event",
         "immutable_cancellation",
+        "immutable_schedule_change",
         "immutable_audit",
       ],
     ],
   );
-  expect(Number(triggers.rows[0].count)).toBe(5);
+  expect(Number(triggers.rows[0].count)).toBe(6);
 });
 
 it("Пароли демо-аккаунтов: проверка длины, новый пароль работает, старые сессии закрыты", async () => {

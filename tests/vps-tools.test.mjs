@@ -48,7 +48,15 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   assert.match(upload, /auth_basic_user_file/);
   assert.match(upload, /limit_req zone=campus_edge/);
   assert.match(upload, /proxy_set_header X-Campus-Client-IP \$remote_addr/);
-  assert.equal((text.match(/client_max_body_size 3136k;/g) ?? []).length, 1);
+  assert.equal((text.match(/client_max_body_size 3136k;/g) ?? []).length, 2);
+  const portfolio = text.match(
+    / location = \/api\/portfolio \{([\s\S]*?)\n \}/,
+  )?.[1];
+  assert.ok(portfolio);
+  assert.match(portfolio, /client_max_body_size 3136k;/);
+  assert.match(portfolio, /auth_basic_user_file/);
+  assert.match(portfolio, /limit_req zone=campus_edge/);
+  assert.match(portfolio, /proxy_set_header X-Campus-Client-IP \$remote_addr/);
   const scheduleImport = text.match(
     / location = \/api\/staff\/schedule\/import \{([\s\S]*?)\n \}/,
   )?.[1];
@@ -71,7 +79,7 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   assert.match(open, /client_max_body_size 16k;/);
   assert.match(open, /client_max_body_size 640k;/);
   assert.match(open, /client_max_body_size 3136k;/);
-  assert.equal((open.match(/limit_req zone=campus_edge/g) ?? []).length, 3);
+  assert.equal((open.match(/limit_req zone=campus_edge/g) ?? []).length, 4);
   assert.match(open, /ssl_reject_handshake on/);
   assert.notEqual(
     spawnSync("python3", [
