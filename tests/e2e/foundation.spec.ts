@@ -47,6 +47,8 @@ test("STAFF transfer, revoke and controlled resubmission use real guards and ref
     if (!process.env.DEMO_STAFF_PASSWORD)
       throw Error("Private staff fixture required");
     await login("staff@example.test", process.env.DEMO_STAFF_PASSWORD);
+    // После входа STAFF открывается «Учебная структура»; очередь — в «Студентах».
+    await page.goto("/staff");
   }
   async function memberCard() {
     return findPagedCard(
