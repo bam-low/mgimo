@@ -50,8 +50,7 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   assert.match(upload, /proxy_set_header X-Campus-Client-IP \$remote_addr/);
   assert.equal((text.match(/client_max_body_size 3136k;/g) ?? []).length, 1);
   const scheduleImport = text.match(
-    / location = /api/staff/schedule/import {([sS]*?)
- }/,
+    / location = \/api\/staff\/schedule\/import \{([\s\S]*?)\n \}/,
   )?.[1];
   assert.ok(scheduleImport);
   assert.match(scheduleImport, /client_max_body_size 640k;/);
