@@ -436,8 +436,12 @@ export async function importTemplate(a: Actor) {
     (s) => s.active && teacher?.subjectIds.includes(s.id),
   );
   const room = catalog.rooms.find((r) => r.active);
-  const cell = (v: string) =>
-    /[;"\n]/.test(v) ? `"${v.replaceAll('"', '""')}"` : v;
+  // Значение, начинающееся с = + - @, Excel принял бы за формулу: экранируем апострофом.
+  const safe = (v: string) => (/^[=+\-@\t\r]/.test(v) ? "'" + v : v);
+  const cell = (raw: string) => {
+    const v = safe(raw);
+    return /[;"\n]/.test(v) ? `"${v.replaceAll('"', '""')}"` : v;
+  };
   const lines = [
     IMPORT_COLUMNS.join(";"),
     [
