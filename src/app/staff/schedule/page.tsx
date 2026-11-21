@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { BuilderShell, builderPage } from "./builder-shell";
-import {
-  ScheduleBuilder,
-  Resources,
-  BackToBuilder,
-} from "../../semester-ui";
+import { ScheduleBuilder, Resources, BackToBuilder } from "../../semester-ui";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -29,7 +25,7 @@ export default async function Page({
   // "create semester" into editing the existing one.
   const semesterId = query.semesterId;
   return (
-    <BuilderShell unified title="Расписание занятий">
+    <BuilderShell unified method="builder" title="Расписание занятий">
       <ScheduleBuilder
         workspace
         catalog={catalog}

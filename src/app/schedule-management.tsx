@@ -10,12 +10,19 @@ const links = [
 ] as const;
 
 /** Native disclosure on mobile; the desktop row keeps its existing layout. */
-export function ScheduleManagement({ unified = false }: { unified?: boolean }) {
+export function ScheduleManagement({
+  unified = false,
+  base = "",
+}: {
+  unified?: boolean;
+  /** С другой страницы якоря конструктора ведут на /staff/schedule. */
+  base?: string;
+}) {
   const destinations = unified
     ? [
-        ["#semester-setup", "Учебный семестр"],
-        ["#builder-filters", "Расписание"],
-        ["#schedule-resources", "Преподаватели и аудитории"],
+        [base + "#semester-setup", "Учебный семестр"],
+        [base + "#builder-filters", "Расписание"],
+        [base + "#schedule-resources", "Преподаватели и аудитории"],
         ["/staff/structure", "Учебная структура"],
       ]
     : links;

@@ -385,874 +385,856 @@ function calendarData(c: Calendar) {
     exclusions: c.exclusions,
   };
 }
+/**
+ * Одна команда конструктора. С outer выполняется внутри уже открытой транзакции
+ * (импорт из файла: все строки — одна атомарная операция, конфликты между
+ * строками видны так же, как с существующим расписанием).
+ */
 export async function changeBuilder(
   actorId: string,
   universityId: string,
   raw: unknown,
+  outer?: Prisma.TransactionClient,
 ) {
   const request = builderRequest.parse(raw),
     d = request.command;
-  return db.$transaction(
-    async (tx) => {
-      await lockUniversity(tx, universityId);
-      await requireStaff(tx, actorId, universityId);
-      const uni = await tx.university.findUniqueOrThrow({
-          where: { id: universityId },
-        }),
-        zone = uni.timezone;
-      const now = new Date(),
-        today = dayKey(now, zone);
-      const changes: Candidate[] = [],
-        retire: Entry[] = [];
-      const writes: (() => Promise<unknown>)[] = [];
-      const evidence: unknown[] = [],
-        warnings: string[] = [],
-        skipped: string[] = [];
-      let targetId = "id" in d ? d.id : d.operationId;
-      const audit = async (
-        id: string,
-        action: string,
-        before: unknown,
-        after: unknown,
-      ) =>
-        tx.auditLog.create({
-          data: {
-            actorId,
-            universityId,
-            targetId: id,
-            action,
-            reason: JSON.stringify({ before, after }),
-          },
-        });
-      const reserve = async (exists: boolean) => {
-        if (exists) reject("Операция уже выполнена. Обновите страницу.");
-      };
-      const addGeneration = async (
-        template: ScheduleTemplate,
-        rule: Rule,
-        calendar: Calendar,
-        cutoff: string,
-        creating: boolean,
-      ) => {
-        ruleInput.parse(rule);
-        const old = creating
-          ? []
-          : await tx.scheduleEntry.findMany({
-              where: { templateId: template.id, universityId },
-              include: includeEntry,
-              take: 10001,
-            });
-        if (old.length > 10000)
-          reject("История шаблона превышает предел одной операции.", 413);
-        evidence.push(
-          old.map((e) => ({
-            id: e.id,
-            version: e.version,
-            status: e.status,
-            manual: e.manual,
-          })),
-        );
-        const protectedSlots = new Set(
-          old
-            .filter(
-              (e) =>
-                e.manual || e.startsAt <= now || (e.slotDay ?? "") < cutoff,
-            )
-            .map((e) => e.slotDay),
-        );
-        retire.push(
-          ...old.filter(
-            (e) =>
-              !e.manual &&
-              e.startsAt > now &&
-              (e.slotDay ?? "") >= cutoff &&
-              e.status !== "DELETED",
-          ),
-        );
-        const segments = z
-          .array(z.object({ from: civil, rule: ruleInput }).strict())
-          .min(1)
-          .max(100)
-          .parse(template.segments);
-        for (let index = 0; index < segments.length; index++) {
-          const segment = segments[index],
-            rule = segment.rule;
-          const start = [calendar.start, segment.from, cutoff].sort().at(-1)!;
-          const end = [
-            calendar.end,
-            segments[index + 1]
-              ? addDays(segments[index + 1].from, -1)
-              : calendar.end,
-          ].sort()[0];
-          if (
-            start > end ||
-            (rule.recurrence === "ONCE" &&
-              (rule.once < start || rule.once > end))
-          )
-            continue;
-          await ruleGroups(tx, universityId, template.programId, rule.groupIds);
-          await references(
-            tx,
-            universityId,
-            rule.subjectId,
-            rule.teacherId,
-            rule.roomId,
-          );
-          let generated: ReturnType<typeof dates>;
-          try {
-            generated = dates({ ...calendar, start, end }, rule);
-          } catch (e) {
-            reject(e instanceof Error ? e.message : "Неверный период", 400);
-          }
-          skipped.push(...generated.skipped);
-          for (const day of generated.days) {
-            if (protectedSlots.has(day)) continue;
-            const c = candidate({ ...rule, day }, zone, calendar, {
-              id: `${template.id}:${template.version}:${day}`,
-              semesterId: template.semesterId,
-              templateId: template.id,
-              generation: template.version,
-              slotDay: day,
-              manual: false,
-              groupIds: [...rule.groupIds].sort(),
-              status: "SCHEDULED",
-            });
-            if (!creating && c.startsAt <= now) continue;
-            changes.push(c);
-          }
-        }
-        if (
-          changes.length > 1000 ||
-          changes.reduce((n, e) => n + e.groupIds.length, 0) > 5000
-        )
-          reject(
-            "Лимит одной операции: 1000 занятий / 5000 связей групп. Сократите период.",
-            413,
-          );
-      };
-      if (d.action === "ASSIGNMENT_CREATE" || d.action === "ASSIGNMENT_EDIT") {
-        const old =
-          d.action === "ASSIGNMENT_EDIT"
-            ? await tx.teachingAssignment.findFirst({
-                where: { id: d.id, universityId },
-                include: { groups: true },
-              })
-            : null;
-        if (d.action === "ASSIGNMENT_EDIT") checkedVersion(old, d.version);
-        else
-          await reserve(
-            !!(await tx.teachingAssignment.findUnique({
-              where: { id: targetId },
-            })),
-          );
-        if (
-          old &&
-          (old.programId !== d.programId ||
-            old.subjectId !== d.subjectId ||
-            old.kind !== d.kind)
-        )
-          reject(
-            "Дисциплина, направление и вид существующей настройки не меняются. Создайте другую настройку.",
-            400,
-          );
-        if (new Set(d.groups.map((g) => g.groupId)).size !== d.groups.length)
-          reject("Группа выбрана дважды.", 400);
-        if (
-          d.kind === "LECTURE" &&
-          new Set(d.groups.map((g) => g.teacherId)).size !== 1
-        )
-          reject("У общей лекции должен быть один преподаватель.", 400);
-        const active = d.action === "ASSIGNMENT_CREATE" || d.active;
-        for (const g of d.groups) {
-          const group = await validGroup(tx, g.groupId, universityId, active);
-          if (group.programId !== d.programId)
-            reject("Выберите группы одного направления.", 400);
-          await references(
-            tx,
-            universityId,
-            d.subjectId,
-            g.teacherId,
-            null,
-            active,
-          );
-        }
-        evidence.push(old);
-        // Bind the preview to directory state, even though no dates are generated yet.
-        evidence.push(
-          await tx.subject.findUnique({ where: { id: d.subjectId } }),
-          await tx.teacher.findMany({
-            where: { id: { in: d.groups.map((g) => g.teacherId) } },
-            orderBy: { id: "asc" },
-            include: { subjects: true },
-          }),
-          await tx.studentGroup.findMany({
-            where: { id: { in: d.groups.map((g) => g.groupId) } },
-            orderBy: { id: "asc" },
-            include: { program: { include: { faculty: true } } },
-          }),
-        );
-        const data = {
+  const run = async (tx: Prisma.TransactionClient) => {
+    await lockUniversity(tx, universityId);
+    await requireStaff(tx, actorId, universityId);
+    const uni = await tx.university.findUniqueOrThrow({
+        where: { id: universityId },
+      }),
+      zone = uni.timezone;
+    const now = new Date(),
+      today = dayKey(now, zone);
+    const changes: Candidate[] = [],
+      retire: Entry[] = [];
+    const writes: (() => Promise<unknown>)[] = [];
+    const evidence: unknown[] = [],
+      warnings: string[] = [],
+      skipped: string[] = [];
+    let targetId = "id" in d ? d.id : d.operationId;
+    const audit = async (
+      id: string,
+      action: string,
+      before: unknown,
+      after: unknown,
+    ) =>
+      tx.auditLog.create({
+        data: {
+          actorId,
           universityId,
-          programId: d.programId,
-          subjectId: d.subjectId,
-          kind: d.kind,
-          active,
-        };
-        writes.push(async () => {
-          if (old)
-            await tx.teachingAssignment.update({
-              where: { id: old.id },
-              data: { ...data, version: { increment: 1 } },
-            });
-          else
-            await tx.teachingAssignment.create({
-              data: { id: targetId, ...data },
-            });
-          await tx.teachingAssignmentGroup.updateMany({
-            where: { assignmentId: targetId },
-            data: { active: false },
-          });
-          for (const g of d.groups)
-            await tx.teachingAssignmentGroup.upsert({
-              where: {
-                assignmentId_groupId: {
-                  assignmentId: targetId,
-                  groupId: g.groupId,
-                },
-              },
-              create: { assignmentId: targetId, universityId, ...g },
-              update: { teacherId: g.teacherId, active: true },
-            });
-          await audit(targetId, d.action, old, { ...data, groups: d.groups });
-        });
-      } else if (
-        d.action === "SEMESTER_CREATE" ||
-        d.action === "SEMESTER_EDIT"
-      ) {
-        const old =
-          d.action === "SEMESTER_EDIT"
-            ? await scopedSemester(tx, universityId, d.id)
-            : null;
-        if (old && d.action === "SEMESTER_EDIT") checkedVersion(old, d.version);
-        if (!old)
-          await reserve(
-            !!(await tx.semester.findUnique({ where: { id: targetId } })),
-          );
-        const data = calendarData(d.calendar);
-        if (
-          await tx.semester.findFirst({
-            where: {
-              universityId,
-              nameKey: data.nameKey,
-              id: { not: targetId },
-            },
-          })
-        )
-          reject("Семестр с таким названием уже существует.", 400);
-        const overlap = await tx.semester.findMany({
-          where: {
-            universityId,
-            id: { not: targetId },
-            start: { lte: data.end },
-            end: { gte: data.start },
-          },
-          select: { name: true },
-        });
-        if (overlap.length)
-          warnings.push(
-            `Период пересекается с семестрами: ${overlap.map((s) => s.name).join(", ")}. При создании занятия выберите семестр явно.`,
-          );
-        evidence.push(old);
-        if (old && calendarKey(asCalendar(old)) !== calendarKey(d.calendar)) {
-          const manual = await tx.scheduleEntry.findMany({
-            where: {
-              semesterId: old.id,
-              universityId,
-              manual: true,
-              status: "SCHEDULED",
-              startsAt: { gt: now },
-            },
+          targetId: id,
+          action,
+          reason: JSON.stringify({ before, after }),
+        },
+      });
+    const reserve = async (exists: boolean) => {
+      if (exists) reject("Операция уже выполнена. Обновите страницу.");
+    };
+    const addGeneration = async (
+      template: ScheduleTemplate,
+      rule: Rule,
+      calendar: Calendar,
+      cutoff: string,
+      creating: boolean,
+    ) => {
+      ruleInput.parse(rule);
+      const old = creating
+        ? []
+        : await tx.scheduleEntry.findMany({
+            where: { templateId: template.id, universityId },
+            include: includeEntry,
             take: 10001,
           });
-          if (manual.length > 10000)
-            reject("Слишком много ручных занятий для проверки.", 413);
-          for (const entry of manual) {
-            const day = dayKey(entry.startsAt, zone);
-            if (
-              day < d.calendar.start ||
-              day > d.calendar.end ||
-              excluded(day, d.calendar)
-            )
-              reject(
-                `Ручное занятие ${day} станет недопустимым. Сначала явно перенесите или отмените его.`,
-              );
-          }
-          const templates = await tx.scheduleTemplate.findMany({
-            where: { semesterId: old.id, universityId },
-            include: { groups: { where: { active: true } } },
-            take: 101,
-          });
-          if (templates.length > 100)
-            reject(
-              "Изменение затрагивает более 100 шаблонов. Сократите операцию.",
-              413,
-            );
-          for (const t of templates) {
-            const rule = ruleInput.parse({
-              subjectId: t.subjectId,
-              teacherId: t.teacherId,
-              roomId: t.roomId,
-              groupIds: t.groups.map((g) => g.groupId),
-              recurrence: t.recurrence,
-              weekday: t.weekday,
-              once: t.once,
-              startTime: t.startTime,
-              endTime: t.endTime,
-            });
-            await addGeneration(
-              { ...t, version: t.version + 1 },
-              rule,
-              d.calendar,
-              today,
-              false,
-            );
-            writes.push(async () => {
-              const next = await tx.scheduleTemplate.update({
-                where: { id: t.id },
-                data: { version: { increment: 1 } },
-              });
-              await audit(t.id, "TEMPLATE_CALENDAR", t, next);
-            });
-          }
-        }
-        writes.push(async () => {
-          const next = old
-            ? await tx.semester.update({
-                where: { id: old.id },
-                data: { ...data, version: { increment: 1 } },
-              })
-            : await tx.semester.create({
-                data: { id: targetId, universityId, ...data },
-              });
-          await audit(targetId, d.action, old, next);
-        });
-      } else if (d.action === "TEACHER_CREATE" || d.action === "TEACHER_EDIT") {
-        const old =
-          d.action === "TEACHER_EDIT"
-            ? await tx.teacher.findFirst({
-                where: { id: d.id, universityId },
-                include: { subjects: true },
-              })
-            : null;
-        if (d.action === "TEACHER_EDIT") checkedVersion(old, d.version);
-        else
-          await reserve(
-            !!(await tx.teacher.findUnique({ where: { id: targetId } })),
-          );
-        if (new Set(d.subjectIds).size !== d.subjectIds.length)
-          reject("Повтор дисциплины.", 400);
-        const subjects = await tx.subject.count({
-          where: { id: { in: d.subjectIds }, universityId, active: true },
-        });
-        if (subjects !== d.subjectIds.length) throw new Denied();
-        evidence.push(old);
-        writes.push(async () => {
-          const data = {
-            name: d.name,
-            active: d.action === "TEACHER_EDIT" ? d.active : true,
-          };
-          if (old)
-            await tx.teacher.update({
-              where: { id: old.id },
-              data: { ...data, version: { increment: 1 } },
-            });
-          else
-            await tx.teacher.create({
-              data: { id: targetId, universityId, ...data },
-            });
-          await tx.teacherSubject.updateMany({
-            where: { teacherId: targetId },
-            data: { active: false },
-          });
-          for (const subjectId of d.subjectIds)
-            await tx.teacherSubject.upsert({
-              where: {
-                teacherId_subjectId: { teacherId: targetId, subjectId },
-              },
-              create: { teacherId: targetId, subjectId, universityId },
-              update: { active: true },
-            });
-          await audit(targetId, d.action, old, {
-            ...data,
-            subjectIds: d.subjectIds,
-          });
-        });
-      } else if (d.action === "ROOM_CREATE" || d.action === "ROOM_EDIT") {
-        const old =
-          d.action === "ROOM_EDIT"
-            ? await tx.room.findFirst({ where: { id: d.id, universityId } })
-            : null;
-        if (d.action === "ROOM_EDIT") checkedVersion(old, d.version);
-        else
-          await reserve(
-            !!(await tx.room.findUnique({ where: { id: targetId } })),
-          );
-        const data = {
-          building: d.building,
-          number: d.number,
-          nameKey: JSON.stringify([
-            d.building.normalize("NFKC").toLowerCase(),
-            d.number.normalize("NFKC").toLowerCase(),
-          ]),
-          active: d.action === "ROOM_EDIT" ? d.active : true,
-        };
+      if (old.length > 10000)
+        reject("История шаблона превышает предел одной операции.", 413);
+      evidence.push(
+        old.map((e) => ({
+          id: e.id,
+          version: e.version,
+          status: e.status,
+          manual: e.manual,
+        })),
+      );
+      const protectedSlots = new Set(
+        old
+          .filter(
+            (e) => e.manual || e.startsAt <= now || (e.slotDay ?? "") < cutoff,
+          )
+          .map((e) => e.slotDay),
+      );
+      retire.push(
+        ...old.filter(
+          (e) =>
+            !e.manual &&
+            e.startsAt > now &&
+            (e.slotDay ?? "") >= cutoff &&
+            e.status !== "DELETED",
+        ),
+      );
+      const segments = z
+        .array(z.object({ from: civil, rule: ruleInput }).strict())
+        .min(1)
+        .max(100)
+        .parse(template.segments);
+      for (let index = 0; index < segments.length; index++) {
+        const segment = segments[index],
+          rule = segment.rule;
+        const start = [calendar.start, segment.from, cutoff].sort().at(-1)!;
+        const end = [
+          calendar.end,
+          segments[index + 1]
+            ? addDays(segments[index + 1].from, -1)
+            : calendar.end,
+        ].sort()[0];
         if (
-          await tx.room.findFirst({
-            where: {
-              universityId,
-              nameKey: data.nameKey,
-              id: { not: targetId },
-            },
-          })
+          start > end ||
+          (rule.recurrence === "ONCE" && (rule.once < start || rule.once > end))
         )
-          reject("Такая аудитория уже существует в этом корпусе.", 400);
-        evidence.push(old);
-        writes.push(async () => {
-          const next = old
-            ? await tx.room.update({
-                where: { id: old.id },
-                data: { ...data, version: { increment: 1 } },
-              })
-            : await tx.room.create({
-                data: { id: targetId, universityId, ...data },
-              });
-          await audit(targetId, d.action, old, next);
-        });
-      } else if (
-        d.action === "TEMPLATE_CREATE" ||
-        d.action === "TEMPLATE_FUTURE"
-      ) {
-        const old =
-          d.action === "TEMPLATE_FUTURE"
-            ? await tx.scheduleTemplate.findFirst({
-                where: { id: d.id, universityId },
-                include: { groups: { where: { active: true } } },
-              })
-            : null;
-        if (d.action === "TEMPLATE_FUTURE") {
-          checkedVersion(old, d.version);
-          if (d.from < today)
-            reject(
-              "Изменять будущие повторения можно начиная с сегодняшнего дня.",
-              400,
-            );
-        } else
-          await reserve(
-            !!(await tx.scheduleTemplate.findUnique({
-              where: { id: targetId },
-            })),
-          );
-        const semesterId =
-          old?.semesterId ??
-          (d as Extract<BuilderCommand, { action: "TEMPLATE_CREATE" }>)
-            .semesterId;
-        const programId =
-          old?.programId ??
-          (d as Extract<BuilderCommand, { action: "TEMPLATE_CREATE" }>)
-            .programId;
-        const semester = await scopedSemester(tx, universityId, semesterId),
-          calendar = asCalendar(semester);
-        if (d.action === "TEMPLATE_CREATE" && d.assignment) {
-          const a = await tx.teachingAssignment.findFirst({
-            where: { id: d.assignment.id, universityId },
-            include: {
-              groups: { where: { active: true }, orderBy: { groupId: "asc" } },
-            },
-          });
-          checkedVersion(a, d.assignment.version);
-          if (
-            !a ||
-            !a.active ||
-            a.programId !== programId ||
-            a.subjectId !== d.rule.subjectId
-          )
-            reject("Назначение недоступно. Обновите каталог и предпросмотр.");
-          const rows =
-            a.kind === "LECTURE"
-              ? a.groups
-              : a.groups.filter((g) => g.groupId === d.assignment!.groupId);
-          if (
-            !rows.length ||
-            (a.kind === "SEMINAR" && rows.length !== 1) ||
-            JSON.stringify(rows.map((g) => g.groupId).sort()) !==
-              JSON.stringify([...d.rule.groupIds].sort()) ||
-            rows.some((g) => g.teacherId !== d.rule.teacherId)
-          )
-            reject(
-              "Группы или преподаватель не соответствуют готовому занятию. Обновите предпросмотр.",
-            );
-          evidence.push(a);
-        }
-        const { groupIds, ...fields } = d.rule;
-        const previousSegments = old
-          ? z
-              .array(z.object({ from: civil, rule: ruleInput }).strict())
-              .parse(old.segments)
-          : [];
-        if (d.action === "TEMPLATE_FUTURE" && d.from > calendar.end)
-          reject("Дата изменения позже конца семестра.", 400);
-        const segments =
-          d.action === "TEMPLATE_FUTURE"
-            ? [
-                ...previousSegments.filter((s) => s.from < d.from),
-                { from: d.from, rule: d.rule },
-              ]
-            : [{ from: "0001-01-01", rule: d.rule }];
-        if (segments.length > 100)
-          reject("Не более 100 периодов правил в одном шаблоне.", 413);
-        const template = {
-          segments,
-          id: targetId,
-          universityId,
-          semesterId,
-          programId,
-          ...fields,
-          version: (old?.version ?? 0) + 1,
-        };
-        await addGeneration(
-          template,
-          d.rule,
-          calendar,
-          d.action === "TEMPLATE_FUTURE" ? d.from : calendar.start,
-          !old,
-        );
-        evidence.push(old, semester);
-        writes.push(async () => {
-          if (old)
-            await tx.scheduleTemplate.update({
-              where: { id: old.id },
-              data: { ...fields, segments, version: template.version },
-            });
-          else await tx.scheduleTemplate.create({ data: template });
-          await tx.templateGroup.updateMany({
-            where: { templateId: targetId },
-            data: { active: false },
-          });
-          for (const groupId of groupIds)
-            await tx.templateGroup.upsert({
-              where: { templateId_groupId: { templateId: targetId, groupId } },
-              create: { templateId: targetId, groupId },
-              update: { active: true },
-            });
-          await audit(targetId, d.action, old, { ...template, groupIds });
-        });
-      } else {
-        const old = await tx.scheduleEntry.findFirst({
-          where: { id: d.id, universityId, semesterId: { not: null } },
-          include: includeEntry,
-        });
-        checkedVersion(old, d.version);
-        if (!old || old.status === "DELETED") throw new Denied(404);
-        const semester = await scopedSemester(
+          continue;
+        await ruleGroups(tx, universityId, template.programId, rule.groupIds);
+        await references(
           tx,
           universityId,
-          old.semesterId!,
+          rule.subjectId,
+          rule.teacherId,
+          rule.roomId,
         );
-        const groupIds = groupsOf(old);
-        evidence.push(old, semester);
-        let c: Candidate = {
-          id: old.id,
-          groupIds,
-          subjectId: old.subjectId!,
-          teacherId: old.teacherId,
-          roomId: old.roomId,
-          startsAt: old.startsAt,
-          endsAt: old.endsAt,
-          semesterId: old.semesterId!,
-          templateId: old.templateId,
-          generation: old.generation,
-          slotDay: old.slotDay!,
-          manual: true,
-          status: old.status,
-        };
-        if (d.action === "OCCURRENCE_EDIT" || d.action === "DETACH") {
-          if (d.action === "DETACH") {
-            if (
-              old.status !== "SCHEDULED" ||
-              groupIds.length < 2 ||
-              !groupIds.includes(d.groupId)
-            )
-              reject("Отделение доступно для активной общей лекции.", 400);
-            await reserve(
-              !!(await tx.scheduleEntry.findUnique({
-                where: { id: d.operationId },
-              })),
-            );
-            const remaining = {
-              ...c,
-              groupIds: groupIds.filter((g) => g !== d.groupId),
-            };
-            changes.push(remaining);
-            c = {
-              ...c,
-              id: d.operationId,
-              groupIds: [d.groupId],
-              templateId: null,
-              sourceEntryId: old.id,
-            };
-            targetId = d.operationId;
-          }
-          c = candidate(d, zone, asCalendar(semester), c);
-        } else if (d.action === "OCCURRENCE_CANCEL") {
-          if (old.status !== "SCHEDULED") reject("Занятие уже отменено.");
-          c.status = "CANCELLED";
-        } else if (d.action === "OCCURRENCE_RESTORE") {
-          if (old.status !== "CANCELLED")
-            reject("Восстановить можно отменённое занятие.");
-          c.status = "SCHEDULED";
-          const day = dayKey(c.startsAt, zone),
-            calendar = asCalendar(semester);
-          if (
-            day < calendar.start ||
-            day > calendar.end ||
-            excluded(day, calendar)
-          )
-            reject("Сначала перенесите занятие на допустимую дату.", 400);
-        } else c.status = "DELETED";
-        if (c.status === "SCHEDULED") {
-          await references(
-            tx,
-            universityId,
-            c.subjectId,
-            c.teacherId,
-            c.roomId,
-          );
-          for (const groupId of c.groupIds)
-            await validGroup(tx, groupId, universityId);
-        } else if (d.action === "OCCURRENCE_EDIT") {
-          // Cancelled history may refer to inactive resources, but never foreign
-          // identities. Preview must enforce ownership before offering a token.
-          await references(
-            tx,
-            universityId,
-            c.subjectId,
-            c.teacherId,
-            c.roomId,
-            false,
-          );
+        let generated: ReturnType<typeof dates>;
+        try {
+          generated = dates({ ...calendar, start, end }, rule);
+        } catch (e) {
+          reject(e instanceof Error ? e.message : "Неверный период", 400);
         }
-        changes.push(c);
-        retire.push(old);
+        skipped.push(...generated.skipped);
+        for (const day of generated.days) {
+          if (protectedSlots.has(day)) continue;
+          const c = candidate({ ...rule, day }, zone, calendar, {
+            id: `${template.id}:${template.version}:${day}`,
+            semesterId: template.semesterId,
+            templateId: template.id,
+            generation: template.version,
+            slotDay: day,
+            manual: false,
+            groupIds: [...rule.groupIds].sort(),
+            status: "SCHEDULED",
+          });
+          if (!creating && c.startsAt <= now) continue;
+          changes.push(c);
+        }
       }
-      const [subjectRows, teacherRows, roomRows, groupRows] = await Promise.all(
-        [
-          tx.subject.findMany({
-            where: {
-              universityId,
-              id: { in: [...new Set(changes.map((c) => c.subjectId))] },
-            },
-            orderBy: { id: "asc" },
-          }),
-          tx.teacher.findMany({
-            where: {
-              universityId,
-              id: {
-                in: [
-                  ...new Set(
-                    changes.flatMap((c) => (c.teacherId ? [c.teacherId] : [])),
-                  ),
-                ],
-              },
-            },
-            orderBy: { id: "asc" },
-            include: { subjects: { orderBy: { subjectId: "asc" } } },
-          }),
-          tx.room.findMany({
-            where: {
-              universityId,
-              id: {
-                in: [
-                  ...new Set(
-                    changes.flatMap((c) => (c.roomId ? [c.roomId] : [])),
-                  ),
-                ],
-              },
-            },
-            orderBy: { id: "asc" },
-          }),
-          tx.studentGroup.findMany({
-            where: {
-              id: {
-                in: [
-                  ...new Set([
-                    ...changes.flatMap((c) => c.groupIds),
-                    ...retire.flatMap(groupsOf),
-                  ]),
-                ],
-              },
-              program: { faculty: { universityId } },
-            },
-            orderBy: { id: "asc" },
-            include: { program: { include: { faculty: true } } },
-          }),
-        ],
-      );
-      evidence.push(subjectRows, teacherRows, roomRows, groupRows);
       if (
-        (d.action === "TEMPLATE_CREATE" || d.action === "TEMPLATE_FUTURE") &&
-        !changes.length
+        changes.length > 1000 ||
+        changes.reduce((n, e) => n + e.groupIds.length, 0) > 5000
       )
         reject(
-          "Нет подходящих дат. Измените день, тип повторения или границы семестра; ручные исключения и прошедшие занятия сохраняются.",
+          "Лимит одной операции: 1000 занятий / 5000 связей групп. Сократите период.",
+          413,
+        );
+    };
+    if (d.action === "ASSIGNMENT_CREATE" || d.action === "ASSIGNMENT_EDIT") {
+      const old =
+        d.action === "ASSIGNMENT_EDIT"
+          ? await tx.teachingAssignment.findFirst({
+              where: { id: d.id, universityId },
+              include: { groups: true },
+            })
+          : null;
+      if (d.action === "ASSIGNMENT_EDIT") checkedVersion(old, d.version);
+      else
+        await reserve(
+          !!(await tx.teachingAssignment.findUnique({
+            where: { id: targetId },
+          })),
+        );
+      if (
+        old &&
+        (old.programId !== d.programId ||
+          old.subjectId !== d.subjectId ||
+          old.kind !== d.kind)
+      )
+        reject(
+          "Дисциплина, направление и вид существующей настройки не меняются. Создайте другую настройку.",
           400,
         );
-      const ignored = new Set(retire.map((e) => e.id));
-      await conflicts(tx, universityId, changes, ignored, zone);
-      if (changes.some((c) => c.status === "SCHEDULED" && !c.teacherId))
-        warnings.push(
-          "Преподаватель не назначен: его занятость проверить невозможно.",
-        );
-      if (changes.some((c) => c.status === "SCHEDULED" && !c.roomId))
-        warnings.push(
-          "Аудитория не назначена: её занятость проверить невозможно.",
-        );
-      const digest = createHash("sha256")
-        .update(
-          JSON.stringify({
-            d,
-            evidence,
-            changes,
-            retire: retire.map((e) => [e.id, e.version]),
-            warnings,
-          }),
-        )
-        .digest("hex");
-      const summary = {
-        id: targetId,
-        token: digest,
-        dates: changes.map((c) => ({
-          day: dayKey(c.startsAt, zone),
-          groupCount: c.groupIds.length,
-          groups: c.groupIds.map(
-            (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
-          ),
-          title:
-            subjectRows.find((s) => s.id === c.subjectId)?.name ?? "Занятие",
-          teacher:
-            teacherRows.find((t) => t.id === c.teacherId)?.name ??
-            "Не назначен",
-          room: roomRows.find((r) => r.id === c.roomId)
-            ? `${roomRows.find((r) => r.id === c.roomId)!.building} · ${roomRows.find((r) => r.id === c.roomId)!.number}`
-            : "Не назначена",
-          startTime: c.startsAt.toLocaleTimeString("ru-RU", {
-            timeZone: zone,
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          endTime: c.endsAt.toLocaleTimeString("ru-RU", {
-            timeZone: zone,
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          status: c.status,
-        })),
-        affected: retire.map((e) => ({
-          id: e.id,
-          day: dayKey(e.startsAt, zone),
-          groups: groupsOf(e).map(
-            (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
-          ),
-        })),
-        skippedCount: skipped.length,
-        skipped: [...new Set(skipped)].sort(),
-        warnings,
-      };
-      if (request.preview) return summary;
-      if (!request.confirmed || request.token !== digest)
-        reject(
-          "Предпросмотр устарел. Повторите проверку и подтвердите изменения.",
-        );
-      for (const write of writes) await write();
-      const updatedIds = new Set(changes.map((c) => c.id));
-      for (const entry of retire.filter((e) => !updatedIds.has(e.id))) {
-        await tx.scheduleEntry.update({
-          where: { id: entry.id },
-          data: { status: "DELETED", version: { increment: 1 } },
-        });
-        await audit(entry.id, "OCCURRENCE_REGENERATE", entry, {
-          status: "DELETED",
-          generation: entry.generation,
-        });
-      }
-      for (const c of changes) {
-        const display =
-          c.status === "SCHEDULED" || d.action === "OCCURRENCE_EDIT"
-            ? await references(
-                tx,
-                universityId,
-                c.subjectId,
-                c.teacherId,
-                c.roomId,
-                c.status === "SCHEDULED",
-              )
-            : {};
-        const { id: entryId, groupIds, ...fields } = c;
-        const old = retire.find((e) => e.id === entryId);
-        const data = {
-          ...fields,
+      if (new Set(d.groups.map((g) => g.groupId)).size !== d.groups.length)
+        reject("Группа выбрана дважды.", 400);
+      if (
+        d.kind === "LECTURE" &&
+        new Set(d.groups.map((g) => g.teacherId)).size !== 1
+      )
+        reject("У общей лекции должен быть один преподаватель.", 400);
+      const active = d.action === "ASSIGNMENT_CREATE" || d.active;
+      for (const g of d.groups) {
+        const group = await validGroup(tx, g.groupId, universityId, active);
+        if (group.programId !== d.programId)
+          reject("Выберите группы одного направления.", 400);
+        await references(
+          tx,
           universityId,
-          groupId: groupIds[0],
-          ...display,
-        };
+          d.subjectId,
+          g.teacherId,
+          null,
+          active,
+        );
+      }
+      evidence.push(old);
+      // Bind the preview to directory state, even though no dates are generated yet.
+      evidence.push(
+        await tx.subject.findUnique({ where: { id: d.subjectId } }),
+        await tx.teacher.findMany({
+          where: { id: { in: d.groups.map((g) => g.teacherId) } },
+          orderBy: { id: "asc" },
+          include: { subjects: true },
+        }),
+        await tx.studentGroup.findMany({
+          where: { id: { in: d.groups.map((g) => g.groupId) } },
+          orderBy: { id: "asc" },
+          include: { program: { include: { faculty: true } } },
+        }),
+      );
+      const data = {
+        universityId,
+        programId: d.programId,
+        subjectId: d.subjectId,
+        kind: d.kind,
+        active,
+      };
+      writes.push(async () => {
         if (old)
-          await tx.scheduleEntry.update({
-            where: { id: entryId },
+          await tx.teachingAssignment.update({
+            where: { id: old.id },
             data: { ...data, version: { increment: 1 } },
           });
         else
-          await tx.scheduleEntry.create({
-            data: {
-              ...data,
-              id: entryId,
-              title:
-                "title" in display && typeof display.title === "string"
-                  ? display.title
-                  : "Занятие",
-            },
+          await tx.teachingAssignment.create({
+            data: { id: targetId, ...data },
           });
-        await tx.scheduleGroup.updateMany({
-          where: { entryId },
+        await tx.teachingAssignmentGroup.updateMany({
+          where: { assignmentId: targetId },
+          data: { active: false },
+        });
+        for (const g of d.groups)
+          await tx.teachingAssignmentGroup.upsert({
+            where: {
+              assignmentId_groupId: {
+                assignmentId: targetId,
+                groupId: g.groupId,
+              },
+            },
+            create: { assignmentId: targetId, universityId, ...g },
+            update: { teacherId: g.teacherId, active: true },
+          });
+        await audit(targetId, d.action, old, { ...data, groups: d.groups });
+      });
+    } else if (d.action === "SEMESTER_CREATE" || d.action === "SEMESTER_EDIT") {
+      const old =
+        d.action === "SEMESTER_EDIT"
+          ? await scopedSemester(tx, universityId, d.id)
+          : null;
+      if (old && d.action === "SEMESTER_EDIT") checkedVersion(old, d.version);
+      if (!old)
+        await reserve(
+          !!(await tx.semester.findUnique({ where: { id: targetId } })),
+        );
+      const data = calendarData(d.calendar);
+      if (
+        await tx.semester.findFirst({
+          where: {
+            universityId,
+            nameKey: data.nameKey,
+            id: { not: targetId },
+          },
+        })
+      )
+        reject("Семестр с таким названием уже существует.", 400);
+      const overlap = await tx.semester.findMany({
+        where: {
+          universityId,
+          id: { not: targetId },
+          start: { lte: data.end },
+          end: { gte: data.start },
+        },
+        select: { name: true },
+      });
+      if (overlap.length)
+        warnings.push(
+          `Период пересекается с семестрами: ${overlap.map((s) => s.name).join(", ")}. При создании занятия выберите семестр явно.`,
+        );
+      evidence.push(old);
+      if (old && calendarKey(asCalendar(old)) !== calendarKey(d.calendar)) {
+        const manual = await tx.scheduleEntry.findMany({
+          where: {
+            semesterId: old.id,
+            universityId,
+            manual: true,
+            status: "SCHEDULED",
+            startsAt: { gt: now },
+          },
+          take: 10001,
+        });
+        if (manual.length > 10000)
+          reject("Слишком много ручных занятий для проверки.", 413);
+        for (const entry of manual) {
+          const day = dayKey(entry.startsAt, zone);
+          if (
+            day < d.calendar.start ||
+            day > d.calendar.end ||
+            excluded(day, d.calendar)
+          )
+            reject(
+              `Ручное занятие ${day} станет недопустимым. Сначала явно перенесите или отмените его.`,
+            );
+        }
+        const templates = await tx.scheduleTemplate.findMany({
+          where: { semesterId: old.id, universityId },
+          include: { groups: { where: { active: true } } },
+          take: 101,
+        });
+        if (templates.length > 100)
+          reject(
+            "Изменение затрагивает более 100 шаблонов. Сократите операцию.",
+            413,
+          );
+        for (const t of templates) {
+          const rule = ruleInput.parse({
+            subjectId: t.subjectId,
+            teacherId: t.teacherId,
+            roomId: t.roomId,
+            groupIds: t.groups.map((g) => g.groupId),
+            recurrence: t.recurrence,
+            weekday: t.weekday,
+            once: t.once,
+            startTime: t.startTime,
+            endTime: t.endTime,
+          });
+          await addGeneration(
+            { ...t, version: t.version + 1 },
+            rule,
+            d.calendar,
+            today,
+            false,
+          );
+          writes.push(async () => {
+            const next = await tx.scheduleTemplate.update({
+              where: { id: t.id },
+              data: { version: { increment: 1 } },
+            });
+            await audit(t.id, "TEMPLATE_CALENDAR", t, next);
+          });
+        }
+      }
+      writes.push(async () => {
+        const next = old
+          ? await tx.semester.update({
+              where: { id: old.id },
+              data: { ...data, version: { increment: 1 } },
+            })
+          : await tx.semester.create({
+              data: { id: targetId, universityId, ...data },
+            });
+        await audit(targetId, d.action, old, next);
+      });
+    } else if (d.action === "TEACHER_CREATE" || d.action === "TEACHER_EDIT") {
+      const old =
+        d.action === "TEACHER_EDIT"
+          ? await tx.teacher.findFirst({
+              where: { id: d.id, universityId },
+              include: { subjects: true },
+            })
+          : null;
+      if (d.action === "TEACHER_EDIT") checkedVersion(old, d.version);
+      else
+        await reserve(
+          !!(await tx.teacher.findUnique({ where: { id: targetId } })),
+        );
+      if (new Set(d.subjectIds).size !== d.subjectIds.length)
+        reject("Повтор дисциплины.", 400);
+      const subjects = await tx.subject.count({
+        where: { id: { in: d.subjectIds }, universityId, active: true },
+      });
+      if (subjects !== d.subjectIds.length) throw new Denied();
+      evidence.push(old);
+      writes.push(async () => {
+        const data = {
+          name: d.name,
+          active: d.action === "TEACHER_EDIT" ? d.active : true,
+        };
+        if (old)
+          await tx.teacher.update({
+            where: { id: old.id },
+            data: { ...data, version: { increment: 1 } },
+          });
+        else
+          await tx.teacher.create({
+            data: { id: targetId, universityId, ...data },
+          });
+        await tx.teacherSubject.updateMany({
+          where: { teacherId: targetId },
+          data: { active: false },
+        });
+        for (const subjectId of d.subjectIds)
+          await tx.teacherSubject.upsert({
+            where: {
+              teacherId_subjectId: { teacherId: targetId, subjectId },
+            },
+            create: { teacherId: targetId, subjectId, universityId },
+            update: { active: true },
+          });
+        await audit(targetId, d.action, old, {
+          ...data,
+          subjectIds: d.subjectIds,
+        });
+      });
+    } else if (d.action === "ROOM_CREATE" || d.action === "ROOM_EDIT") {
+      const old =
+        d.action === "ROOM_EDIT"
+          ? await tx.room.findFirst({ where: { id: d.id, universityId } })
+          : null;
+      if (d.action === "ROOM_EDIT") checkedVersion(old, d.version);
+      else
+        await reserve(
+          !!(await tx.room.findUnique({ where: { id: targetId } })),
+        );
+      const data = {
+        building: d.building,
+        number: d.number,
+        nameKey: JSON.stringify([
+          d.building.normalize("NFKC").toLowerCase(),
+          d.number.normalize("NFKC").toLowerCase(),
+        ]),
+        active: d.action === "ROOM_EDIT" ? d.active : true,
+      };
+      if (
+        await tx.room.findFirst({
+          where: {
+            universityId,
+            nameKey: data.nameKey,
+            id: { not: targetId },
+          },
+        })
+      )
+        reject("Такая аудитория уже существует в этом корпусе.", 400);
+      evidence.push(old);
+      writes.push(async () => {
+        const next = old
+          ? await tx.room.update({
+              where: { id: old.id },
+              data: { ...data, version: { increment: 1 } },
+            })
+          : await tx.room.create({
+              data: { id: targetId, universityId, ...data },
+            });
+        await audit(targetId, d.action, old, next);
+      });
+    } else if (
+      d.action === "TEMPLATE_CREATE" ||
+      d.action === "TEMPLATE_FUTURE"
+    ) {
+      const old =
+        d.action === "TEMPLATE_FUTURE"
+          ? await tx.scheduleTemplate.findFirst({
+              where: { id: d.id, universityId },
+              include: { groups: { where: { active: true } } },
+            })
+          : null;
+      if (d.action === "TEMPLATE_FUTURE") {
+        checkedVersion(old, d.version);
+        if (d.from < today)
+          reject(
+            "Изменять будущие повторения можно начиная с сегодняшнего дня.",
+            400,
+          );
+      } else
+        await reserve(
+          !!(await tx.scheduleTemplate.findUnique({
+            where: { id: targetId },
+          })),
+        );
+      const semesterId =
+        old?.semesterId ??
+        (d as Extract<BuilderCommand, { action: "TEMPLATE_CREATE" }>)
+          .semesterId;
+      const programId =
+        old?.programId ??
+        (d as Extract<BuilderCommand, { action: "TEMPLATE_CREATE" }>).programId;
+      const semester = await scopedSemester(tx, universityId, semesterId),
+        calendar = asCalendar(semester);
+      if (d.action === "TEMPLATE_CREATE" && d.assignment) {
+        const a = await tx.teachingAssignment.findFirst({
+          where: { id: d.assignment.id, universityId },
+          include: {
+            groups: { where: { active: true }, orderBy: { groupId: "asc" } },
+          },
+        });
+        checkedVersion(a, d.assignment.version);
+        if (
+          !a ||
+          !a.active ||
+          a.programId !== programId ||
+          a.subjectId !== d.rule.subjectId
+        )
+          reject("Назначение недоступно. Обновите каталог и предпросмотр.");
+        const rows =
+          a.kind === "LECTURE"
+            ? a.groups
+            : a.groups.filter((g) => g.groupId === d.assignment!.groupId);
+        if (
+          !rows.length ||
+          (a.kind === "SEMINAR" && rows.length !== 1) ||
+          JSON.stringify(rows.map((g) => g.groupId).sort()) !==
+            JSON.stringify([...d.rule.groupIds].sort()) ||
+          rows.some((g) => g.teacherId !== d.rule.teacherId)
+        )
+          reject(
+            "Группы или преподаватель не соответствуют готовому занятию. Обновите предпросмотр.",
+          );
+        evidence.push(a);
+      }
+      const { groupIds, ...fields } = d.rule;
+      const previousSegments = old
+        ? z
+            .array(z.object({ from: civil, rule: ruleInput }).strict())
+            .parse(old.segments)
+        : [];
+      if (d.action === "TEMPLATE_FUTURE" && d.from > calendar.end)
+        reject("Дата изменения позже конца семестра.", 400);
+      const segments =
+        d.action === "TEMPLATE_FUTURE"
+          ? [
+              ...previousSegments.filter((s) => s.from < d.from),
+              { from: d.from, rule: d.rule },
+            ]
+          : [{ from: "0001-01-01", rule: d.rule }];
+      if (segments.length > 100)
+        reject("Не более 100 периодов правил в одном шаблоне.", 413);
+      const template = {
+        segments,
+        id: targetId,
+        universityId,
+        semesterId,
+        programId,
+        ...fields,
+        version: (old?.version ?? 0) + 1,
+      };
+      await addGeneration(
+        template,
+        d.rule,
+        calendar,
+        d.action === "TEMPLATE_FUTURE" ? d.from : calendar.start,
+        !old,
+      );
+      evidence.push(old, semester);
+      writes.push(async () => {
+        if (old)
+          await tx.scheduleTemplate.update({
+            where: { id: old.id },
+            data: { ...fields, segments, version: template.version },
+          });
+        else await tx.scheduleTemplate.create({ data: template });
+        await tx.templateGroup.updateMany({
+          where: { templateId: targetId },
           data: { active: false },
         });
         for (const groupId of groupIds)
-          await tx.scheduleGroup.upsert({
-            where: { entryId_groupId: { entryId, groupId } },
-            create: { entryId, groupId },
+          await tx.templateGroup.upsert({
+            where: { templateId_groupId: { templateId: targetId, groupId } },
+            create: { templateId: targetId, groupId },
             update: { active: true },
           });
-        await audit(
-          entryId,
-          d.action === "DETACH"
-            ? "OCCURRENCE_DETACH"
-            : old
-              ? d.action
-              : "OCCURRENCE_PUBLISH",
-          old ?? null,
-          c,
-        );
-        if (old && old.status === "SCHEDULED" && c.status === "CANCELLED")
-          await notifyCancellation(
-            tx,
-            actorId,
-            universityId,
-            { ...old, version: old.version + 1 },
-            groupIds,
+        await audit(targetId, d.action, old, { ...template, groupIds });
+      });
+    } else {
+      const old = await tx.scheduleEntry.findFirst({
+        where: { id: d.id, universityId, semesterId: { not: null } },
+        include: includeEntry,
+      });
+      checkedVersion(old, d.version);
+      if (!old || old.status === "DELETED") throw new Denied(404);
+      const semester = await scopedSemester(tx, universityId, old.semesterId!);
+      const groupIds = groupsOf(old);
+      evidence.push(old, semester);
+      let c: Candidate = {
+        id: old.id,
+        groupIds,
+        subjectId: old.subjectId!,
+        teacherId: old.teacherId,
+        roomId: old.roomId,
+        startsAt: old.startsAt,
+        endsAt: old.endsAt,
+        semesterId: old.semesterId!,
+        templateId: old.templateId,
+        generation: old.generation,
+        slotDay: old.slotDay!,
+        manual: true,
+        status: old.status,
+      };
+      if (d.action === "OCCURRENCE_EDIT" || d.action === "DETACH") {
+        if (d.action === "DETACH") {
+          if (
+            old.status !== "SCHEDULED" ||
+            groupIds.length < 2 ||
+            !groupIds.includes(d.groupId)
+          )
+            reject("Отделение доступно для активной общей лекции.", 400);
+          await reserve(
+            !!(await tx.scheduleEntry.findUnique({
+              where: { id: d.operationId },
+            })),
           );
+          const remaining = {
+            ...c,
+            groupIds: groupIds.filter((g) => g !== d.groupId),
+          };
+          changes.push(remaining);
+          c = {
+            ...c,
+            id: d.operationId,
+            groupIds: [d.groupId],
+            templateId: null,
+            sourceEntryId: old.id,
+          };
+          targetId = d.operationId;
+        }
+        c = candidate(d, zone, asCalendar(semester), c);
+      } else if (d.action === "OCCURRENCE_CANCEL") {
+        if (old.status !== "SCHEDULED") reject("Занятие уже отменено.");
+        c.status = "CANCELLED";
+      } else if (d.action === "OCCURRENCE_RESTORE") {
+        if (old.status !== "CANCELLED")
+          reject("Восстановить можно отменённое занятие.");
+        c.status = "SCHEDULED";
+        const day = dayKey(c.startsAt, zone),
+          calendar = asCalendar(semester);
+        if (
+          day < calendar.start ||
+          day > calendar.end ||
+          excluded(day, calendar)
+        )
+          reject("Сначала перенесите занятие на допустимую дату.", 400);
+      } else c.status = "DELETED";
+      if (c.status === "SCHEDULED") {
+        await references(tx, universityId, c.subjectId, c.teacherId, c.roomId);
+        for (const groupId of c.groupIds)
+          await validGroup(tx, groupId, universityId);
+      } else if (d.action === "OCCURRENCE_EDIT") {
+        // Cancelled history may refer to inactive resources, but never foreign
+        // identities. Preview must enforce ownership before offering a token.
+        await references(
+          tx,
+          universityId,
+          c.subjectId,
+          c.teacherId,
+          c.roomId,
+          false,
+        );
       }
-      return summary;
-    },
-    { timeout: 30000 },
-  );
+      changes.push(c);
+      retire.push(old);
+    }
+    const [subjectRows, teacherRows, roomRows, groupRows] = await Promise.all([
+      tx.subject.findMany({
+        where: {
+          universityId,
+          id: { in: [...new Set(changes.map((c) => c.subjectId))] },
+        },
+        orderBy: { id: "asc" },
+      }),
+      tx.teacher.findMany({
+        where: {
+          universityId,
+          id: {
+            in: [
+              ...new Set(
+                changes.flatMap((c) => (c.teacherId ? [c.teacherId] : [])),
+              ),
+            ],
+          },
+        },
+        orderBy: { id: "asc" },
+        include: { subjects: { orderBy: { subjectId: "asc" } } },
+      }),
+      tx.room.findMany({
+        where: {
+          universityId,
+          id: {
+            in: [
+              ...new Set(changes.flatMap((c) => (c.roomId ? [c.roomId] : []))),
+            ],
+          },
+        },
+        orderBy: { id: "asc" },
+      }),
+      tx.studentGroup.findMany({
+        where: {
+          id: {
+            in: [
+              ...new Set([
+                ...changes.flatMap((c) => c.groupIds),
+                ...retire.flatMap(groupsOf),
+              ]),
+            ],
+          },
+          program: { faculty: { universityId } },
+        },
+        orderBy: { id: "asc" },
+        include: { program: { include: { faculty: true } } },
+      }),
+    ]);
+    evidence.push(subjectRows, teacherRows, roomRows, groupRows);
+    if (
+      (d.action === "TEMPLATE_CREATE" || d.action === "TEMPLATE_FUTURE") &&
+      !changes.length
+    )
+      reject(
+        "Нет подходящих дат. Измените день, тип повторения или границы семестра; ручные исключения и прошедшие занятия сохраняются.",
+        400,
+      );
+    const ignored = new Set(retire.map((e) => e.id));
+    await conflicts(tx, universityId, changes, ignored, zone);
+    if (changes.some((c) => c.status === "SCHEDULED" && !c.teacherId))
+      warnings.push(
+        "Преподаватель не назначен: его занятость проверить невозможно.",
+      );
+    if (changes.some((c) => c.status === "SCHEDULED" && !c.roomId))
+      warnings.push(
+        "Аудитория не назначена: её занятость проверить невозможно.",
+      );
+    const digest = createHash("sha256")
+      .update(
+        JSON.stringify({
+          d,
+          evidence,
+          changes,
+          retire: retire.map((e) => [e.id, e.version]),
+          warnings,
+        }),
+      )
+      .digest("hex");
+    const summary = {
+      id: targetId,
+      token: digest,
+      dates: changes.map((c) => ({
+        day: dayKey(c.startsAt, zone),
+        groupCount: c.groupIds.length,
+        groups: c.groupIds.map(
+          (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
+        ),
+        title: subjectRows.find((s) => s.id === c.subjectId)?.name ?? "Занятие",
+        teacher:
+          teacherRows.find((t) => t.id === c.teacherId)?.name ?? "Не назначен",
+        room: roomRows.find((r) => r.id === c.roomId)
+          ? `${roomRows.find((r) => r.id === c.roomId)!.building} · ${roomRows.find((r) => r.id === c.roomId)!.number}`
+          : "Не назначена",
+        startTime: c.startsAt.toLocaleTimeString("ru-RU", {
+          timeZone: zone,
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        endTime: c.endsAt.toLocaleTimeString("ru-RU", {
+          timeZone: zone,
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        status: c.status,
+      })),
+      affected: retire.map((e) => ({
+        id: e.id,
+        day: dayKey(e.startsAt, zone),
+        groups: groupsOf(e).map(
+          (id) => groupRows.find((g) => g.id === id)?.name ?? "Группа",
+        ),
+      })),
+      skippedCount: skipped.length,
+      skipped: [...new Set(skipped)].sort(),
+      warnings,
+    };
+    if (request.preview) return summary;
+    if (!request.confirmed || request.token !== digest)
+      reject(
+        "Предпросмотр устарел. Повторите проверку и подтвердите изменения.",
+      );
+    for (const write of writes) await write();
+    const updatedIds = new Set(changes.map((c) => c.id));
+    for (const entry of retire.filter((e) => !updatedIds.has(e.id))) {
+      await tx.scheduleEntry.update({
+        where: { id: entry.id },
+        data: { status: "DELETED", version: { increment: 1 } },
+      });
+      await audit(entry.id, "OCCURRENCE_REGENERATE", entry, {
+        status: "DELETED",
+        generation: entry.generation,
+      });
+    }
+    for (const c of changes) {
+      const display =
+        c.status === "SCHEDULED" || d.action === "OCCURRENCE_EDIT"
+          ? await references(
+              tx,
+              universityId,
+              c.subjectId,
+              c.teacherId,
+              c.roomId,
+              c.status === "SCHEDULED",
+            )
+          : {};
+      const { id: entryId, groupIds, ...fields } = c;
+      const old = retire.find((e) => e.id === entryId);
+      const data = {
+        ...fields,
+        universityId,
+        groupId: groupIds[0],
+        ...display,
+      };
+      if (old)
+        await tx.scheduleEntry.update({
+          where: { id: entryId },
+          data: { ...data, version: { increment: 1 } },
+        });
+      else
+        await tx.scheduleEntry.create({
+          data: {
+            ...data,
+            id: entryId,
+            title:
+              "title" in display && typeof display.title === "string"
+                ? display.title
+                : "Занятие",
+          },
+        });
+      await tx.scheduleGroup.updateMany({
+        where: { entryId },
+        data: { active: false },
+      });
+      for (const groupId of groupIds)
+        await tx.scheduleGroup.upsert({
+          where: { entryId_groupId: { entryId, groupId } },
+          create: { entryId, groupId },
+          update: { active: true },
+        });
+      await audit(
+        entryId,
+        d.action === "DETACH"
+          ? "OCCURRENCE_DETACH"
+          : old
+            ? d.action
+            : "OCCURRENCE_PUBLISH",
+        old ?? null,
+        c,
+      );
+      if (old && old.status === "SCHEDULED" && c.status === "CANCELLED")
+        await notifyCancellation(
+          tx,
+          actorId,
+          universityId,
+          { ...old, version: old.version + 1 },
+          groupIds,
+        );
+    }
+    return summary;
+  };
+  return outer ? run(outer) : db.$transaction(run, { timeout: 30000 });
 }
 
 // Explicit projection. Neither authentication records nor students are fetched here.
