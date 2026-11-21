@@ -11,9 +11,12 @@ import { announcementDate, type AnnouncementItem } from "./announcement-list";
  */
 export function HomeAnnouncements({
   items,
+  total,
   timezone,
 }: {
   items: AnnouncementItem[];
+  /** Всего непрочитанных (может быть больше загруженных). */
+  total: number;
   timezone: string;
 }) {
   const router = useRouter();
@@ -47,8 +50,10 @@ export function HomeAnnouncements({
       <div className="home-announcements-head">
         <h2 id="home-announcements-title">
           <Icon name="megaphone" /> Объявления
-          {unread.length > 1 && (
-            <span className="home-announcements-count">{unread.length}</span>
+          {total - read.length > 1 && (
+            <span className="home-announcements-count">
+              {total - read.length > 99 ? "99+" : total - read.length}
+            </span>
           )}
         </h2>
         <Link href="/announcements" prefetch={false}>

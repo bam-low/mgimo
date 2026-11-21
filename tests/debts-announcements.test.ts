@@ -298,9 +298,13 @@ it("«Прочитано» убирает объявление только с �
       (n) => n.id,
     );
   expect(await home(student)).toContain(notice.id);
+  const before = await studentAnnouncements(student, { take: 1, unreadOnly: true });
+  expect(before.items.length).toBe(1);
+  expect(before.total).toBeGreaterThan(1);
   await markAnnouncementRead(student, { id: notice.id });
   await markAnnouncementRead(student, { id: notice.id });
   expect(await home(student)).not.toContain(notice.id);
+  expect((await studentAnnouncements(student, { take: 1, unreadOnly: true })).total).toBe(before.total - 1);
   expect(
     (await studentAnnouncements(student)).items.map((n) => n.id),
   ).toContain(notice.id);

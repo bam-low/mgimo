@@ -19,7 +19,7 @@ export default async function Page() {
       const [grades, applications, notices] = await Promise.all([
         readGrades(a),
         listApplications(a),
-        studentAnnouncements(a, { take: 10, unreadOnly: true }),
+        studentAnnouncements(a, { take: 2, unreadOnly: true }),
       ]);
       return {
         name: a.user.name,
@@ -47,6 +47,7 @@ export default async function Page() {
             notice={
               <HomeAnnouncements
                 items={notices.items}
+                total={notices.total}
                 timezone={notices.timezone}
               />
             }

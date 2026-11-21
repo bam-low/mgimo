@@ -110,15 +110,24 @@ export async function studentAnnouncements(
 ) {
   const where = visibleTo(a, new Date());
   await purgeExpired(a.membership.universityId);
-  const rows = await db.announcement.findMany({
-    where: unreadOnly
-      ? { ...where, reads: { none: { membershipId: a.membership.id } } }
-      : where,
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take,
-    select,
-  });
-  return { timezone: a.membership.university.timezone, items: rows.map(view) };
+  const filter = unreadOnly
+    ? { ...where, reads: { none: { membershipId: a.membership.id } } }
+    : where;
+  const [rows, total] = await Promise.all([
+    db.announcement.findMany({
+      where: filter,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take,
+      select,
+    }),
+    db.announcement.count({ where: filter }),
+  ]);
+  return {
+    timezone: a.membership.university.timezone,
+    items: rows.map(view),
+    /** Всего подходящих, а не только загруженных — для счётчика на главной. */
+    total,
+  };
 }
 
 /** «Прочитано» на главной: только для объявления, которое студенту видно. */
