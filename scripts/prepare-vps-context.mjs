@@ -59,6 +59,12 @@ for (const [name, version, checksum] of [
     "1.1.43-r4",
     "40e6cc7d09ce1e69421c2b37e1da4e9afef486843f21c3a79339cd6d93c1c617",
   ],
+  // CVE-2026-86144 (HIGH, исправлено в 2.13.9-r3), найдено Trivy при выпуске 21.11.2026.
+  [
+    "libxml2",
+    "2.13.9-r3",
+    "8b37229c4761cf0eef5089045283526ef43bf335073050515010d34a313186ed",
+  ],
 ]) {
   const destination = path.join(root, `database/security/${name}.apk`);
   const fetched = spawnSync(
