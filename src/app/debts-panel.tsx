@@ -5,7 +5,7 @@ import { displayDate } from "./schedule-input-values";
 
 type Debt = { id: string; subject: string; result: string; issuedOn: string };
 
-/** «Требуют потенциального исправления»: студент сам отмечает, что разобрался. */
+/** «Можно исправить»: студент сам отмечает, что разобрался. */
 export function DebtsPanel({ open, hidden }: { open: Debt[]; hidden: Debt[] }) {
   const router = useRouter();
   const [gone, G] = useState<Record<string, boolean>>({});
@@ -41,7 +41,7 @@ export function DebtsPanel({ open, hidden }: { open: Debt[]; hidden: Debt[] }) {
   return (
     <section className="debts-panel" aria-labelledby="debts-title">
       <div className="debts-head">
-        <h2 id="debts-title">Требуют потенциального исправления</h2>
+        <h2 id="debts-title">Можно исправить</h2>
         {all.length > 0 && <span className="debts-count">{all.length}</span>}
       </div>
       <p className="debts-hint">

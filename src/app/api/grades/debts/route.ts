@@ -8,7 +8,7 @@ import {
 } from "@/server/security";
 import { setDebtHidden } from "@/server/debts";
 
-/** Скрыть или вернуть долг в списке «Требуют потенциального исправления». */
+/** Скрыть или вернуть долг в списке «Можно исправить». */
 export async function POST(request: Request) {
   try {
     sameOrigin(request);

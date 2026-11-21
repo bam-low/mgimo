@@ -2736,7 +2736,7 @@ form.schedule-controls:has(.group-filter-field) .localized-control > input[type=
   .public-landing .public-content { padding: 14px 20px 32px; }
 }
 
-/* ---------- Успеваемость: «Требуют потенциального исправления» ---------- */
+/* ---------- Успеваемость: «Можно исправить» ---------- */
 .debts-panel {
   margin: 0 0 18px;
   padding: 18px 20px 14px;
