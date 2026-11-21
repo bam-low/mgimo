@@ -214,6 +214,17 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
 
       {/* Здание */}
       <g stroke={STROKE} strokeWidth="0.9" strokeLinejoin="round">
+        {/* Башня-опора: отдельная квадратная вышка за фронтоном, уходит в здание */}
+        <rect x="181" y="43" width="22" height="46" fill="#F2D3CD" />
+        <path d="M181 47H203" opacity="0.5" />
+        <rect
+          x="189.5"
+          y="49"
+          width="5"
+          height="8"
+          rx="2.5"
+          fill="url(#cs-window)"
+        />
         {/* Крылья */}
         <path d="M93 96 96 91H138V96Z" fill="#E7BDC0" />
         <path d="M293 96 290 91H248V96Z" fill="#E7BDC0" />
@@ -250,12 +261,12 @@ export function CampusScene({ phase }: { phase: DayPhase }) {
           </g>
         ))}
         <path d="M184 151V124a9.5 9.5 0 0 1 19 0V151Z" fill="url(#cs-door)" />
-        {/* Часовая башня */}
-        <path d="M176 36 192 25 208 36Z" fill="#F2CFCA" />
-        <rect x="179" y="36" width="26" height="20" fill="#F7DED8" />
-        <rect x="177" y="55" width="30" height="3" fill="#F0CCC7" />
-        <circle cx="192" cy="45.5" r="6.3" fill="#FFF8F4" />
-        <path d="M192 45.5V41.6M192 45.5 194.8 47.2" strokeLinecap="round" />
+        {/* Часовня наверху башни-опоры */}
+        <path d="M175 21 192 9 209 21Z" fill="#F2CFCA" />
+        <rect x="178" y="21" width="28" height="20" fill="#F7DED8" />
+        <rect x="176" y="40" width="32" height="3" fill="#F0CCC7" />
+        <circle cx="192" cy="30.5" r="6.4" fill="#FFF8F4" />
+        <path d="M192 30.5V26.6M192 30.5 194.8 32.2" strokeLinecap="round" />
         {/* Лестница */}
         <path d="M124 151H262L266 156H120Z" fill="#F3D6D1" />
         <path d="M120 156H266L270 161H116Z" fill="#F0CFCA" />
