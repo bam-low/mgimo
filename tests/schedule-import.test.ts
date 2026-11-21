@@ -88,7 +88,7 @@ async function commit(command: BuilderCommand) {
   });
 }
 const HEADER =
-  "Группы;Дисциплина;День недели;Начало;Конец;Повторение;Дата;Преподаватель;Корпус;Аудитория";
+  "Группы;Дисциплина;День недели;Начало;Конец;Повторение;Дата (только для однократного занятия);Преподаватель;Корпус;Аудитория";
 const line = (o: Partial<Record<string, string>> = {}) =>
   [
     o.groups ?? names.g1,
@@ -179,6 +179,13 @@ it("Только сотрудник своего вуза; шаблон соде
   await expect(importTemplate(student)).rejects.toBeInstanceOf(Denied);
   const template = await importTemplate(staff);
   expect(template.startsWith("﻿" + HEADER)).toBe(true);
+  // Старый заголовок «Дата» тоже принимается.
+  const legacy = await importSchedule(staff, {
+    semesterId,
+    confirm: false,
+    csv: csv(line()).replace("Дата (только для однократного занятия)", "Дата"),
+  });
+  expect(legacy.error).toBeUndefined();
 });
 
 it("Предпросмотр ничего не пишет и находит ошибки, включая конфликт между строками файла", async () => {

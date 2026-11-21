@@ -27,6 +27,7 @@ export function ScheduleMethods({ active }: { active: "builder" | "import" }) {
           <strong>Из таблицы</strong>
           <small>Шаблон → заполнить → загрузить</small>
         </span>
+        <span className="method-badge">Удобно</span>
       </Link>
     </nav>
   );

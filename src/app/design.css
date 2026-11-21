@@ -3449,3 +3449,92 @@ form.schedule-controls:has(.group-filter-field) .localized-control > input[type=
 .import-reference dt { font-weight: 600; font-size: 0.8125rem; }
 .import-reference dd { margin: 0 0 6px; color: var(--ink-2); font-size: 0.8125rem; line-height: 1.5; }
 .notice[data-tone="error"] { background: #fae9e9; color: #8a3239; }
+/* Сводки главной (успеваемость, заявки, быстрые действия, деканат) — всегда одна колонка */
+.home-overview,
+.student-home .home-overview {
+  grid-template-columns: minmax(0, 1fr);
+}
+.home-overview > * { grid-column: 1 / -1; }
+.student-home .student-aside {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Импорт: шаги схемой со стрелками, без белых карточек */
+.schedule-methods > a { position: relative; }
+.method-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgb(46 125 80 / 14%);
+  color: #2f6b45;
+  font: 600 0.6875rem/1.2 var(--body);
+  letter-spacing: 0.01em;
+}
+@media (max-width: 479px) {
+  .method-badge { top: 6px; right: 6px; padding: 2px 7px; font-size: 0.625rem; }
+}
+.import-steps { gap: 0; }
+.import-step {
+  position: relative;
+  padding: 4px 0 30px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.import-step-n {
+  width: 32px;
+  height: 32px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.875rem;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+/* Телефон: вертикальная линия от номера вниз и стрелка к следующему шагу */
+.import-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 40px;
+  bottom: 8px;
+  left: 15px;
+  border-left: 2px dashed var(--line-strong);
+}
+.import-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 6px;
+  width: 20px;
+  height: 20px;
+  background: var(--brand);
+  opacity: 0.55;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14m-6-6 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14m-6-6 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.import-step:last-child { padding-bottom: 8px; }
+@media (min-width: 1100px) {
+  .import-steps { gap: 0 56px; }
+  .import-step { padding: 4px 0 8px; }
+  /* Компьютер: пунктир по линии номеров и стрелка между колонками */
+  .import-step:not(:last-child)::before {
+    top: 15px;
+    bottom: auto;
+    left: 44px;
+    right: -50px;
+    border-left: 0;
+    border-top: 2px dashed var(--line-strong);
+  }
+  .import-step:not(:last-child)::after {
+    top: 6px;
+    bottom: auto;
+    left: auto;
+    right: -46px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14m-6-6 6 6-6 6'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14m-6-6 6 6-6 6'/%3E%3C/svg%3E");
+  }
+  .import-step > div { position: relative; z-index: 1; }
+  .import-step h2 { background: var(--bg); padding-right: 8px; justify-self: start; }
+}
+.import-step > div { gap: 10px; padding-top: 4px; }
+.import-file input[type="file"] { background: rgb(255 255 255 / 55%); }

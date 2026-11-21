@@ -15,7 +15,7 @@ export const IMPORT_COLUMNS = [
   "Начало",
   "Конец",
   "Повторение",
-  "Дата",
+  "Дата (только для однократного занятия)",
   "Преподаватель",
   "Корпус",
   "Аудитория",
@@ -154,7 +154,12 @@ export async function importSchedule(a: Actor, input: unknown) {
   if (!table.length)
     return fail("Файл пустой. Скачайте шаблон и заполните его.");
   const header = table[0].map(key);
-  const index = IMPORT_COLUMNS.map((c) => header.indexOf(key(c)));
+  // «Дата» без пояснения — заголовок старых версий шаблона.
+  const index = IMPORT_COLUMNS.map((c) =>
+    c.startsWith("Дата")
+      ? header.findIndex((h) => h === key(c) || h === "дата")
+      : header.indexOf(key(c)),
+  );
   const missing = IMPORT_COLUMNS.filter((_, i) => index[i] < 0);
   if (missing.length)
     return fail(
