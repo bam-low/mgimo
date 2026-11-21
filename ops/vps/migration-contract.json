@@ -52,7 +52,7 @@
     },
     {
       "name": "20261121121000_announcements",
-      "sha256": "c42fe7688d8fe24688e2091d366fefdbe2b47450f3eb71991708c43a7dd5ac4c"
+      "sha256": "d4552fc9e51ba379ccfdb5377c649a0dc35198df652db97578d06572661a7525"
     }
   ],
   "addedTables": [
@@ -60,7 +60,8 @@
     "TeachingAssignmentGroup",
     "ScheduleCancellation",
     "GradeDismissal",
-    "Announcement"
+    "Announcement",
+    "AnnouncementRead"
   ],
   "addedColumns": {
     "StudentGroup": [

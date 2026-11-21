@@ -19,7 +19,7 @@ export default async function Page() {
       const [grades, applications, notices] = await Promise.all([
         readGrades(a),
         listApplications(a),
-        studentAnnouncements(a, 10),
+        studentAnnouncements(a, { take: 10, unreadOnly: true }),
       ]);
       return {
         name: a.user.name,

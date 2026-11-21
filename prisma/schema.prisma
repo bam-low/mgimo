@@ -129,6 +129,7 @@ model UniversityMembership {
  profile StudentProfile?
  grades Grade[]
  gradeDismissals GradeDismissal[]
+ announcementReads AnnouncementRead[]
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
  @@unique([id,universityId])
@@ -534,6 +535,18 @@ model Announcement {
  author User @relation(fields:[authorId],references:[id],onDelete:Restrict)
  expiresAt DateTime?
  createdAt DateTime @default(now())
+ reads AnnouncementRead[]
  @@index([universityId,expiresAt])
  @@index([universityId,createdAt,id])
+}
+// Студент нажал «Прочитано»: объявление больше не показывается на его главной.
+model AnnouncementRead {
+ announcementId String
+ announcement Announcement @relation(fields:[announcementId],references:[id],onDelete:Cascade)
+ membershipId String
+ universityId String
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([announcementId,membershipId])
+ @@index([membershipId])
 }

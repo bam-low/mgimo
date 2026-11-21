@@ -22,6 +22,16 @@ CREATE TABLE "Announcement" (
     )
 );
 
+-- CreateTable
+CREATE TABLE "AnnouncementRead" (
+    "announcementId" TEXT NOT NULL,
+    "membershipId" TEXT NOT NULL,
+    "universityId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AnnouncementRead_pkey" PRIMARY KEY ("announcementId","membershipId")
+);
+
 -- CreateIndex
 CREATE INDEX "Announcement_universityId_expiresAt_idx" ON "Announcement"("universityId", "expiresAt");
 
@@ -42,3 +52,12 @@ ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_groupId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- CreateIndex
+CREATE INDEX "AnnouncementRead_membershipId_idx" ON "AnnouncementRead"("membershipId");
+
+-- AddForeignKey
+ALTER TABLE "AnnouncementRead" ADD CONSTRAINT "AnnouncementRead_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AnnouncementRead" ADD CONSTRAINT "AnnouncementRead_membershipId_universityId_fkey" FOREIGN KEY ("membershipId", "universityId") REFERENCES "UniversityMembership"("id", "universityId") ON DELETE CASCADE ON UPDATE CASCADE;

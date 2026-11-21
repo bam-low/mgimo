@@ -78,33 +78,69 @@ const view = (r: Row) => ({
   createdAt: r.createdAt.toISOString(),
 });
 
-/** Объявления для студента: весь вуз, его факультет, направление и группа. */
-export async function studentAnnouncements(a: Actor, take = 50) {
-  const enrollment = studentAccess(a);
-  const universityId = a.membership.universityId,
-    now = new Date();
-  await purgeExpired(universityId, now);
-  const group = enrollment.group;
+/** Условие видимости для студента: весь вуз, его факультет, направление и группа. */
+function visibleTo(a: Actor, now: Date) {
+  const group = studentAccess(a).group;
+  return {
+    universityId: a.membership.universityId,
+    AND: [
+      active(now),
+      {
+        OR: [
+          { scope: "UNIVERSITY" },
+          { scope: "FACULTY", facultyId: group.program.facultyId },
+          { scope: "PROGRAM", programId: group.programId },
+          { scope: "GROUP", groupId: group.id },
+        ],
+      },
+    ],
+  } satisfies Prisma.AnnouncementWhereInput;
+}
+
+/**
+ * Объявления для студента. На главной (unreadOnly) не показываются те, что он
+ * отметил «Прочитано»; в разделе «Объявления» видны все действующие.
+ */
+export async function studentAnnouncements(
+  a: Actor,
+  {
+    take = 50,
+    unreadOnly = false,
+  }: { take?: number; unreadOnly?: boolean } = {},
+) {
+  const where = visibleTo(a, new Date());
+  await purgeExpired(a.membership.universityId);
   const rows = await db.announcement.findMany({
-    where: {
-      universityId,
-      AND: [
-        active(now),
-        {
-          OR: [
-            { scope: "UNIVERSITY" },
-            { scope: "FACULTY", facultyId: group.program.facultyId },
-            { scope: "PROGRAM", programId: group.programId },
-            { scope: "GROUP", groupId: group.id },
-          ],
-        },
-      ],
-    },
+    where: unreadOnly
+      ? { ...where, reads: { none: { membershipId: a.membership.id } } }
+      : where,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take,
     select,
   });
   return { timezone: a.membership.university.timezone, items: rows.map(view) };
+}
+
+/** «Прочитано» на главной: только для объявления, которое студенту видно. */
+export async function markAnnouncementRead(a: Actor, input: unknown) {
+  const { id: announcementId } = z.object({ id }).strict().parse(input);
+  const where = visibleTo(a, new Date());
+  const found = await db.announcement.findFirst({
+    where: { ...where, id: announcementId },
+    select: { id: true },
+  });
+  if (!found) throw new Denied(404);
+  const membershipId = a.membership.id;
+  await db.announcementRead.upsert({
+    where: { announcementId_membershipId: { announcementId, membershipId } },
+    create: {
+      announcementId,
+      membershipId,
+      universityId: a.membership.universityId,
+    },
+    update: {},
+  });
+  return { id: announcementId, read: true };
 }
 
 /** Все действующие объявления вуза для сотрудника. */
