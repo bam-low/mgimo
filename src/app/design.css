@@ -3846,3 +3846,50 @@ button.secondary.danger-outline:hover:not(:disabled) {
 @media (prefers-reduced-motion: reduce) {
   .help-tip-bubble { transition: none; }
 }
+
+/* ---------- Успеваемость: ритм и строки результатов ---------- */
+.grade-period { margin-bottom: 18px; }
+.grade-result {
+  margin: 0;
+  padding: 12px 16px;
+}
+.grade-result > p { margin: 0; }
+.grade-result > p + p { margin-top: 4px; color: var(--muted); font-size: 0.8125rem; }
+.grade-subject .grade-result + .grade-result { margin-top: 8px; }
+.grades-pages:empty { display: none; }
+
+/* Переключатель разделов страницы (вкладки-таблетки) */
+.mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 14px;
+  padding: 3px;
+  border-radius: 12px;
+  background: #efe9e3;
+  width: fit-content;
+  max-width: 100%;
+}
+.mode-tabs > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.mode-tabs > a:hover { color: var(--ink); background: #f7f2ed; }
+.mode-tabs > a[aria-current="page"] {
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgb(37 40 59 / 12%);
+}
+@media (max-width: 479px) {
+  .mode-tabs { width: 100%; }
+  .mode-tabs > a { flex: 1 1 auto; justify-content: center; }
+}
+section[aria-label="Результаты студента"] > h2:first-child { margin-top: 20px; }
