@@ -34,6 +34,12 @@ export async function POST(request: Request) {
     const body = registration.parse(await readJSON(request));
     // Counts valid creation attempts (including failed/replayed ones), not a site-wide quota.
     await limited(JSON.stringify(["register-accounts", source]), 5, 15 * 60000);
+    // Публичный демо-стенд: общий суточный потолок новых аккаунтов со всех адресов.
+    await limited(
+      JSON.stringify(["register-accounts-daily"]),
+      300,
+      24 * 60 * 60000,
+    );
     const credentials = await register(body, request.headers, source);
     return Response.json({ credentials }, { status: 201, headers });
   } catch (e) {

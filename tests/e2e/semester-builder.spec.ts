@@ -1,6 +1,7 @@
 import { test, expect, type Page, type Locator } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { reuseSession, rememberSession } from "./session-cache";
+import { staffLanding } from "./ui-sign-in";
 async function login(page: Page) {
   if (await reuseSession(page, "staff@example.test")) return;
   await page.goto("/login");
@@ -11,7 +12,7 @@ async function login(page: Page) {
     .getByLabel("Демонстрационный пароль", { exact: true })
     .fill(process.env.DEMO_STAFF_PASSWORD!);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page).toHaveURL(/\/staff$/);
+  await expect(page).toHaveURL(staffLanding);
   await rememberSession(page, "staff@example.test");
 }
 async function save(form: Locator, page: Page) {

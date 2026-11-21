@@ -49,6 +49,30 @@ test("Nginx renderer rejects raw IP, injection, missing FQDN and refuses overwri
   assert.match(upload, /limit_req zone=campus_edge/);
   assert.match(upload, /proxy_set_header X-Campus-Client-IP \$remote_addr/);
   assert.equal((text.match(/client_max_body_size 3136k;/g) ?? []).length, 1);
+  const scheduleImport = text.match(
+    / location = \/api\/staff\/schedule\/import \{([\s\S]*?)\n \}/,
+  )?.[1];
+  assert.ok(scheduleImport);
+  assert.match(scheduleImport, /client_max_body_size 640k;/);
+  assert.match(scheduleImport, /auth_basic_user_file/);
+  assert.match(scheduleImport, /limit_req zone=campus_edge/);
+  // --public (решение владельца для конкурса) убирает только Basic Auth.
+  const publicOut = out + ".public";
+  execFileSync("python3", [
+    "ops/vps/render_nginx.py",
+    "--domain",
+    "campus.example.test",
+    "--public",
+    "--output",
+    publicOut,
+  ]);
+  const open = await readFile(publicOut, "utf8");
+  assert.doesNotMatch(open, /auth_basic/);
+  assert.match(open, /client_max_body_size 16k;/);
+  assert.match(open, /client_max_body_size 640k;/);
+  assert.match(open, /client_max_body_size 3136k;/);
+  assert.equal((open.match(/limit_req zone=campus_edge/g) ?? []).length, 3);
+  assert.match(open, /ssl_reject_handshake on/);
   assert.notEqual(
     spawnSync("python3", [
       "ops/vps/render_nginx.py",

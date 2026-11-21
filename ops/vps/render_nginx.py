@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Render closed vhost only. No reload/deploy and no public-access switch."""
+"""Render the vhost. Closed (Basic Auth) by default; --public is an explicit owner
+decision for the contest demo. No reload/deploy is performed here."""
 import argparse
 import ipaddress
 import re
@@ -9,6 +10,7 @@ p = argparse.ArgumentParser()
 p.add_argument('--domain', required=True)
 p.add_argument('--output', required=True)
 p.add_argument('--local-test', action='store_true')
+p.add_argument('--public', action='store_true', help='owner-approved: omit Basic Auth gate')
 a = p.parse_args()
 domain = a.domain
 if not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?', domain):
@@ -69,7 +71,14 @@ start = text.index(' location / {', text.index(' client_max_body_size 16k;'))
 end = text.index('\n }', start) + len('\n }')
 common = text[start:end]
 upload = common.replace(' location / {', r' location ~ "^/api/staff/applications/[0-9a-fA-F-]{36}/documents$" {' + '\n  client_max_body_size 3136k;', 1)
-text = text[:start] + upload + '\n' + text[start:]
+# Schedule import sends a CSV (up to 200 KB) inside JSON; the app caps it at 600 KB.
+schedule_import = common.replace(' location / {', ' location = /api/staff/schedule/import {' + '\n  client_max_body_size 640k;', 1)
+text = text[:start] + upload + '\n' + schedule_import + '\n' + text[start:]
+if a.public:
+    # Owner-approved public demo: drop only the Basic Auth gate, keep every other limit.
+    text = text.replace('  auth_basic "Campus private acceptance";\n', '').replace('  auth_basic_user_file /etc/campus/htpasswd;\n', '')
+    text = text.replace('Generated CLOSED configuration; never disable auth automatically.', 'Generated PUBLIC configuration (owner-approved --public): no Basic Auth gate.')
+    assert 'auth_basic' not in text
 with Path(a.output).open('x', encoding='utf-8') as f:
     f.write(text)
-print('PASS closed Nginx configuration written; no reload/deploy performed')
+print('PASS ' + ('public' if a.public else 'closed') + ' Nginx configuration written; no reload/deploy performed')

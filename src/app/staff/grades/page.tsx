@@ -77,9 +77,19 @@ export default async function Page({
             {a.membership.university.timezone}.
           </p>
         </header>
-        <nav className="grades-pages" aria-label="Режим успеваемости">
-          <Link href="/staff/grades">Выставить новый результат</Link>
-          <Link href="/staff/grades?history=1">История всех студентов</Link>
+        <nav className="mode-tabs" aria-label="Режим успеваемости">
+          <Link
+            href="/staff/grades"
+            aria-current={history ? undefined : "page"}
+          >
+            Выставить новый результат
+          </Link>
+          <Link
+            href="/staff/grades?history=1"
+            aria-current={history ? "page" : undefined}
+          >
+            История всех студентов
+          </Link>
         </nav>
         <p className="notice">
           {history
@@ -150,17 +160,19 @@ export default async function Page({
             )}
           </form>
           <nav className="grades-pages" aria-label="Страницы студентов">
-            <Link
-              href={{
-                pathname: "/staff/grades",
-                query: {
-                  groupId: q.groupId,
-                  history: history ? "1" : undefined,
-                },
-              }}
-            >
-              К началу списка
-            </Link>
+            {q.studentsCursor && (
+              <Link
+                href={{
+                  pathname: "/staff/grades",
+                  query: {
+                    groupId: q.groupId,
+                    history: history ? "1" : undefined,
+                  },
+                }}
+              >
+                К началу списка
+              </Link>
+            )}
             {roster.next && (
               <Link
                 href={{
@@ -241,14 +253,20 @@ export default async function Page({
                 )}
               </nav>
               <nav className="grades-pages" aria-label="Страницы результатов">
-                <Link
-                  href={{
-                    pathname: "/staff/grades",
-                    query: { ...q, cursor: undefined, auditCursor: undefined },
-                  }}
-                >
-                  К началу результатов
-                </Link>
+                {(q.cursor || q.auditCursor) && (
+                  <Link
+                    href={{
+                      pathname: "/staff/grades",
+                      query: {
+                        ...q,
+                        cursor: undefined,
+                        auditCursor: undefined,
+                      },
+                    }}
+                  >
+                    К началу результатов
+                  </Link>
+                )}
                 {data.subjectId && data.next && (
                   <Link
                     href={{

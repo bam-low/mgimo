@@ -1345,6 +1345,7 @@ export function ScheduleBuilder({
             >
               Создать другой семестр
             </button>
+            <ClearSemester semester={semester} onCleared={invalidate} />
             <DeleteSemester
               semester={semester}
               onDeleted={() => {
@@ -2395,6 +2396,85 @@ function DeleteSemester({
       {error && (
         <p role="alert" className="form-message is-error">
           {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** «Удалить расписание полностью»: показать число занятий, подтвердить, удалить. */
+function ClearSemester({
+  semester,
+  onCleared,
+}: {
+  semester: Catalog["semesters"][number];
+  onCleared: () => void;
+}) {
+  const router = useRouter();
+  const [busy, B] = useState(false),
+    [message, M] = useState(""),
+    [ok, K] = useState(false);
+  return (
+    <div className="semester-clear">
+      <button
+        type="button"
+        className="secondary danger-outline"
+        disabled={busy}
+        onClick={async () => {
+          B(true);
+          M("");
+          K(false);
+          try {
+            const command = {
+              action: "SEMESTER_CLEAR" as const,
+              id: semester.id,
+              version: semester.version,
+            };
+            const check = await builderRequest({ command, preview: true });
+            if (!check.response.ok)
+              throw Error(readableBuilderError(check.data.error ?? ""));
+            const summary = (check.data.warnings ?? [])[0] ?? "";
+            if (
+              !window.confirm(
+                `Удалить всё расписание семестра «${semester.calendar.name}»?
+${summary}
+Отменить это действие нельзя.`,
+              )
+            )
+              return;
+            const done = await builderRequest({
+              command,
+              preview: false,
+              token: check.data.token,
+              confirmed: true,
+            });
+            if (!done.response.ok)
+              throw Error(readableBuilderError(done.data.error ?? ""));
+            K(true);
+            M(
+              "Расписание семестра удалено. Его можно составить заново — вручную или из таблицы.",
+            );
+            onCleared();
+            router.refresh();
+          } catch (e) {
+            M(
+              e instanceof Error && e.message
+                ? e.message
+                : "Не удалось удалить расписание.",
+            );
+          } finally {
+            B(false);
+          }
+        }}
+      >
+        {busy ? "Проверяем…" : "Удалить расписание полностью"}
+      </button>
+      {message && (
+        <p
+          role={ok ? "status" : "alert"}
+          className={`form-message ${ok ? "is-success" : "is-error"}`}
+        >
+          {message}
         </p>
       )}
     </div>

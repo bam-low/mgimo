@@ -55,11 +55,13 @@ export default async function Page({
         <GradePeriod query={q} error={period.error} />
         <GradeList data={data} query={q} />
         <nav className="grades-pages" aria-label="Страницы результатов">
-          <Link
-            href={{ pathname: "/grades", query: { ...q, cursor: undefined } }}
-          >
-            К началу
-          </Link>
+          {q.cursor && (
+            <Link
+              href={{ pathname: "/grades", query: { ...q, cursor: undefined } }}
+            >
+              К началу
+            </Link>
+          )}
           {data.subjectId && data.next && (
             <Link
               href={{ pathname: "/grades", query: { ...q, cursor: data.next } }}

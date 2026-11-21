@@ -22,7 +22,7 @@ export default async function Page() {
         </div>
         <RefreshContext />
         <header className="editorial-heading">
-          <p className="eyebrow">Деканат / 01</p>
+          <p className="eyebrow">Деканат / Структура</p>
           <h1>Учебная структура</h1>
           <p>Факультеты, направления и группы — в одном контексте.</p>
         </header>

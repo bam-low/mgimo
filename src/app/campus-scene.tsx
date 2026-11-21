@@ -1,6 +1,7 @@
-// Рисунок для приветствия на главной студента — изначальный набросок из прототипа
-// владельца. Здание перерисовано под вуз: часовая башня вместо купола, крылья
-// с мансардой и окнами. Время суток меняет только мягкий фон, светило и окна.
+// Рисунок для приветствия на главной студента: университет с часовой башней,
+// портиком на шесть колонн, крыльями и лестницей, деревья по бокам. Мягкая
+// акварельная манера по референсу владельца. Время суток меняет небо, светило,
+// тон здания и свет в окнах; рамки нет — фон растворяется в карточке.
 export type DayPhase = "morning" | "day" | "evening" | "night";
 
 export const PHASES: { id: DayPhase; label: string; greeting: string }[] = [
@@ -25,229 +26,346 @@ export function phaseAt(instant: number, timeZone: string): DayPhase {
   return "night";
 }
 
-const LOOK: Record<
-  DayPhase,
-  { wash: string; light: string; lightOpacity: number; window: string }
-> = {
+type Look = {
+  wash: string;
+  light: string;
+  lightAt: [number, number];
+  cloud: string;
+  windowTop: string;
+  windowBottom: string;
+  /** Тонировка всей сцены (умножение), прозрачность. */
+  tint?: [string, number];
+};
+
+const LOOK: Record<DayPhase, Look> = {
   morning: {
-    wash: "#F7D9CC",
-    light: "#F9D2B4",
-    lightOpacity: 0.75,
-    window: "#F3E2E3",
+    wash: "#FBE6DD",
+    light: "#F6C46A",
+    lightAt: [126, 74],
+    cloud: "#F2C3CF",
+    windowTop: "#F2B4A6",
+    windowBottom: "#F7D6A2",
   },
   day: {
-    wash: "#E4ECF1",
-    light: "#F6E3C8",
-    lightOpacity: 0.7,
-    window: "#F3E2E3",
+    wash: "#E8EFF3",
+    light: "#F9DC8A",
+    lightAt: [118, 50],
+    cloud: "#FFFFFF",
+    windowTop: "#E9DDE5",
+    windowBottom: "#F6EEF1",
   },
   evening: {
-    wash: "#F1C3AE",
-    light: "#F2A983",
-    lightOpacity: 0.6,
-    window: "#F6D08A",
+    wash: "#F6CDBA",
+    light: "#F09A6E",
+    lightAt: [128, 96],
+    cloud: "#E9B3C2",
+    windowTop: "#F1AE5E",
+    windowBottom: "#F8D18A",
+    tint: ["#F2BFA6", 0.22],
   },
   night: {
-    wash: "#C9C6DA",
-    light: "#F4EEDC",
-    lightOpacity: 0.95,
-    window: "#F7D37E",
+    wash: "#CFCADF",
+    light: "#F6EFD9",
+    lightAt: [308, 44],
+    cloud: "#D9D3E6",
+    windowTop: "#F6C766",
+    windowBottom: "#FBE19C",
+    tint: ["#8C88AC", 0.34],
   },
 };
 
+const STROKE = "#C68C93";
+
 export function CampusScene({ phase }: { phase: DayPhase }) {
   const look = LOOK[phase];
-  const lit = phase === "evening" || phase === "night";
+  const night = phase === "night";
+  const lit = phase === "evening" || night;
   const label = PHASES.find((p) => p.id === phase)?.label.toLowerCase();
-  const windowRows = [100, 124];
-  const wingX = [88, 102, 116, 258, 272, 286];
+  const [lx, ly] = look.lightAt;
+  const wingWindows = [101, 114, 127, 252, 265, 278].flatMap((x) =>
+    [108, 129].map((y) => ({ x, y })),
+  );
   return (
     <svg
       className="campus-scene"
-      viewBox="0 0 380 170"
-      fill="none"
-      stroke="#7A3A4B"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      viewBox="0 0 380 197"
       role="img"
       aria-label={`Рисунок: здание университета, ${label}`}
       data-phase={phase}
     >
       <defs>
         <radialGradient id="cs-wash" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor={look.wash} stopOpacity="0.85" />
-          <stop offset="0.55" stopColor={look.wash} stopOpacity="0.45" />
+          <stop offset="0" stopColor={look.wash} stopOpacity="0.95" />
+          <stop offset="0.6" stopColor={look.wash} stopOpacity="0.5" />
           <stop offset="1" stopColor={look.wash} stopOpacity="0" />
         </radialGradient>
-      </defs>
-      <ellipse
-        cx="190"
-        cy="92"
-        rx="176"
-        ry="76"
-        fill="url(#cs-wash)"
-        stroke="none"
-      />
-      {phase === "night" ? (
-        <g stroke="none">
-          <circle
-            cx="300"
-            cy="34"
-            r="10"
-            fill={look.light}
-            opacity={look.lightOpacity}
+        <linearGradient id="cs-wall" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#F8DDD7" />
+          <stop offset="1" stopColor="#F1CDC9" />
+        </linearGradient>
+        <linearGradient id="cs-window" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={look.windowTop} />
+          <stop offset="1" stopColor={look.windowBottom} />
+        </linearGradient>
+        <linearGradient id="cs-door" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={lit ? "#E8A267" : "#E7A0A8"} />
+          <stop offset="1" stopColor={lit ? "#D9844F" : "#D98893"} />
+        </linearGradient>
+        <radialGradient id="cs-tint" cx="0.5" cy="0.5" r="0.5">
+          <stop
+            offset="0"
+            stopColor={look.tint?.[0] ?? "#fff"}
+            stopOpacity={look.tint?.[1] ?? 0}
           />
-          <circle cx="305" cy="30" r="9" fill={look.wash} />
+          <stop
+            offset="0.65"
+            stopColor={look.tint?.[0] ?? "#fff"}
+            stopOpacity={(look.tint?.[1] ?? 0) * 0.7}
+          />
+          <stop
+            offset="1"
+            stopColor={look.tint?.[0] ?? "#fff"}
+            stopOpacity="0"
+          />
+        </radialGradient>
+        <radialGradient id="cs-glow">
+          <stop offset="0" stopColor="#FFD98A" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#FFD98A" stopOpacity="0" />
+        </radialGradient>
+        {/* Мягкие «акварельные» края у крон, кустов, облаков и светила */}
+        <filter id="cs-wc" x="-15%" y="-15%" width="130%" height="130%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.05"
+            numOctaves="2"
+            seed="5"
+          />
+          <feDisplacementMap in="SourceGraphic" scale="3.2" />
+          <feGaussianBlur stdDeviation="0.5" />
+        </filter>
+        <filter id="cs-soft" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.4" />
+        </filter>
+      </defs>
+
+      {/* Небо: пятно, растворяющееся к краям */}
+      <ellipse cx="190" cy="100" rx="180" ry="90" fill="url(#cs-wash)" />
+
+      {/* Облака */}
+      <g filter="url(#cs-soft)" opacity={night ? 0.45 : 0.6}>
+        <ellipse cx="92" cy="58" rx="26" ry="9" fill={look.cloud} />
+        <ellipse cx="110" cy="52" rx="16" ry="8" fill={look.cloud} />
+        <ellipse cx="272" cy="60" rx="30" ry="10" fill={look.cloud} />
+        <ellipse cx="292" cy="54" rx="18" ry="8" fill={look.cloud} />
+      </g>
+
+      {/* Светило: солнце за зданием или луна */}
+      {night ? (
+        <g>
+          <circle cx={lx} cy={ly} r="18" fill="url(#cs-glow)" opacity="0.4" />
+          <circle cx={lx} cy={ly} r="9" fill={look.light} />
+          <circle cx={lx + 4} cy={ly - 3} r="8" fill={look.wash} />
+          {[
+            [70, 30],
+            [150, 22],
+            [236, 26],
+            [338, 70],
+            [52, 64],
+          ].map(([x, y]) => (
+            <circle
+              key={`${x}-${y}`}
+              cx={x}
+              cy={y}
+              r="0.9"
+              fill="#FFF7E6"
+              opacity="0.85"
+            />
+          ))}
         </g>
       ) : (
         <circle
-          cx={phase === "morning" ? 96 : phase === "evening" ? 286 : 190}
-          cy={phase === "day" ? 52 : 66}
-          r={phase === "day" ? 40 : 30}
+          cx={lx}
+          cy={ly}
+          r="31"
           fill={look.light}
-          stroke="none"
-          opacity={look.lightOpacity}
+          opacity="0.72"
+          filter="url(#cs-wc)"
         />
       )}
+
+      {/* Земля */}
       <ellipse
         cx="190"
-        cy="152"
+        cy="156"
         rx="170"
-        ry="9"
-        fill="#EBC9CF"
-        stroke="none"
-        opacity=".55"
+        ry="12"
+        fill="#F1CFD3"
+        opacity="0.6"
+        filter="url(#cs-soft)"
       />
-      <g opacity=".8">
-        {/* Часовая башня */}
-        <path d="M176 24L190 13l14 11z" fill="#EAD2D4" />
-        <rect x="178" y="24" width="24" height="22" fill="#F0DADD" />
-        <circle cx="190" cy="34" r="6" fill="#F8EEEC" />
-        <path d="M190 34v-3.6M190 34l2.6 1.4" />
-        {/* Портик */}
-        <path d="M130 76L190 44l60 32z" fill="#F0DADD" />
-        <path d="M142 72L190 49l48 23" opacity=".5" />
-        <rect x="128" y="76" width="124" height="6" fill="#E9CDD2" />
-        <path d="M150 79h80" opacity=".45" strokeDasharray="3 3" />
-        {/* Крылья с мансардой */}
-        <path d="M80 88l6-7h42v7z" fill="#E9CDD2" />
-        <path d="M300 88l-6-7h-42v7z" fill="#E9CDD2" />
-        <rect x="82" y="88" width="46" height="60" fill="#F3E2E3" />
-        <rect x="252" y="88" width="46" height="60" fill="#F3E2E3" />
+
+      {/* Кусты за деревьями */}
+      <g filter="url(#cs-wc)" opacity="0.85">
+        <ellipse cx="78" cy="144" rx="16" ry="9" fill="#D9C68F" />
+        <ellipse cx="90" cy="146" rx="10" ry="7" fill="#E4D2A2" />
+        <ellipse cx="304" cy="143" rx="15" ry="9" fill="#CFC58F" />
+        <ellipse cx="292" cy="146" rx="10" ry="7" fill="#E1D3A3" />
+      </g>
+
+      {/* Здание */}
+      <g stroke={STROKE} strokeWidth="0.9" strokeLinejoin="round">
+        {/* Башня-опора: отдельная квадратная вышка за фронтоном, уходит в здание */}
+        <rect x="181" y="43" width="22" height="46" fill="#F2D3CD" />
+        <path d="M181 47H203" opacity="0.5" />
         <rect
-          x="136"
-          y="82"
-          width="108"
-          height="66"
-          fill="#F8EEEC"
-          stroke="none"
+          x="189.5"
+          y="49"
+          width="5"
+          height="8"
+          rx="2.5"
+          fill="url(#cs-window)"
         />
-        <path d="M140 84v64M156 84v64M172 84v64M208 84v64M224 84v64M240 84v64" />
+        {/* Крылья */}
+        <path d="M93 96 96 91H138V96Z" fill="#E7BDC0" />
+        <path d="M293 96 290 91H248V96Z" fill="#E7BDC0" />
+        <rect x="95" y="96" width="43" height="55" fill="url(#cs-wall)" />
+        <rect x="248" y="96" width="43" height="55" fill="url(#cs-wall)" />
+        {wingWindows.map(({ x, y }) => (
+          <rect
+            key={`${x}-${y}`}
+            x={x}
+            y={y}
+            width="7"
+            height="11"
+            rx="0.6"
+            fill="url(#cs-window)"
+          />
+        ))}
+        {/* Портик */}
+        <rect x="138" y="89" width="110" height="62" fill="#F6D9D3" />
+        <path d="M134 86 193 56 252 86Z" fill="#F5D7D1" />
+        <path d="M145 83 193 60 241 83" fill="none" opacity="0.55" />
+        <rect x="134" y="86" width="118" height="4" fill="#F0CCC7" />
+        <path d="M140 92.2H246" strokeDasharray="2.6 2.2" opacity="0.5" />
+        {[142, 158, 174, 204, 220, 236].map((x) => (
+          <g key={x}>
+            <rect x={x - 1.2} y="94" width="10.4" height="2.2" fill="#F3DCD6" />
+            <rect x={x} y="96" width="8" height="51" fill="#FBEDE8" />
+            <rect
+              x={x - 1.2}
+              y="146.5"
+              width="10.4"
+              height="2.4"
+              fill="#F3DCD6"
+            />
+          </g>
+        ))}
+        <path d="M184 151V124a9.5 9.5 0 0 1 19 0V151Z" fill="url(#cs-door)" />
+        {/* Часовня наверху башни-опоры */}
+        <path d="M175 21 192 9 209 21Z" fill="#F2CFCA" />
+        <rect x="178" y="21" width="28" height="20" fill="#F7DED8" />
+        <rect x="176" y="40" width="32" height="3" fill="#F0CCC7" />
+        <circle cx="192" cy="30.5" r="6.4" fill="#FFF8F4" />
+        <path d="M192 30.5V26.6M192 30.5 194.8 32.2" strokeLinecap="round" />
+        {/* Лестница */}
+        <path d="M124 151H262L266 156H120Z" fill="#F3D6D1" />
+        <path d="M120 156H266L270 161H116Z" fill="#F0CFCA" />
+      </g>
+
+      {/* Деревья: розовое слева, жёлто-зелёное справа */}
+      <g>
         <path
-          d="M178 148v-26a12 12 0 0 1 24 0v26z"
-          fill={lit ? "#E9B36A" : "#D9A8B1"}
+          d="M58 153C58 136 57 118 58 98M58 120 46 108M58 112 70 100M58 128 66 120"
+          stroke="#B88282"
+          strokeWidth="1.3"
+          fill="none"
+          strokeLinecap="round"
         />
-        <g opacity=".7">
-          {windowRows.flatMap((y) =>
-            wingX.map((x) => (
-              <rect
-                key={`${x}-${y}`}
-                x={x - 3}
-                y={y}
-                width="7"
-                height="12"
-                rx="1"
-                fill={look.window}
-              />
-            )),
-          )}
+        <g filter="url(#cs-wc)">
+          <circle cx="50" cy="94" r="17" fill="#F2B0BF" opacity="0.85" />
+          <circle cx="66" cy="88" r="15" fill="#EC98AB" opacity="0.8" />
+          <circle cx="40" cy="108" r="12" fill="#F6C3CD" opacity="0.85" />
+          <circle cx="70" cy="106" r="13" fill="#EFA6B6" opacity="0.8" />
         </g>
-        <path d="M120 148h140M112 153h156M104 158h172" opacity=".6" />
+        <path
+          d="M326 153C326 138 327 124 326 106M326 128 316 118M326 120 336 110"
+          stroke="#B88A78"
+          strokeWidth="1.2"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <g filter="url(#cs-wc)">
+          <circle cx="320" cy="98" r="14" fill="#F4D27C" opacity="0.85" />
+          <circle cx="334" cy="104" r="13" fill="#C9C68D" opacity="0.8" />
+          <circle cx="314" cy="112" r="11" fill="#EFC56E" opacity="0.8" />
+          <circle cx="336" cy="90" r="10" fill="#F6DD98" opacity="0.8" />
+        </g>
       </g>
-      <g>
-        <path d="M40 150c2-30 0-46-4-64M38 118l-14-12M40 106l12-10" />
-        <circle
-          cx="34"
-          cy="76"
-          r="26"
-          fill="#C9808F"
-          stroke="none"
-          opacity=".55"
-        />
-        <circle
-          cx="54"
-          cy="88"
-          r="18"
-          fill="#B25D70"
-          stroke="none"
-          opacity=".45"
-        />
-        <circle
-          cx="20"
-          cy="94"
-          r="15"
-          fill="#E2A9B4"
-          stroke="none"
-          opacity=".6"
-        />
-      </g>
-      <g>
-        <path d="M338 150c-1-24 1-38 3-52" />
-        <circle
-          cx="340"
-          cy="86"
-          r="22"
-          fill="#E2B97A"
-          stroke="none"
-          opacity=".6"
-        />
-        <circle
-          cx="356"
-          cy="98"
-          r="15"
-          fill="#C8C79A"
-          stroke="none"
-          opacity=".7"
-        />
-        <circle
-          cx="324"
-          cy="98"
-          r="14"
-          fill="#D8C18A"
-          stroke="none"
-          opacity=".6"
-        />
-      </g>
-      <g stroke="none">
+
+      {/* Летящие листья */}
+      <g opacity="0.85">
         <ellipse
-          cx="300"
-          cy="62"
-          rx="5"
-          ry="2.5"
-          fill="#C9808F"
-          transform="rotate(20 300 62)"
-        />
-        <ellipse
-          cx="64"
-          cy="44"
-          rx="5"
-          ry="2.5"
-          fill="#E2B97A"
-          transform="rotate(35 64 44)"
+          cx="116"
+          cy="33"
+          rx="4.4"
+          ry="2"
+          fill="#EBA1B0"
+          transform="rotate(-28 116 33)"
         />
         <ellipse
           cx="86"
-          cy="22"
-          rx="6"
-          ry="3"
-          fill="#C9808F"
-          transform="rotate(-20 86 22)"
+          cy="54"
+          rx="3.6"
+          ry="1.7"
+          fill="#F2CF7C"
+          transform="rotate(24 86 54)"
+        />
+        <ellipse
+          cx="293"
+          cy="72"
+          rx="3.8"
+          ry="1.7"
+          fill="#EBA1B0"
+          transform="rotate(18 293 72)"
         />
       </g>
-      <g opacity=".5">
-        <path d="M30 156l10-3M60 158l12-2M310 157l12-2M344 155l10-3" />
-      </g>
+
+      {/* Тонировка вечера и ночи */}
+      {look.tint && (
+        <ellipse
+          cx="190"
+          cy="100"
+          rx="185"
+          ry="96"
+          fill="url(#cs-tint)"
+          style={{ mixBlendMode: "multiply" }}
+        />
+      )}
+
+      {/* Свет в окнах и у входа поверх тонировки */}
+      {lit && (
+        <g style={{ mixBlendMode: "screen" }}>
+          {wingWindows.map(({ x, y }) => (
+            <rect
+              key={`g-${x}-${y}`}
+              x={x}
+              y={y}
+              width="7"
+              height="11"
+              rx="0.6"
+              fill="url(#cs-window)"
+              opacity={night ? 0.9 : 0.55}
+            />
+          ))}
+          <circle
+            cx="193.5"
+            cy="138"
+            r="16"
+            fill="url(#cs-glow)"
+            opacity={night ? 0.7 : 0.4}
+          />
+        </g>
+      )}
     </svg>
   );
 }

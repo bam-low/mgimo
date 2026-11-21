@@ -123,7 +123,7 @@ await cp(
   path.join(root, "tools/payload/scripts/launch-db-policy.mjs"),
 );
 await mkdir(path.join(root, "tools/payload/ops/vps"), { recursive: true });
-for (const name of ["admin.mjs", "tools-check.mjs"]) {
+for (const name of ["admin.mjs", "tools-check.mjs", "demo-reset.mjs"]) {
   await cp("ops/vps/" + name, path.join(root, "tools/payload/ops/vps", name));
 }
 await writeFile(".runtime-evidence/vps-context.txt", root);
