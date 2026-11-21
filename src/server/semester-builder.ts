@@ -72,6 +72,7 @@ export const builderCommand = z.discriminatedUnion("action", [
       calendar: calendarInput,
     })
     .strict(),
+  z.object({ action: z.literal("SEMESTER_DELETE"), id, version }).strict(),
   z
     .object({
       action: z.literal("TEACHER_CREATE"),
@@ -735,6 +736,25 @@ export async function changeBuilder(
               data: { id: targetId, universityId, ...data },
             });
         await audit(targetId, d.action, old, next);
+      });
+    } else if (d.action === "SEMESTER_DELETE") {
+      // Удаляется только пустой семестр: занятия, отмены и уведомления о них — история.
+      const old = await scopedSemester(tx, universityId, d.id);
+      checkedVersion(old, d.version);
+      const [templates, lessons] = await Promise.all([
+        tx.scheduleTemplate.count({
+          where: { semesterId: old.id, universityId },
+        }),
+        tx.scheduleEntry.count({ where: { semesterId: old.id, universityId } }),
+      ]);
+      if (templates || lessons)
+        reject(
+          `В семестре «${old.name}» уже есть занятия (${lessons}). Удалить можно только пустой семестр — история занятий сохраняется.`,
+        );
+      evidence.push(old);
+      writes.push(async () => {
+        await tx.semester.delete({ where: { id: old.id } });
+        await audit(old.id, d.action, old, null);
       });
     } else if (d.action === "TEACHER_CREATE" || d.action === "TEACHER_EDIT") {
       const old =

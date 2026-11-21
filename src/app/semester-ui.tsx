@@ -1054,10 +1054,7 @@ function ResourceFields({
             ))}
         </select>
       </label>
-      <QuickResource
-        kind="room"
-        onCreated={(id) => onChange({ roomId: id })}
-      />
+      <QuickResource kind="room" onCreated={(id) => onChange({ roomId: id })} />
       <div className="time-fields">
         <ScheduleField
           label="Начало занятия"
@@ -1085,7 +1082,10 @@ export function ScheduleBuilder({
   initialGroup = "",
   initialDraft = "",
   workspace = false,
+  methods,
 }: {
+  /** Выбор «вручную / из таблицы» — сразу после настройки семестра. */
+  methods?: ReactNode;
   catalog: Catalog;
   initialSemester?: string;
   initialProgram?: string;
@@ -1317,9 +1317,12 @@ export function ScheduleBuilder({
         open={!catalog.semesters.length}
       >
         <summary>
-          {semester
-            ? `Настройка семестра · ${semester.calendar.name}`
-            : "Настроить учебный семестр"}
+          <span className="setup-title">
+            {semester
+              ? `Настройка семестра · ${semester.calendar.name}`
+              : "Настроить учебный семестр"}
+          </span>
+          <span className="setup-badge">Важно</span>
         </summary>
         <SemesterEditor
           key={`${semester?.id ?? "new"}:${semester?.version ?? 0}`}
@@ -1331,17 +1334,28 @@ export function ScheduleBuilder({
           }}
         />
         {semester && (
-          <button
-            type="button"
-            onClick={() => {
-              S("");
-              invalidate();
-            }}
-          >
-            Создать другой семестр
-          </button>
+          <div className="semester-actions">
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => {
+                S("");
+                invalidate();
+              }}
+            >
+              Создать другой семестр
+            </button>
+            <DeleteSemester
+              semester={semester}
+              onDeleted={() => {
+                S("");
+                invalidate();
+              }}
+            />
+          </div>
         )}
       </details>
+      {methods}
       {workspace ? (
         <p className="notice">
           Выберите семестр и направление, затем откройте свободную ячейку.
@@ -1531,221 +1545,221 @@ export function ScheduleBuilder({
       {week && semester && program && (
         <>
           <div className="builder-workspace">
-          <div className="builder-board">
-          <nav className="week-nav" aria-label="Недели конструктора">
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => {
-                const next = addDays(from, -7);
-                D(next);
-                void load(next);
-              }}
-            >
-              ← Неделя
-            </button>
-            <strong>
-              {displayDate(from)} — {displayDate(addDays(from, 6))} ·{" "}
-              {parity(from, semester.calendar.anchor) === "A"
-                ? "Числитель"
-                : "Знаменатель"}
-            </strong>
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => {
-                const next = addDays(from, 7);
-                D(next);
-                void load(next);
-              }}
-            >
-              Неделя →
-            </button>
-          </nav>
-          <nav className="week-nav" aria-label="Переход по типу недели">
-            {(["A", "B"] as const).map((type) => {
-              const start =
-                parity(from, semester.calendar.anchor) === type
-                  ? from
-                  : addDays(from, 7);
-              return (
+            <div className="builder-board">
+              <nav className="week-nav" aria-label="Недели конструктора">
                 <button
-                  key={type}
                   type="button"
                   className="secondary"
                   onClick={() => {
-                    D(start);
-                    void load(start);
+                    const next = addDays(from, -7);
+                    D(next);
+                    void load(next);
                   }}
                 >
-                  {type === "A" ? "Числитель" : "Знаменатель"} ·{" "}
-                  {displayDate(start)}–{displayDate(addDays(start, 6))}
+                  ← Неделя
                 </button>
-              );
-            })}
-          </nav>
-          {saved && (
-            <p role="status" className="notice">
-              {saved}
-            </p>
-          )}
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => {
-              Rev((n) => n + 1);
-              Slot({
-                day:
-                  civilDay(day) && day >= semester.calendar.start
-                    ? day
-                    : semester.calendar.start,
-                groupId: visibleGroup,
-                startTime: "09:00",
-                endTime: "10:30",
-              });
-              Sel("");
-              requestAnimationFrame(() => {
-                const panel = document.getElementById("builder-inspector");
-                panel?.scrollIntoView({ block: "start" });
-                panel
-                  ?.querySelector<HTMLInputElement>("input, select")
-                  ?.focus();
-              });
-            }}
-          >
-            Добавить занятия
-          </button>
-          <div
-            className="program-desktop"
-            role="region"
-            aria-label="Общее расписание направления"
-            tabIndex={0}
-          >
-            <table className="program-table">
-              <caption>Группы направления: {program.name}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Дата</th>
-                  {(mode === "ONE"
-                    ? groups.filter((g) => g.id === groupId)
-                    : groups
-                  ).map((g) => (
-                    <th scope="col" key={g.id}>
-                      {g.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {days.map((date) => (
-                  <tr key={date}>
-                    <th scope="row">
-                      {displayDate(date)}
-                      <span className="weekday">{weekdayShort(date)}</span>
-                      {(date < semester.calendar.start ||
-                        date > semester.calendar.end) && (
-                        <small>Вне семестра</small>
-                      )}
-                      {excluded(date, semester.calendar) && (
-                        <small>Исключено</small>
-                      )}
-                    </th>
-                    {(mode === "ONE"
-                      ? groups.filter((g) => g.id === groupId)
-                      : groups
-                    ).map((g) => (
-                      <td key={g.id}>{dayList(g.id, date)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="program-mobile" aria-label="Расписание по дням">
-            {mode === "ALL" && (
-              <label>
-                Группа в мобильном просмотре
-                <select
-                  value={visibleGroup ?? ""}
-                  onChange={(e) => MG(e.target.value)}
-                >
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            {days.map((date) => (
-              <section className="mobile-timetable-day" key={date}>
-                <h3>
-                  {displayDate(date)} ({weekdayShort(date)}) ·{" "}
-                  {parity(date, semester.calendar.anchor) === "A"
+                <strong>
+                  {displayDate(from)} — {displayDate(addDays(from, 6))} ·{" "}
+                  {parity(from, semester.calendar.anchor) === "A"
                     ? "Числитель"
                     : "Знаменатель"}
-                </h3>
-                {(date < semester.calendar.start ||
-                  date > semester.calendar.end) && (
-                  <p>Вне семестра — публикация недоступна</p>
-                )}
-                {excluded(date, semester.calendar) && (
-                  <p>Исключённый день семестра</p>
-                )}
-                {dayList(visibleGroup, date)}
-              </section>
-            ))}
-          </div>
-          </div>
-          <section id="builder-inspector" className="editor-panel">
-            <div className="semester-links">
-              <h2>{chosen ? "Изменить занятие" : "Добавить занятия"}</h2>
-              {chosen && (
-                <button className="secondary" onClick={() => Sel("")}>
-                  Добавить новые занятия
+                </strong>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    const next = addDays(from, 7);
+                    D(next);
+                    void load(next);
+                  }}
+                >
+                  Неделя →
                 </button>
-              )}
-            </div>
-            {chosen ? (
-              chosen.semesterId && chosen.subjectId ? (
-                <OccurrenceEditor
-                  key={`${chosen.id}:${chosen.version}`}
-                  entry={chosen}
-                  week={week}
-                  catalog={catalog}
-                  reload={() => void load()}
-                />
-              ) : (
-                <p>
-                  Прежнее занятие сохраняет исходную историю.{" "}
-                  <Link
-                    href={`/staff/schedule/manual?groupId=${chosen.groupIds[0]}&day=${day}`}
-                  >
-                    Открыть редактор прежнего расписания
-                  </Link>
-                  .
+              </nav>
+              <nav className="week-nav" aria-label="Переход по типу недели">
+                {(["A", "B"] as const).map((type) => {
+                  const start =
+                    parity(from, semester.calendar.anchor) === type
+                      ? from
+                      : addDays(from, 7);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      className="secondary"
+                      onClick={() => {
+                        D(start);
+                        void load(start);
+                      }}
+                    >
+                      {type === "A" ? "Числитель" : "Знаменатель"} ·{" "}
+                      {displayDate(start)}–{displayDate(addDays(start, 6))}
+                    </button>
+                  );
+                })}
+              </nav>
+              {saved && (
+                <p role="status" className="notice">
+                  {saved}
                 </p>
-              )
-            ) : (
-              <TemplateEditor
-                readyOnly={workspace}
-                key={`${semester.id}:${program.id}:${mode}:${groupId}:${slot.day}:${slot.groupId}:${newRevision}`}
-                catalog={catalog}
-                semester={semester}
-                programId={program.id}
-                groups={program.groups.filter(
-                  (g) => g.active && program.available,
+              )}
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => {
+                  Rev((n) => n + 1);
+                  Slot({
+                    day:
+                      civilDay(day) && day >= semester.calendar.start
+                        ? day
+                        : semester.calendar.start,
+                    groupId: visibleGroup,
+                    startTime: "09:00",
+                    endTime: "10:30",
+                  });
+                  Sel("");
+                  requestAnimationFrame(() => {
+                    const panel = document.getElementById("builder-inspector");
+                    panel?.scrollIntoView({ block: "start" });
+                    panel
+                      ?.querySelector<HTMLInputElement>("input, select")
+                      ?.focus();
+                  });
+                }}
+              >
+                Добавить занятия
+              </button>
+              <div
+                className="program-desktop"
+                role="region"
+                aria-label="Общее расписание направления"
+                tabIndex={0}
+              >
+                <table className="program-table">
+                  <caption>Группы направления: {program.name}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Дата</th>
+                      {(mode === "ONE"
+                        ? groups.filter((g) => g.id === groupId)
+                        : groups
+                      ).map((g) => (
+                        <th scope="col" key={g.id}>
+                          {g.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {days.map((date) => (
+                      <tr key={date}>
+                        <th scope="row">
+                          {displayDate(date)}
+                          <span className="weekday">{weekdayShort(date)}</span>
+                          {(date < semester.calendar.start ||
+                            date > semester.calendar.end) && (
+                            <small>Вне семестра</small>
+                          )}
+                          {excluded(date, semester.calendar) && (
+                            <small>Исключено</small>
+                          )}
+                        </th>
+                        {(mode === "ONE"
+                          ? groups.filter((g) => g.id === groupId)
+                          : groups
+                        ).map((g) => (
+                          <td key={g.id}>{dayList(g.id, date)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="program-mobile" aria-label="Расписание по дням">
+                {mode === "ALL" && (
+                  <label>
+                    Группа в мобильном просмотре
+                    <select
+                      value={visibleGroup ?? ""}
+                      onChange={(e) => MG(e.target.value)}
+                    >
+                      {groups.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 )}
-                defaultGroup={
-                  slot.groupId || (mode === "ONE" ? groupId : visibleGroup)
-                }
-                slot={slot}
-                initialDraft={initialDraft}
-                viewGroup={mode === "ONE" ? groupId : ""}
-                reload={(p) => void load(day, p)}
-              />
-            )}
-          </section>
+                {days.map((date) => (
+                  <section className="mobile-timetable-day" key={date}>
+                    <h3>
+                      {displayDate(date)} ({weekdayShort(date)}) ·{" "}
+                      {parity(date, semester.calendar.anchor) === "A"
+                        ? "Числитель"
+                        : "Знаменатель"}
+                    </h3>
+                    {(date < semester.calendar.start ||
+                      date > semester.calendar.end) && (
+                      <p>Вне семестра — публикация недоступна</p>
+                    )}
+                    {excluded(date, semester.calendar) && (
+                      <p>Исключённый день семестра</p>
+                    )}
+                    {dayList(visibleGroup, date)}
+                  </section>
+                ))}
+              </div>
+            </div>
+            <section id="builder-inspector" className="editor-panel">
+              <div className="semester-links">
+                <h2>{chosen ? "Изменить занятие" : "Добавить занятия"}</h2>
+                {chosen && (
+                  <button className="secondary" onClick={() => Sel("")}>
+                    Добавить новые занятия
+                  </button>
+                )}
+              </div>
+              {chosen ? (
+                chosen.semesterId && chosen.subjectId ? (
+                  <OccurrenceEditor
+                    key={`${chosen.id}:${chosen.version}`}
+                    entry={chosen}
+                    week={week}
+                    catalog={catalog}
+                    reload={() => void load()}
+                  />
+                ) : (
+                  <p>
+                    Прежнее занятие сохраняет исходную историю.{" "}
+                    <Link
+                      href={`/staff/schedule/manual?groupId=${chosen.groupIds[0]}&day=${day}`}
+                    >
+                      Открыть редактор прежнего расписания
+                    </Link>
+                    .
+                  </p>
+                )
+              ) : (
+                <TemplateEditor
+                  readyOnly={workspace}
+                  key={`${semester.id}:${program.id}:${mode}:${groupId}:${slot.day}:${slot.groupId}:${newRevision}`}
+                  catalog={catalog}
+                  semester={semester}
+                  programId={program.id}
+                  groups={program.groups.filter(
+                    (g) => g.active && program.available,
+                  )}
+                  defaultGroup={
+                    slot.groupId || (mode === "ONE" ? groupId : visibleGroup)
+                  }
+                  slot={slot}
+                  initialDraft={initialDraft}
+                  viewGroup={mode === "ONE" ? groupId : ""}
+                  reload={(p) => void load(day, p)}
+                />
+              )}
+            </section>
           </div>
         </>
       )}
@@ -2297,5 +2311,92 @@ function OccurrenceEditor({
         ))}
       </details>
     </>
+  );
+}
+
+/** Семестр перед загрузкой таблицы: создать новый, не уходя со страницы импорта. */
+export function SemesterQuickSetup({ empty }: { empty: boolean }) {
+  const router = useRouter();
+  return (
+    <details
+      id="semester-setup"
+      className="editor-panel semester-setup"
+      open={empty}
+    >
+      <summary>
+        <span className="setup-title">
+          {empty ? "Создайте семестр" : "Новый семестр"}
+        </span>
+        <span className="setup-badge">Важно</span>
+      </summary>
+      <SemesterEditor onCreated={() => router.refresh()} />
+    </details>
+  );
+}
+
+/** Удаление пустого семестра: проверка и подтверждение тем же путём, что и правки. */
+function DeleteSemester({
+  semester,
+  onDeleted,
+}: {
+  semester: Catalog["semesters"][number];
+  onDeleted: () => void;
+}) {
+  const router = useRouter();
+  const [busy, B] = useState(false),
+    [error, E] = useState("");
+  return (
+    <div className="semester-delete">
+      <button
+        type="button"
+        className="danger"
+        disabled={busy}
+        onClick={async () => {
+          if (
+            !window.confirm(
+              `Удалить семестр «${semester.calendar.name}»? Это доступно только для семестра без занятий.`,
+            )
+          )
+            return;
+          B(true);
+          E("");
+          try {
+            const command = {
+              action: "SEMESTER_DELETE" as const,
+              id: semester.id,
+              version: semester.version,
+            };
+            const check = await builderRequest({ command, preview: true });
+            if (!check.response.ok)
+              throw Error(readableBuilderError(check.data.error ?? ""));
+            const done = await builderRequest({
+              command,
+              preview: false,
+              token: check.data.token,
+              confirmed: true,
+            });
+            if (!done.response.ok)
+              throw Error(readableBuilderError(done.data.error ?? ""));
+            onDeleted();
+            router.refresh();
+          } catch (e) {
+            E(
+              e instanceof Error && e.message
+                ? e.message
+                : "Не удалось удалить семестр.",
+            );
+          } finally {
+            B(false);
+          }
+        }}
+      >
+        {busy ? "Удаляем…" : "Удалить семестр"}
+      </button>
+      {error && (
+        <p role="alert" className="form-message is-error">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

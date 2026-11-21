@@ -1,5 +1,7 @@
 import { BuilderShell, builderPage } from "../builder-shell";
 import { ScheduleImportForm } from "../../../schedule-import-form";
+import { ScheduleMethods } from "../../../schedule-methods";
+import { SemesterQuickSetup } from "../../../semester-ui";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   const catalog = await builderPage();
@@ -13,7 +15,9 @@ export default async function Page() {
   const teachers = catalog.teachers.filter((t) => t.active);
   const rooms = catalog.rooms.filter((r) => r.active);
   return (
-    <BuilderShell unified method="import" title="Расписание из таблицы">
+    <BuilderShell unified title="Расписание из таблицы">
+      <SemesterQuickSetup empty={!catalog.semesters.length} />
+      <ScheduleMethods active="import" />
       <ScheduleImportForm
         semesters={catalog.semesters.map((s) => ({
           id: s.id,

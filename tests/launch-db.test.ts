@@ -106,7 +106,6 @@ it("limited role cannot delete history, read migrations, DDL, escalate or disabl
     'UPDATE "Notification" SET "recipientMembershipId"="recipientMembershipId"',
     'UPDATE "ApplicationDocument" SET "sha256"="sha256"',
     'UPDATE "ApplicationEvent" SET "eventType"="eventType"',
-    'DELETE FROM "Semester"',
     'DELETE FROM "Teacher"',
     'DELETE FROM "Room"',
     'DELETE FROM "TeacherSubject"',

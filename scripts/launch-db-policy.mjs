@@ -15,7 +15,7 @@ export const tablePolicy = {
   Announcement: ["SELECT", "INSERT", "DELETE"],
   AnnouncementRead: ["SELECT", "INSERT"],
   Grade: ["SELECT", "INSERT", "UPDATE"],
-  Semester: ["SELECT", "INSERT", "UPDATE"],
+  Semester: ["SELECT", "INSERT", "UPDATE", "DELETE"],
   Teacher: ["SELECT", "INSERT", "UPDATE"],
   Room: ["SELECT", "INSERT", "UPDATE"],
   TeacherSubject: ["SELECT", "INSERT", "UPDATE"],

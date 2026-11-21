@@ -274,3 +274,49 @@ it("Неверные заголовки и слишком большой фай�
       .error,
   ).toMatch(/Не более 200/);
 });
+
+it("Удалить можно только пустой семестр; удаление пишется в аудит", async () => {
+  const empty = randomUUID();
+  await commit({
+    action: "SEMESTER_CREATE",
+    operationId: empty,
+    calendar: {
+      name: "Пустой семестр " + tag,
+      start: "2036-02-04",
+      end: "2036-03-03",
+      anchor: "2036-02-04",
+      exclusions: [],
+    },
+  });
+  const version = (
+    await db.semester.findUniqueOrThrow({ where: { id: empty } })
+  ).version;
+  // Чужой вуз не видит семестр.
+  await expect(
+    changeBuilder(foreign.user.id, foreign.membership.universityId, {
+      command: { action: "SEMESTER_DELETE", id: empty, version },
+      preview: true,
+    }),
+  ).rejects.toBeInstanceOf(Denied);
+  await commit({ action: "SEMESTER_DELETE", id: empty, version });
+  expect(await db.semester.findUnique({ where: { id: empty } })).toBeNull();
+  expect(
+    await db.auditLog.count({
+      where: { targetId: empty, action: "SEMESTER_DELETE" },
+    }),
+  ).toBe(1);
+  // В семестре импорта уже есть занятия — удалить нельзя, ничего не меняется.
+  const busy = await db.semester.findUniqueOrThrow({
+    where: { id: semesterId },
+  });
+  await expect(
+    commit({
+      action: "SEMESTER_DELETE",
+      id: semesterId,
+      version: busy.version,
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(
+    await db.semester.findUnique({ where: { id: semesterId } }),
+  ).not.toBeNull();
+});

@@ -7,7 +7,6 @@ import { builderCatalog } from "@/server/semester-builder";
 import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
 import { RefreshContext } from "../../forms";
-import { ScheduleMethods } from "../../schedule-methods";
 export async function builderPage() {
   const a = await protectedPage(async () => {
     const a = await actor(await headers());
@@ -20,13 +19,11 @@ export function BuilderShell({
   title,
   children,
   unified = false,
-  method,
 }: {
   title: string;
   children: ReactNode;
+  /** Единый экран: якорные кнопки не нужны, выбор способа — в самом экране. */
   unified?: boolean;
-  /** Показать выбор «вручную / из таблицы». */
-  method?: "builder" | "import";
 }) {
   return (
     <main className="campus-shell staff-schedule-page">
@@ -41,11 +38,7 @@ export function BuilderShell({
           <h1>{title}</h1>
           <p>Учебный календарь и занятия · Только вымышленные данные</p>
         </header>
-        <ScheduleManagement
-          unified={unified}
-          base={method === "import" ? "/staff/schedule" : ""}
-        />
-        {method && <ScheduleMethods active={method} />}
+        {!unified && <ScheduleManagement />}
 
         {children}
       </Workspace>
