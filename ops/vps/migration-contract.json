@@ -45,12 +45,23 @@
     {
       "name": "20261118163000_schedule_cancellation",
       "sha256": "367c124773c2a4a6a864f24f8379858038b73dd08a7af0bfaa2097a62da464d3"
+    },
+    {
+      "name": "20261121120000_grade_dismissals",
+      "sha256": "4b736ac1af91bd2f1839dd1ff98c1d5d1c0497850f9203bd559456d0b6994aaa"
+    },
+    {
+      "name": "20261121121000_announcements",
+      "sha256": "d4552fc9e51ba379ccfdb5377c649a0dc35198df652db97578d06572661a7525"
     }
   ],
   "addedTables": [
     "TeachingAssignment",
     "TeachingAssignmentGroup",
-    "ScheduleCancellation"
+    "ScheduleCancellation",
+    "GradeDismissal",
+    "Announcement",
+    "AnnouncementRead"
   ],
   "addedColumns": {
     "StudentGroup": [

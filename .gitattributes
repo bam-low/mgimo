@@ -1,2 +1,4 @@
 # Linux helpers are installed from a Windows checkout too.
 ops/app-update/*.py text eol=lf
+# Prisma checksums migration files byte-for-byte: keep LF on every checkout.
+prisma/migrations/**/migration.sql text eol=lf

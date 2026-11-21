@@ -3,6 +3,7 @@ import { ScheduleField } from "./schedule-field";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
+import { CampusScene, PHASES, phaseAt, type DayPhase } from "./campus-scene";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   dayKey,
@@ -25,21 +26,28 @@ export function ScheduleView({
   home = false,
   name = "",
   overview,
+  notice,
   study,
   initialView = "today",
+  initialDay = "",
 }: {
   home?: boolean;
   name?: string;
   overview?: ReactNode;
+  /** Блок объявлений сразу под приветствием (главная). */
+  notice?: ReactNode;
   study?: { faculty: string; program: string; group: string };
   initialView?: "today" | "week";
+  initialDay?: string;
 }) {
   const [view, V] = useState(initialView),
-    [day, D] = useState("");
+    [day, D] = useState(initialDay),
+    [focusToday, FocusToday] = useState(initialView === "week" && !initialDay);
   const [data, S] = useState<Data | null>(null),
     [now, N] = useState(0),
     [error, E] = useState(""),
-    [retry, R] = useState(0);
+    [retry, R] = useState(0),
+    [chosenPhase, setPhase] = useState<DayPhase | null>(null);
   useEffect(() => {
     let current = true,
       controller: AbortController | undefined,
@@ -124,6 +132,16 @@ export function ScheduleView({
     };
     // data is intentionally not a dependency: changing it must not restart polling.
   }, [day, view, home, retry]);
+  // Week view: bring today's day into view after «К сегодняшнему дню» or opening the week.
+  useEffect(() => {
+    if (!focusToday || !data || view !== "week" || home) return;
+    FocusToday(false);
+    requestAnimationFrame(() =>
+      document
+        .getElementById(`day-${data.today}`)
+        ?.scrollIntoView({ block: "start" }),
+    );
+  }, [focusToday, data, view, home]);
   const days = data
     ? Array.from({ length: home || view === "today" ? 1 : 7 }, (_, i) =>
         addDays(data.from, i),
@@ -144,6 +162,10 @@ export function ScheduleView({
         now,
       )
     : null;
+  const phase: DayPhase =
+    chosenPhase ?? (data && now ? phaseAt(now, data.timezone) : "day");
+  const greeting =
+    PHASES.find((p) => p.id === phase)?.greeting ?? "Здравствуйте";
   const planned = data?.lessons.filter((l) => l.status === "SCHEDULED") ?? [];
   const nextId = planned
     .filter((l) => Date.parse(l.startsAt) > now)
@@ -155,16 +177,19 @@ export function ScheduleView({
     >
       {home ? (
         <header className="student-greeting">
-          <div>
+          <div className="greeting-copy">
             <p className="eyebrow">
               {data ? formatDate(data.today) : "Ваш учебный день"}
             </p>
             <h1>
-              Добрый день,
+              {greeting},
               <br /> <em>{name || "студент"}!</em>
             </h1>
             {study && (
-              <p className="study-context">
+              <p
+                className="study-context"
+                title={`${study.faculty} · ${study.program} · ${study.group}`}
+              >
                 <span>{study.faculty}</span>
                 <span>{study.program}</span>
                 <strong>{study.group}</strong>
@@ -172,14 +197,25 @@ export function ScheduleView({
             )}
             {!data && <p>Загружаем ваш университетский день</p>}
           </div>
-          <Image
-            src="/design/campus-garden.svg"
-            width={270}
-            height={130}
-            alt=""
-            className="campus-illustration"
-            priority
-          />
+          <figure className="greeting-scene">
+            <CampusScene phase={phase} />
+            <div
+              className="phase-switch"
+              role="group"
+              aria-label="Время суток на иллюстрации"
+            >
+              {PHASES.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={phase === p.id}
+                  onClick={() => setPhase(p.id)}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </figure>
         </header>
       ) : (
         <header className="editorial-heading">
@@ -188,6 +224,7 @@ export function ScheduleView({
           <p>{data ? data.groupName : "Групповой учебный день и неделя"}</p>
         </header>
       )}
+      {home && notice}
       {!home && (
         <div className="schedule-controls student-controls">
           <div className="segmented" aria-label="Вид расписания">
@@ -205,6 +242,7 @@ export function ScheduleView({
               onClick={() => {
                 S(null);
                 V("week");
+                FocusToday(true);
               }}
             >
               Неделя
@@ -239,6 +277,7 @@ export function ScheduleView({
                 D("");
                 R((v) => v + 1);
                 S(null);
+                FocusToday(true);
               }}
             >
               К сегодняшнему дню
@@ -382,7 +421,11 @@ export function ScheduleView({
                   (l) => dayKey(new Date(l.startsAt), data.timezone) === date,
                 );
                 return (
-                  <section className="schedule-day" key={date}>
+                  <section
+                    className={`schedule-day${!home && date === data.today ? " is-today" : ""}`}
+                    id={home ? undefined : `day-${date}`}
+                    key={date}
+                  >
                     <header>
                       <div>
                         <h2>
@@ -453,7 +496,8 @@ export function ScheduleView({
             </div>
             <p className="footnote schedule-footnote">
               Время университета: {data.timezone}. Обновление каждые 30 секунд и
-              при возвращении на страницу.
+              при возвращении на страницу. Демонстрационный проект — не является
+              настоящим сервисом вуза.
             </p>
           </div>
           {home && (

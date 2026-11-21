@@ -1,3 +1,4 @@
+@layer legacy {
 /*
  * UX-аудит 20.11.2026 (docs/audit/ux-2026-11-20): финальная доводка поверх
  * globals.css и student-polish.css. Подключается последним; только визуальные
@@ -138,4 +139,5 @@ form button.secondary + button:not(.secondary),
 }
 .filters-disclosure[open] > summary {
   margin-bottom: 10px;
+}
 }

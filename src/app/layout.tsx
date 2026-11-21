@@ -4,6 +4,7 @@ import { platformMetadata } from "@/lib/platform";
 import "./globals.css";
 import "./student-polish.css";
 import "./ux-polish.css";
+import "./design.css";
 import { RussianValidation } from "./russian-validation";
 
 export const metadata: Metadata = platformMetadata;

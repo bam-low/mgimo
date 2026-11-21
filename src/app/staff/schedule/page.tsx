@@ -1,10 +1,7 @@
 import Link from "next/link";
+import { ScheduleMethods } from "../../schedule-methods";
 import { BuilderShell, builderPage } from "./builder-shell";
-import {
-  ScheduleBuilder,
-  Resources,
-  BackToBuilder,
-} from "../../semester-ui";
+import { ScheduleBuilder, Resources, BackToBuilder } from "../../semester-ui";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -32,6 +29,7 @@ export default async function Page({
     <BuilderShell unified title="Расписание занятий">
       <ScheduleBuilder
         workspace
+        methods={<ScheduleMethods active="builder" />}
         catalog={catalog}
         initialGroup={query.groupId}
         initialDraft={query.draft}

@@ -20,6 +20,7 @@ model User {
  applicationEvents ApplicationEvent[]
  applicationDocuments ApplicationDocument[]
  authoredGrades Grade[]
+ announcements Announcement[]
  memberships UniversityMembership[]
  sessions Session[]
  accounts Account[]
@@ -73,6 +74,7 @@ model University {
  subjects Subject[]
  faculties Faculty[]
  memberships UniversityMembership[]
+ announcements Announcement[]
 }
 model Faculty {
  active Boolean @default(true)
@@ -82,6 +84,7 @@ model Faculty {
  universityId String
  university University @relation(fields:[universityId],references:[id])
  programs Program[]
+ announcements Announcement[]
 }
 model Program {
  assignments TeachingAssignment[]
@@ -93,6 +96,7 @@ model Program {
  faculty Faculty @relation(fields:[facultyId],references:[id])
  templates ScheduleTemplate[]
  groups StudentGroup[]
+ announcements Announcement[]
 }
 model StudentGroup {
  course Int?
@@ -109,6 +113,7 @@ model StudentGroup {
  program Program @relation(fields:[programId],references:[id])
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
+ announcements Announcement[]
 }
 model UniversityMembership {
  id String @id @default(cuid())
@@ -123,6 +128,8 @@ model UniversityMembership {
  applications Application[]
  profile StudentProfile?
  grades Grade[]
+ gradeDismissals GradeDismissal[]
+ announcementReads AnnouncementRead[]
  requests EnrollmentRequest[]
  enrollments GroupMembership[]
  @@unique([id,universityId])
@@ -256,6 +263,7 @@ model Grade {
  version Int @default(1)
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+ dismissals GradeDismissal[]
  @@index([membershipId,issuedOn,id])
  @@index([universityId,subjectId])
 }
@@ -497,4 +505,48 @@ model TeachingAssignmentGroup {
  teacher Teacher @relation(fields:[teacherId,universityId],references:[id,universityId],onDelete:Restrict)
  active Boolean @default(true)
  @@id([assignmentId,groupId])
+}
+// Личная отметка студента «скрыть из списка долгов». Не меняет саму оценку.
+model GradeDismissal {
+ id String @id
+ universityId String
+ membershipId String
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Cascade)
+ gradeId String
+ grade Grade @relation(fields:[gradeId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@unique([membershipId,gradeId])
+}
+// Объявление сотрудника для вуза, факультета, направления или группы. Истёкшие удаляются.
+model Announcement {
+ id String @id
+ universityId String
+ university University @relation(fields:[universityId],references:[id],onDelete:Restrict)
+ scope String
+ facultyId String?
+ faculty Faculty? @relation(fields:[facultyId],references:[id],onDelete:Cascade)
+ programId String?
+ program Program? @relation(fields:[programId],references:[id],onDelete:Cascade)
+ groupId String?
+ group StudentGroup? @relation(fields:[groupId],references:[id],onDelete:Cascade)
+ title String
+ body String
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Restrict)
+ expiresAt DateTime?
+ createdAt DateTime @default(now())
+ reads AnnouncementRead[]
+ @@index([universityId,expiresAt])
+ @@index([universityId,createdAt,id])
+}
+// Студент нажал «Прочитано»: объявление больше не показывается на его главной.
+model AnnouncementRead {
+ announcementId String
+ announcement Announcement @relation(fields:[announcementId],references:[id],onDelete:Cascade)
+ membershipId String
+ universityId String
+ membership UniversityMembership @relation(fields:[membershipId,universityId],references:[id,universityId],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([announcementId,membershipId])
+ @@index([membershipId])
 }

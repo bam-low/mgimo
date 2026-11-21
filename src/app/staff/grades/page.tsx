@@ -9,7 +9,7 @@ import { AppNav } from "../../app-nav";
 import { Workspace } from "../../workspace";
 import { RefreshContext } from "../../forms";
 import { GradeList } from "../../grade-list";
-import { GradePeriod } from "../../grade-period";
+import { GradePeriod, checkedPeriod } from "../../grade-period";
 import { GradeGroupScope } from "../../grade-group-scope";
 import { GradeForm, SubjectForm } from "../../grade-forms";
 export const dynamic = "force-dynamic";
@@ -29,6 +29,7 @@ export default async function Page({
   }>;
 }) {
   const q = await searchParams;
+  const period = checkedPeriod(q);
   const a = await protectedPage(async () => {
     const a = await actor(await headers());
     staff(a);
@@ -53,8 +54,8 @@ export default async function Page({
           membershipId: selected.id,
           cursor: q.cursor,
           auditCursor: q.auditCursor,
-          from: q.from,
-          to: q.to,
+          from: period.from,
+          to: period.to,
           subjectId: q.subjectId,
         }),
       )
@@ -192,7 +193,7 @@ export default async function Page({
           </details>
           {selected && data && (
             <>
-              <GradePeriod query={q} />
+              <GradePeriod query={q} error={period.error} />
               <h2>
                 {selected.name} · {selected.group}
               </h2>

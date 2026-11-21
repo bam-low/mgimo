@@ -125,7 +125,7 @@ export function studentAccess(a: Awaited<ReturnType<typeof actor>>) {
     throw new Denied();
   return a.membership.enrollments[0];
 }
-export async function readJSON(request: Request) {
+export async function readJSON(request: Request, max = 16384) {
   const reader = request.body?.getReader();
   if (!reader) throw new Denied(400);
   const parts: Uint8Array[] = [];
@@ -134,7 +134,7 @@ export async function readJSON(request: Request) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.length;
-    if (size > 16384) {
+    if (size > max) {
       await reader.cancel();
       throw new Denied(413);
     }

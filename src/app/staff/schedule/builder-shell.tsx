@@ -22,6 +22,7 @@ export function BuilderShell({
 }: {
   title: string;
   children: ReactNode;
+  /** Единый экран: якорные кнопки не нужны, выбор способа — в самом экране. */
   unified?: boolean;
 }) {
   return (
@@ -37,7 +38,7 @@ export function BuilderShell({
           <h1>{title}</h1>
           <p>Учебный календарь и занятия · Только вымышленные данные</p>
         </header>
-        <ScheduleManagement unified={unified} />
+        {!unified && <ScheduleManagement />}
 
         {children}
       </Workspace>

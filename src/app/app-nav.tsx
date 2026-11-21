@@ -11,23 +11,70 @@ export function AppNav({
   active: string;
   canStudy?: boolean;
 }) {
-  const links: { href: string; label: string; icon: IconName }[] =
+  type NavLink = {
+    href: string;
+    label: string;
+    icon: IconName;
+    /** Короткая подпись для нижнего меню телефона. */
+    short?: string;
+    /** На телефоне раздел открывается с главной, нижнее меню не перегружаем. */
+    desktopOnly?: boolean;
+  };
+  const links: NavLink[] =
     role === "STAFF"
       ? [
           {
             href: "/staff/structure",
             label: "Учебная структура",
+            short: "Структура",
             icon: "structure",
           },
-          { href: "/staff/schedule", label: "Расписание", icon: "calendar" },
-          { href: "/staff/grades", label: "Успеваемость", icon: "book" },
-          { href: "/staff", label: "Студенты", icon: "people" },
+          {
+            href: "/staff/schedule",
+            label: "Расписание",
+            short: "Пары",
+            icon: "calendar",
+          },
+          {
+            href: "/staff/grades",
+            label: "Успеваемость",
+            short: "Оценки",
+            icon: "book",
+          },
+          {
+            href: "/staff",
+            label: "Студенты",
+            short: "Студенты",
+            icon: "people",
+          },
           { href: "/staff/applications", label: "Заявки", icon: "document" },
+          {
+            href: "/staff/announcements",
+            label: "Объявления",
+            short: "Новости",
+            icon: "megaphone",
+          },
         ]
       : [
           { href: "/today", label: "Главная", icon: "home" },
-          { href: "/schedule", label: "Расписание", icon: "calendar" },
-          { href: "/grades", label: "Успеваемость", icon: "book" },
+          {
+            href: "/announcements",
+            label: "Объявления",
+            icon: "megaphone",
+            desktopOnly: true,
+          },
+          {
+            href: "/schedule",
+            label: "Расписание",
+            short: "Пары",
+            icon: "calendar",
+          },
+          {
+            href: "/grades",
+            label: "Успеваемость",
+            short: "Оценки",
+            icon: "book",
+          },
           { href: "/applications", label: "Заявки", icon: "document" },
           { href: "/cabinet", label: "Профиль", icon: "user" },
         ];
@@ -47,12 +94,15 @@ export function AppNav({
                 : "/cabinet"
           }
         >
-          <span className="brand-building">
-            <Icon name="building" />
-          </span>
-          <span>
-            Кампус<small>ЦИФРОВОЙ ДЕКАНАТ</small>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVG */}
+          <img
+            className="brand-logo"
+            src="/brand/campus-logo.svg"
+            alt="Кампус"
+            width={115}
+            height={38}
+          />
+          <span className="brand-sub">Цифровой деканат</span>
         </Link>
         <span className="edition">
           {role === "STAFF" ? "ДЕКАНАТ" : "СТУДЕНТ"}
@@ -72,30 +122,15 @@ export function AppNav({
               prefetch={false}
               aria-label={l.label}
               aria-current={active === l.href ? "page" : undefined}
+              className={l.desktopOnly ? "nav-desktop-only" : undefined}
             >
               <Icon name={l.icon} />
-              <span
-                className={
-                  l.href.endsWith("/grades") ||
-                  l.href.endsWith("/schedule") ||
-                  ["/staff", "/staff/structure"].includes(l.href)
-                    ? "nav-grades-label"
-                    : undefined
-                }
-              >
-                {l.href.endsWith("/grades") ||
-                l.href.endsWith("/schedule") ||
-                ["/staff", "/staff/structure"].includes(l.href) ? (
+              <span className={l.short ? "nav-grades-label" : undefined}>
+                {l.short ? (
                   <>
                     <span className="nav-label-full">{l.label}</span>
                     <span className="nav-label-short" aria-hidden="true">
-                      {l.href === "/staff"
-                        ? "Студенты"
-                        : l.href === "/staff/structure"
-                          ? "Структура"
-                          : l.href.endsWith("/schedule")
-                            ? "Пары"
-                            : "Оценки"}
+                      {l.short}
                     </span>
                   </>
                 ) : (
