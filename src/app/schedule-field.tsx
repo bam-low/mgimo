@@ -88,18 +88,24 @@ export function ScheduleField({
           onChange={(e) => change(e.target.value)}
         />
         {name && <input type="hidden" name={name} value={canonical} />}
-        {kind === "time" && (
-          <input
-            ref={native}
-            className="native-schedule-picker"
-            type={kind}
-            value={canonical}
-            tabIndex={-1}
-            aria-hidden="true"
-            lang="ru"
-            onChange={(e) => change(format(e.target.value))}
-          />
-        )}
+        {/* Скрытое системное поле: значение ISO для нативного выбора и автоматизации;
+            для даты видимый выбор — свой календарь на кнопке. */}
+        <input
+          ref={native}
+          className="native-schedule-picker"
+          type={kind}
+          value={canonical}
+          min={
+            kind === "date" ? (broad ? "0001-01-01" : "2000-01-01") : undefined
+          }
+          max={
+            kind === "date" ? (broad ? "9999-12-31" : "2100-12-31") : undefined
+          }
+          tabIndex={-1}
+          aria-hidden="true"
+          lang="ru"
+          onChange={(e) => change(format(e.target.value))}
+        />
         {picker && (
           <button
             className="picker-trigger secondary"
