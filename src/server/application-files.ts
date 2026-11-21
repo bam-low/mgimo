@@ -37,7 +37,19 @@ export async function withUploadSlot<T>(fn: () => Promise<T>) {
     uploads--;
   }
 }
-export async function readUpload(request: Request) {
+/** Один файл + поле `metadata` (JSON). Параметры по умолчанию — для документов заявок. */
+export async function readUpload<T = ReturnType<typeof documentMetadata.parse>>(
+  request: Request,
+  {
+    parse = documentMetadata.parse as (v: unknown) => T,
+    fieldLimit = 4096,
+    pdfOnly = false,
+  }: {
+    parse?: (v: unknown) => T;
+    fieldLimit?: number;
+    pdfOnly?: boolean;
+  } = {},
+) {
   if (!request.body) throw new Denied(400);
   let parser: ReturnType<typeof Busboy>;
   try {
@@ -51,7 +63,7 @@ export async function readUpload(request: Request) {
         // follows immediately. Admit the inclusive 3 MiB limit and reject
         // the first excess byte in the bounded data handler below.
         fileSize: MAX_DOCUMENT + 1,
-        fieldSize: 4096,
+        fieldSize: fieldLimit,
         headerPairs: 20,
       },
     });
@@ -89,7 +101,7 @@ export async function readUpload(request: Request) {
     if (
       name !== "metadata" ||
       info.valueTruncated ||
-      Buffer.byteLength(value) > 4096
+      Buffer.byteLength(value) > fieldLimit
     )
       rejected = true;
     try {
@@ -128,6 +140,8 @@ export async function readUpload(request: Request) {
   if (tooLarge) throw new Denied(413);
   if (rejected || files !== 1 || fields !== 1 || !size)
     fileError("Нужны один файл и корректные параметры загрузки.");
+  if (pdfOnly && mime !== "application/pdf")
+    fileError("Допустим один файл PDF с расширением .pdf.", 415);
   const expected =
     mime === "application/pdf"
       ? /\.pdf$/i
@@ -146,7 +160,7 @@ export async function readUpload(request: Request) {
   )
     fileError("Допустимы PDF, JPG и PNG с соответствующим расширением.", 415);
   return {
-    metadata: documentMetadata.parse(meta),
+    metadata: parse(meta),
     mime,
     content: Buffer.concat(parts),
   };

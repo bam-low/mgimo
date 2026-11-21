@@ -53,6 +53,14 @@
     {
       "name": "20261121121000_announcements",
       "sha256": "d4552fc9e51ba379ccfdb5377c649a0dc35198df652db97578d06572661a7525"
+    },
+    {
+      "name": "20261121180000_portfolio",
+      "sha256": "c0f3b5e38b1ca6ced49e84a2d9a5a07f20c81cb2f31a3cf145e4d0bc6b0faa0a"
+    },
+    {
+      "name": "20261121190000_session_moves_deadlines",
+      "sha256": "6524452a82e3fc0fee1a8a543caafdd3db88e6e0accd73b9766d333b6a9f4529"
     }
   ],
   "addedTables": [
@@ -61,14 +69,24 @@
     "ScheduleCancellation",
     "GradeDismissal",
     "Announcement",
-    "AnnouncementRead"
+    "AnnouncementRead",
+    "PortfolioItem",
+    "ScheduleChange",
+    "Exam",
+    "ExamGroup",
+    "Deadline",
+    "DeadlineDone"
   ],
   "addedColumns": {
     "StudentGroup": [
       "course"
     ],
     "Notification": [
-      "cancellationId"
+      "cancellationId",
+      "portfolioItemId",
+      "scheduleChangeId",
+      "examId",
+      "deadlineId"
     ]
   }
 }

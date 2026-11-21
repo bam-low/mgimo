@@ -1,5 +1,6 @@
 "use client";
 import { ScheduleField } from "./schedule-field";
+import { LessonFlags } from "./lesson-flags";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
@@ -347,6 +348,10 @@ export function ScheduleView({
                     </div>
                     <div className="current-content">
                       <div>
+                        <LessonFlags
+                          lesson={state.lesson}
+                          timezone={data.timezone}
+                        />
                         <h2>{state.lesson.title}</h2>
                         <div className="lesson-meta">
                           {state.lesson.room && (
@@ -460,7 +465,7 @@ export function ScheduleView({
                           return (
                             <li
                               key={l.id}
-                              className={`lesson ${current ? "is-current" : ""} ${completed ? "is-completed" : ""} ${l.status === "CANCELLED" ? "is-cancelled" : ""}`}
+                              className={`lesson ${l.kind === "EXAM" ? "is-exam" : ""} ${l.moved ? "is-moved" : ""} ${current ? "is-current" : ""} ${completed ? "is-completed" : ""} ${l.status === "CANCELLED" ? "is-cancelled" : ""}`}
                             >
                               <div className="lesson-time">
                                 <time dateTime={l.startsAt}>
@@ -474,6 +479,7 @@ export function ScheduleView({
                                 </time>
                               </div>
                               <div className="lesson-detail">
+                                <LessonFlags lesson={l} timezone={data.timezone} />
                                 <h3>{l.title}</h3>
                                 {l.room && <p>Аудитория {l.room}</p>}
                                 {l.teacher && <p>{l.teacher}</p>}

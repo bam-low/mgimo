@@ -80,6 +80,10 @@ export async function changeStructure(
                   })) +
                   (await tx.application.count({
                     where: { submittedGroupId: d.id },
+                  })) +
+                  (await tx.examGroup.count({ where: { groupId: d.id } })) +
+                  (await tx.scheduleChange.count({
+                    where: { groupIds: { array_contains: [d.id] } },
                   }));
           if (dependencies) {
             const error = new Denied(409);

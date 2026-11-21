@@ -54,6 +54,12 @@ export function AppNav({
             short: "Новости",
             icon: "megaphone",
           },
+          {
+            href: "/staff/portfolio",
+            label: "Портфолио",
+            icon: "award",
+            desktopOnly: true,
+          },
         ]
       : [
           { href: "/today", label: "Главная", icon: "home" },
@@ -76,6 +82,12 @@ export function AppNav({
             icon: "book",
           },
           { href: "/applications", label: "Заявки", icon: "document" },
+          {
+            href: "/portfolio",
+            label: "Портфолио",
+            icon: "award",
+            desktopOnly: true,
+          },
           { href: "/cabinet", label: "Профиль", icon: "user" },
         ];
   return (

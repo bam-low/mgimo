@@ -6,7 +6,7 @@ import type {
   Semester,
 } from "../generated/prisma/client";
 import { db } from "./db";
-import { notifyCancellation } from "./notification-events";
+import { notifyCancellation, notifyMove } from "./notification-events";
 import { Denied } from "./security";
 import { lockUniversity, requireStaff, validGroup } from "./enrollment-guards";
 import {
@@ -355,9 +355,34 @@ async function conflicts(
       "Слишком много занятий для одной проверки. Сократите период операции.",
       413,
     );
-  const occupied = existing
+  type Busy = {
+    startsAt: Date;
+    endsAt: Date;
+    teacherId: string | null;
+    roomId: string | null;
+    groupIds: string[];
+  };
+  const occupied: Busy[] = existing
     .filter((e) => !ignored.has(e.id))
     .map((e) => ({ ...e, groupIds: groupsOf(e) }));
+  // Экзамены и зачёты сессии тоже занимают группу, преподавателя и аудиторию.
+  const exams = await tx.exam.findMany({
+    where: {
+      universityId,
+      status: "SCHEDULED",
+      startsAt: { lt: max },
+      endsAt: { gt: min },
+    },
+    select: {
+      startsAt: true,
+      endsAt: true,
+      teacherId: true,
+      roomId: true,
+      groups: { select: { groupId: true } },
+    },
+  });
+  for (const e of exams)
+    occupied.push({ ...e, groupIds: e.groups.map((g) => g.groupId) });
   for (let i = 0; i < active.length; i++) {
     const a = active[i];
     for (const b of [...occupied, ...active.slice(0, i)]) {
@@ -1297,6 +1322,41 @@ export async function changeBuilder(
           actorId,
           universityId,
           { ...old, version: old.version + 1 },
+          groupIds,
+        );
+      // Перенос одной пары: студентам — «было → стало». Серии и отделение
+      // лекции не считаются переносом: это новая публикация.
+      if (
+        old &&
+        d.action === "OCCURRENCE_EDIT" &&
+        old.status === "SCHEDULED" &&
+        c.status === "SCHEDULED"
+      )
+        await notifyMove(
+          tx,
+          actorId,
+          universityId,
+          {
+            id: entryId,
+            version: old.version + 1,
+            title:
+              "title" in display && typeof display.title === "string"
+                ? display.title
+                : old.title,
+          },
+          {
+            startsAt: old.startsAt,
+            endsAt: old.endsAt,
+            room: old.room,
+            teacher: old.teacher,
+          },
+          {
+            startsAt: c.startsAt,
+            endsAt: c.endsAt,
+            room: "room" in display ? (display.room as string | null) : null,
+            teacher:
+              "teacher" in display ? (display.teacher as string | null) : null,
+          },
           groupIds,
         );
     }

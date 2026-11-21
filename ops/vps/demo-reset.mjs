@@ -24,6 +24,7 @@ const IMMUTABLE = [
   ["ApplicationDocument", "immutable_application_document"],
   ["ApplicationEvent", "immutable_application_event"],
   ["ScheduleCancellation", "immutable_cancellation"],
+  ["ScheduleChange", "immutable_schedule_change"],
 ];
 // Order matters: children before parents. Every academic/transient table is wiped.
 const WIPE = [
@@ -32,6 +33,12 @@ const WIPE = [
   "GradeDismissal",
   "Grade",
   "Notification",
+  "PortfolioItem",
+  "DeadlineDone",
+  "Deadline",
+  "ExamGroup",
+  "Exam",
+  "ScheduleChange",
   "ApplicationDocument",
   "ApplicationEvent",
   "Application",

@@ -9,6 +9,14 @@ import {
 } from "../shared";
 import { NotificationRead } from "../../notification-controls";
 export const dynamic = "force-dynamic";
+function actionLabel(kind: string) {
+  if (kind.startsWith("ENROLLMENT")) return "Посмотреть состояние прикрепления";
+  if (kind.startsWith("SCHEDULE")) return "Открыть расписание";
+  if (kind.startsWith("EXAM")) return "Открыть сессию";
+  if (kind.startsWith("DEADLINE")) return "Открыть дедлайны";
+  if (kind.startsWith("PORTFOLIO")) return "Открыть портфолио";
+  return "Открыть заявку";
+}
 export default async function Page({
   params,
   searchParams,
@@ -44,17 +52,13 @@ export default async function Page({
         {n.notice && <p className="notice">{n.notice}</p>}
         {n.target.available && "href" in n.target ? (
           <Link className="card-action" prefetch={false} href={n.target.href!}>
-            {n.kind.startsWith("ENROLLMENT")
-              ? "Посмотреть состояние прикрепления"
-              : n.kind === "SCHEDULE_CANCELLED"
-                ? "Открыть расписание"
-                : "Открыть заявку"}
+            {actionLabel(n.kind)}
           </Link>
         ) : (
           <p role="status" className="notice">
             {n.target.reasonCode === "PREVIOUS_ENROLLMENT"
               ? "Решение относится к предыдущему запросу прикрепления."
-              : n.kind === "SCHEDULE_CANCELLED"
+              : n.kind === "SCHEDULE_CANCELLED" || n.kind === "SCHEDULE_MOVED"
                 ? "Доступ к этому расписанию закрыт. История уведомления сохранена."
                 : "Учебный доступ закрыт. Содержание обращения и документы сейчас недоступны."}
           </p>

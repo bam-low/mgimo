@@ -1,7 +1,7 @@
 import { civilDay } from "@/lib/semester";
 import { z } from "zod";
 import { db } from "./db";
-import { notifyCancellation } from "./notification-events";
+import { notifyCancellation, notifyMove } from "./notification-events";
 import { actor, staff, studentAccess, Denied } from "./security";
 import { lockUniversity, requireStaff, validGroup } from "./enrollment-guards";
 import {
@@ -119,6 +119,18 @@ export async function changeLesson(
       }))
     )
       throw new Denied(409);
+    if (
+      status === "SCHEDULED" &&
+      (await tx.exam.findFirst({
+        where: {
+          status: "SCHEDULED",
+          groups: { some: { groupId } },
+          startsAt: { lt: endsAt! },
+          endsAt: { gt: startsAt! },
+        },
+      }))
+    )
+      throw new Denied(409);
     const data = {
       universityId,
       groupId,
@@ -149,6 +161,15 @@ export async function changeLesson(
     });
     if (d.action === "CANCEL")
       await notifyCancellation(tx, actorId, universityId, lesson, [groupId]);
+    // Перенос в ручном расписании: та же группа, занятие остаётся активным.
+    if (
+      d.action === "EDIT" &&
+      current!.status === "SCHEDULED" &&
+      current!.groupId === groupId
+    )
+      await notifyMove(tx, actorId, universityId, lesson, current!, lesson, [
+        groupId,
+      ]);
     return { id: lesson.id };
   });
 }
@@ -202,10 +223,97 @@ export async function readSchedule(
     },
   });
   if (lessons.length > 500) throw new Denied(413);
-  const group = await db.studentGroup.findUniqueOrThrow({
-    where: { id: groupId },
-    select: { name: true },
-  });
+  const [group, changes, exams] = await Promise.all([
+    db.studentGroup.findUniqueOrThrow({
+      where: { id: groupId },
+      select: { name: true },
+    }),
+    // Последний перенос каждой пары: «было» для плашки «Перенесено».
+    db.scheduleChange.findMany({
+      where: { entryId: { in: lessons.map((l) => l.id) } },
+      orderBy: [{ entryId: "asc" }, { entryVersion: "desc" }],
+      select: {
+        entryId: true,
+        fromStartsAt: true,
+        fromEndsAt: true,
+        fromRoom: true,
+      },
+    }),
+    // Экзамены и зачёты сессии своей группы — в общем списке дня студента.
+    // В ручном редакторе сотрудника их нет: там правятся только пары.
+    a.membership.role === "STAFF"
+      ? Promise.resolve([])
+      : db.exam.findMany({
+          where: {
+            universityId: a.membership.universityId,
+            groups: { some: { groupId } },
+            startsAt: {
+              gte: localInstant(from, "00:00", zone),
+              lt: localInstant(to, "00:00", zone),
+            },
+          },
+          orderBy: [{ startsAt: "asc" }, { id: "asc" }],
+          take: 100,
+          select: {
+            id: true,
+            kind: true,
+            title: true,
+            teacherName: true,
+            roomName: true,
+            startsAt: true,
+            endsAt: true,
+            status: true,
+            version: true,
+            movedFromStartsAt: true,
+            movedFromRoom: true,
+          },
+        }),
+  ]);
+  const moved = new Map<string, (typeof changes)[number]>();
+  for (const c of changes) if (!moved.has(c.entryId)) moved.set(c.entryId, c);
+  const items = [
+    ...lessons.map((l) => {
+      const m = l.status === "SCHEDULED" ? moved.get(l.id) : undefined;
+      return {
+        ...l,
+        startsAt: l.startsAt.toISOString(),
+        endsAt: l.endsAt.toISOString(),
+        kind: "LESSON" as const,
+        moved: m
+          ? {
+              fromStartsAt: m.fromStartsAt.toISOString(),
+              fromEndsAt: m.fromEndsAt.toISOString(),
+              fromRoom: m.fromRoom,
+            }
+          : null,
+      };
+    }),
+    ...exams.map((e) => ({
+      id: "exam-" + e.id,
+      title: e.title,
+      teacher: e.teacherName,
+      room: e.roomName,
+      startsAt: e.startsAt.toISOString(),
+      endsAt: e.endsAt.toISOString(),
+      status: e.status,
+      version: e.version,
+      semesterId: null,
+      kind: "EXAM" as const,
+      examKind: e.kind,
+      moved:
+        e.status === "SCHEDULED" && e.movedFromStartsAt
+          ? {
+              fromStartsAt: e.movedFromStartsAt.toISOString(),
+              fromEndsAt: null,
+              fromRoom: e.movedFromRoom,
+            }
+          : null,
+    })),
+  ].sort(
+    (x, y) =>
+      Date.parse(x.startsAt) - Date.parse(y.startsAt) ||
+      x.id.localeCompare(y.id),
+  );
   return {
     groupId,
     groupName: group.name,
@@ -214,10 +322,6 @@ export async function readSchedule(
     today,
     view: query.view ?? "today",
     serverNow: new Date().toISOString(),
-    lessons: lessons.map((l) => ({
-      ...l,
-      startsAt: l.startsAt.toISOString(),
-      endsAt: l.endsAt.toISOString(),
-    })),
+    lessons: items,
   };
 }

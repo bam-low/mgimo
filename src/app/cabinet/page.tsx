@@ -225,6 +225,16 @@ export default async function Page({
                   Мои заявки и справки
                   <Icon name="arrow" />
                 </Link>
+                <Link href="/deadlines">
+                  <Icon name="clock" />
+                  Дедлайны
+                  <Icon name="arrow" />
+                </Link>
+                <Link href="/portfolio">
+                  <Icon name="award" />
+                  Портфолио и достижения
+                  <Icon name="arrow" />
+                </Link>
               </>
             )}
             <Link href="/notifications">

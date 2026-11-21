@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { StaffGradeTabs } from "../../staff-grade-tabs";
 import Link from "next/link";
 import { actor, staff } from "@/server/security";
 import { protectedPage } from "@/server/page";
@@ -77,20 +78,7 @@ export default async function Page({
             {a.membership.university.timezone}.
           </p>
         </header>
-        <nav className="mode-tabs" aria-label="Режим успеваемости">
-          <Link
-            href="/staff/grades"
-            aria-current={history ? undefined : "page"}
-          >
-            Выставить новый результат
-          </Link>
-          <Link
-            href="/staff/grades?history=1"
-            aria-current={history ? "page" : undefined}
-          >
-            История всех студентов
-          </Link>
-        </nav>
+        <StaffGradeTabs active={history ? "history" : "new"} />
         <p className="notice">
           {history
             ? "История сохраняется после перевода и отзыва прикрепления. Для нового результата вернитесь к выбору группы."

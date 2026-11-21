@@ -117,6 +117,13 @@ it("limited role cannot delete history, read migrations, DDL, escalate or disabl
     'UPDATE "Announcement" SET title=title',
     'UPDATE "GradeDismissal" SET "gradeId"="gradeId"',
     'DELETE FROM "AnnouncementRead"',
+    'TRUNCATE "PortfolioItem"',
+    'DELETE FROM "ScheduleChange"',
+    'UPDATE "ScheduleChange" SET title=title',
+    'DELETE FROM "Exam"',
+    'DELETE FROM "ExamGroup"',
+    'DELETE FROM "Deadline"',
+    'UPDATE "DeadlineDone" SET "membershipId"="membershipId"',
 
     'UPDATE "University" SET name=name',
     'DELETE FROM "EnrollmentRequest"',

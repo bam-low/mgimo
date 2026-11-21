@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { StudyTabs } from "../study-tabs";
 import Link from "next/link";
 import { actor } from "@/server/security";
 import { protectedPage } from "@/server/page";
@@ -45,6 +46,7 @@ export default async function Page({
             Оценки и зачёты, сохранённые сотрудником. Даты в календаре вуза.
           </p>
         </header>
+        <StudyTabs active="grades" />
         <DebtsPanel
           key={[...debts.open, ...debts.hidden]
             .map((d) => d.id + (debts.hidden.includes(d) ? "h" : ""))

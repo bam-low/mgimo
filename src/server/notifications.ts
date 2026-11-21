@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ensureDeadlineReminders } from "./deadlines";
+import { examKindLabel } from "@/lib/session";
 import { db } from "./db";
 import type { Prisma } from "../generated/prisma/client";
 import { actor, Denied, studentAccess } from "./security";
@@ -82,36 +84,96 @@ const select = {
   cancellation: {
     select: { title: true, startsAt: true, endsAt: true, groupIds: true },
   },
+  portfolioItem: { select: { title: true } },
+  scheduleChange: {
+    select: {
+      title: true,
+      fromStartsAt: true,
+      toStartsAt: true,
+      toEndsAt: true,
+      toRoom: true,
+      groupIds: true,
+    },
+  },
+  exam: {
+    select: {
+      kind: true,
+      title: true,
+      startsAt: true,
+      endsAt: true,
+      roomName: true,
+      status: true,
+    },
+  },
+  deadline: { select: { title: true, dueAt: true, deletedAt: true } },
 } satisfies Prisma.NotificationSelect;
 type Row = Prisma.NotificationGetPayload<{ select: typeof select }>;
 function dto(n: Row, scope: Awaited<ReturnType<typeof recipient>>) {
   if (n.schemaVersion !== 1) throw new Denied(503);
-  const target = n.cancellation
+  const day = (d: Date) =>
+    dayKey(d, scope.timezone).split("-").reverse().slice(0, 2).join(".");
+  const at = (d: Date) => `${day(d)} ${timeLabel(d, scope.timezone)}`;
+  const target = n.scheduleChange
     ? scope.canStudy &&
-      Array.isArray(n.cancellation.groupIds) &&
-      n.cancellation.groupIds.some(
+      Array.isArray(n.scheduleChange.groupIds) &&
+      n.scheduleChange.groupIds.some(
         (id) => typeof id === "string" && scope.groupIds.includes(id),
       )
       ? {
           available: true,
-          href: `/schedule?day=${dayKey(n.cancellation.startsAt, scope.timezone)}`,
+          href: `/schedule?day=${dayKey(n.scheduleChange.toStartsAt, scope.timezone)}`,
         }
       : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
-    : n.enrollmentRequestId
-      ? scope.latestRequestId === n.enrollmentRequestId
-        ? { available: true, href: "/cabinet" }
-        : { available: false, reasonCode: "PREVIOUS_ENROLLMENT" }
-      : scope.canStudy
-        ? {
-            available: true,
-            href: `/applications/${encodeURIComponent(n.applicationId!)}`,
-          }
-        : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" };
-  const message = n.cancellation
-    ? `${n.cancellation.title} · ${dayKey(n.cancellation.startsAt, scope.timezone).split("-").reverse().join(".")} · ${timeLabel(n.cancellation.startsAt, scope.timezone)}–${timeLabel(n.cancellation.endsAt, scope.timezone)}. Занятие отменено.`
-    : n.enrollmentRequestId
-      ? "Решение по вашему запросу прикрепления сохранено."
-      : "В истории вашего обращения появилось новое событие.";
+    : n.exam
+      ? scope.canStudy
+        ? { available: true, href: "/grades/session" }
+        : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
+      : n.deadline
+        ? scope.canStudy
+          ? { available: true, href: "/deadlines" }
+          : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
+        : n.portfolioItem
+          ? scope.canStudy
+            ? { available: true, href: "/portfolio" }
+            : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
+          : n.cancellation
+            ? scope.canStudy &&
+              Array.isArray(n.cancellation.groupIds) &&
+              n.cancellation.groupIds.some(
+                (id) => typeof id === "string" && scope.groupIds.includes(id),
+              )
+              ? {
+                  available: true,
+                  href: `/schedule?day=${dayKey(n.cancellation.startsAt, scope.timezone)}`,
+                }
+              : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" }
+            : n.enrollmentRequestId
+              ? scope.latestRequestId === n.enrollmentRequestId
+                ? { available: true, href: "/cabinet" }
+                : { available: false, reasonCode: "PREVIOUS_ENROLLMENT" }
+              : scope.canStudy
+                ? {
+                    available: true,
+                    href: `/applications/${encodeURIComponent(n.applicationId!)}`,
+                  }
+                : { available: false, reasonCode: "STUDY_ACCESS_CLOSED" };
+  const message = n.scheduleChange
+    ? `${n.scheduleChange.title}: ${at(n.scheduleChange.fromStartsAt)} → ${at(n.scheduleChange.toStartsAt)}${n.scheduleChange.toRoom ? ` · ${n.scheduleChange.toRoom}` : ""}.`
+    : n.exam
+      ? n.exam.status === "CANCELLED"
+        ? `${examKindLabel(n.exam.kind)} · ${n.exam.title} — отменён.`
+        : `${examKindLabel(n.exam.kind)} · ${n.exam.title}: ${at(n.exam.startsAt)}–${timeLabel(n.exam.endsAt, scope.timezone)} · ${n.exam.roomName}.`
+      : n.deadline
+        ? n.deadline.deletedAt
+          ? `«${n.deadline.title}» — отменён.`
+          : `«${n.deadline.title}» — до ${at(n.deadline.dueAt)}.`
+        : n.portfolioItem
+          ? `«${n.portfolioItem.title}». ${n.kind === "PORTFOLIO_APPROVED" ? "Работа учитывается в портфолио." : "Причина — в карточке работы."}`
+          : n.cancellation
+            ? `${n.cancellation.title} · ${dayKey(n.cancellation.startsAt, scope.timezone).split("-").reverse().join(".")} · ${timeLabel(n.cancellation.startsAt, scope.timezone)}–${timeLabel(n.cancellation.endsAt, scope.timezone)}. Занятие отменено.`
+            : n.enrollmentRequestId
+              ? "Решение по вашему запросу прикрепления сохранено."
+              : "В истории вашего обращения появилось новое событие.";
   const newerDocument =
     target.available &&
     !!n.applicationEvent?.documentId &&
@@ -180,6 +242,12 @@ export async function listNotifications(a: Actor, raw: unknown = {}) {
   });
 }
 export async function notificationCount(a: Actor) {
+  // Колокольчик опрашивает счётчик: здесь же появляются «Скоро дедлайн».
+  try {
+    await ensureDeadlineReminders(a);
+  } catch (e) {
+    if (!(e instanceof Denied)) throw e;
+  }
   return db.$transaction(async (tx) => {
     const scope = await recipient(tx, a);
     return {

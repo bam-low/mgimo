@@ -167,7 +167,7 @@ export async function staffAnnouncements(a: Actor) {
   return { timezone: a.membership.university.timezone, items: rows.map(view) };
 }
 
-async function target(
+export async function audienceTarget(
   tx: Prisma.TransactionClient,
   universityId: string,
   scope: "UNIVERSITY" | "FACULTY" | "PROGRAM" | "GROUP",
@@ -243,7 +243,7 @@ export async function changeAnnouncement(a: Actor, input: unknown) {
         id: d.operationId,
         universityId,
         scope: d.scope,
-        ...(await target(tx, universityId, d.scope, d.targetId)),
+        ...(await audienceTarget(tx, universityId, d.scope, d.targetId)),
         title: d.title,
         body: d.body,
         authorId: actorId,
