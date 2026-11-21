@@ -3538,3 +3538,61 @@ form.schedule-controls:has(.group-filter-field) .localized-control > input[type=
 }
 .import-step > div { gap: 10px; padding-top: 4px; }
 .import-file input[type="file"] { background: rgb(255 255 255 / 55%); }
+
+/* Выбор файла: своя кнопка вместо системной «Выбор файла / не выбран ни один файл» */
+.import-file { position: relative; cursor: pointer; }
+.import-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.import-file-drop {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 14px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 55%);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.import-file:hover .import-file-drop {
+  border-color: var(--brand);
+  background: var(--soft);
+}
+.import-file:focus-within .import-file-drop {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.import-file-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  font: 600 0.875rem/1 var(--body);
+}
+.import-file-button .ui-icon { width: 18px; height: 18px; }
+.import-file[data-filled] .import-file-button {
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--brand);
+}
+.import-file-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-file[data-filled] .import-file-name { color: var(--ink); font-weight: 500; }
+@media (prefers-reduced-motion: reduce) {
+  .import-file-drop { transition: none; }
+}

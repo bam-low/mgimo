@@ -135,9 +135,19 @@ export function ScheduleImportForm({
           <span className="import-step-n">3</span>
           <div>
             <h2>Загрузка и проверка</h2>
-            <label className="import-file">
-              Файл расписания (.csv)
+            <label className="import-file" data-filled={file ? "" : undefined}>
+              <span className="import-file-label">Файл расписания (.csv)</span>
+              <span className="import-file-drop">
+                <span className="import-file-button">
+                  <Icon name="document" />
+                  {file ? "Выбрать другой файл" : "Выбрать файл"}
+                </span>
+                <span className="import-file-name">
+                  {file ? file.name : "Файл пока не выбран"}
+                </span>
+              </span>
               <input
+                className="import-file-input"
                 type="file"
                 accept=".csv,text/csv"
                 onChange={async (e) => {
