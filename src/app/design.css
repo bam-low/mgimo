@@ -3653,3 +3653,16 @@ form.schedule-controls:has(.group-filter-field) .localized-control > input[type=
 @media (max-width: 479px) {
   .semester-delete > button { justify-self: stretch; }
 }
+
+/* Переключатель «День / Неделя»: при наведении непрозрачный светлый фон
+   (контраст считается по самой кнопке), у студента — высота 44 px. */
+.segmented button:hover:not(:disabled) {
+  background: #f7f2ed;
+  color: var(--ink);
+}
+.segmented button[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--card);
+}
+.student-schedule .segmented button {
+  min-height: 44px;
+}
