@@ -1,6 +1,8 @@
 import { HomeOverview } from "../home-overview";
 import { readGrades } from "@/server/grades";
 import { listApplications } from "@/server/applications";
+import { studentAnnouncements } from "@/server/announcements";
+import { HomeAnnouncements } from "../home-announcements";
 import { Workspace } from "../workspace";
 import { headers } from "next/headers";
 import { actor, studentAccess } from "@/server/security";
@@ -10,18 +12,20 @@ import { ScheduleView } from "../schedule-view";
 import { RefreshContext } from "../forms";
 export const dynamic = "force-dynamic";
 export default async function Page() {
-  const { name, grades, applications, study } = await protectedPage(
+  const { name, grades, applications, study, notices } = await protectedPage(
     async () => {
       const a = await actor(await headers());
       const enrollment = studentAccess(a);
-      const [grades, applications] = await Promise.all([
+      const [grades, applications, notices] = await Promise.all([
         readGrades(a),
         listApplications(a),
+        studentAnnouncements(a, 10),
       ]);
       return {
         name: a.user.name,
         grades,
         applications,
+        notices,
         study: {
           faculty: enrollment.group.program.faculty.name,
           program: enrollment.group.program.name,
@@ -40,6 +44,12 @@ export default async function Page() {
             home
             name={name}
             study={study}
+            notice={
+              <HomeAnnouncements
+                items={notices.items}
+                timezone={notices.timezone}
+              />
+            }
             overview={
               <HomeOverview grades={grades} applications={applications} />
             }

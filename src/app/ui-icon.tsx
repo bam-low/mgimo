@@ -71,6 +71,7 @@ const paths = {
     </>
   ),
   chevron: <path d="m9 5 7 7-7 7" />,
+  megaphone: <path d="M4 10v4h3l7 4V6l-7 4Zm3 4 1 5h2l-1-4m9-6a4 4 0 0 1 0 6" />,
   "chevron-left": <path d="m15 5-7 7 7 7" />,
   "chevron-right": <path d="m9 5 7 7-7 7" />,
   "chevron-down": <path d="m6 9 6 6 6-6" />,

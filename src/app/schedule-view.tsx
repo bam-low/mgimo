@@ -26,6 +26,7 @@ export function ScheduleView({
   home = false,
   name = "",
   overview,
+  notice,
   study,
   initialView = "today",
   initialDay = "",
@@ -33,6 +34,8 @@ export function ScheduleView({
   home?: boolean;
   name?: string;
   overview?: ReactNode;
+  /** Блок объявлений сразу под приветствием (главная). */
+  notice?: ReactNode;
   study?: { faculty: string; program: string; group: string };
   initialView?: "today" | "week";
   initialDay?: string;
@@ -161,7 +164,8 @@ export function ScheduleView({
     : null;
   const phase: DayPhase =
     chosenPhase ?? (data && now ? phaseAt(now, data.timezone) : "day");
-  const greeting = PHASES.find((p) => p.id === phase)?.greeting ?? "Здравствуйте";
+  const greeting =
+    PHASES.find((p) => p.id === phase)?.greeting ?? "Здравствуйте";
   const planned = data?.lessons.filter((l) => l.status === "SCHEDULED") ?? [];
   const nextId = planned
     .filter((l) => Date.parse(l.startsAt) > now)
@@ -182,7 +186,10 @@ export function ScheduleView({
               <br /> <em>{name || "студент"}!</em>
             </h1>
             {study && (
-              <p className="study-context" title={`${study.faculty} · ${study.program} · ${study.group}`}>
+              <p
+                className="study-context"
+                title={`${study.faculty} · ${study.program} · ${study.group}`}
+              >
                 <span>{study.faculty}</span>
                 <span>{study.program}</span>
                 <strong>{study.group}</strong>
@@ -192,7 +199,11 @@ export function ScheduleView({
           </div>
           <figure className="greeting-scene">
             <CampusScene phase={phase} />
-            <div className="phase-switch" role="group" aria-label="Время суток на иллюстрации">
+            <div
+              className="phase-switch"
+              role="group"
+              aria-label="Время суток на иллюстрации"
+            >
               {PHASES.map((p) => (
                 <button
                   key={p.id}
@@ -213,6 +224,7 @@ export function ScheduleView({
           <p>{data ? data.groupName : "Групповой учебный день и неделя"}</p>
         </header>
       )}
+      {home && notice}
       {!home && (
         <div className="schedule-controls student-controls">
           <div className="segmented" aria-label="Вид расписания">
