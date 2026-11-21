@@ -18,7 +18,7 @@ export default async function Page({
   searchParams: Promise<{ after?: string | string[]; entry?: string }>;
 }) {
   const a = await protectedPage(() => headers().then(actor));
-  if (a.membership.role === "STAFF") redirect("/staff");
+  if (a.membership.role === "STAFF") redirect("/staff/structure");
   const params = await searchParams;
   const after = listCursor(params.after);
   const history = await protectedPage(() => ownRequestPage(a, after));

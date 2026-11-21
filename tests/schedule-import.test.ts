@@ -320,3 +320,60 @@ it("Удалить можно только пустой семестр; удал
     await db.semester.findUnique({ where: { id: semesterId } }),
   ).not.toBeNull();
 });
+
+it("«Удалить расписание полностью»: занятия семестра удаляются, таблицу можно загрузить заново", async () => {
+  const live = () =>
+    db.scheduleEntry.count({
+      where: { semesterId, status: { not: "DELETED" } },
+    });
+  expect(await live()).toBeGreaterThan(0);
+  const semester = await db.semester.findUniqueOrThrow({
+    where: { id: semesterId },
+  });
+  await expect(
+    changeBuilder(foreign.user.id, foreign.membership.universityId, {
+      command: {
+        action: "SEMESTER_CLEAR",
+        id: semesterId,
+        version: semester.version,
+      },
+      preview: true,
+    }),
+  ).rejects.toBeInstanceOf(Denied);
+  const preview = await changeBuilder(staff.user.id, uni, {
+    command: {
+      action: "SEMESTER_CLEAR",
+      id: semesterId,
+      version: semester.version,
+    },
+    preview: true,
+  });
+  expect(preview.warnings[0]).toMatch(/Будет удалено занятий: \d+/);
+  await commit({
+    action: "SEMESTER_CLEAR",
+    id: semesterId,
+    version: semester.version,
+  });
+  expect(await live()).toBe(0);
+  expect(
+    await db.auditLog.count({
+      where: { targetId: semesterId, action: "SEMESTER_CLEAR" },
+    }),
+  ).toBe(1);
+  // Повторная очистка пустого семестра — понятный отказ.
+  await expect(
+    commit({
+      action: "SEMESTER_CLEAR",
+      id: semesterId,
+      version: semester.version,
+    }),
+  ).rejects.toMatchObject({ status: 400 });
+  // Та же таблица снова создаёт занятия, а не «уже есть».
+  const again = await importSchedule(staff, {
+    semesterId,
+    confirm: true,
+    csv: csv(line({ day: "Пт" })),
+  });
+  expect(again.rows.map((r) => r.status)).toEqual(["new"]);
+  expect(again.published).toBe(true);
+});

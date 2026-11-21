@@ -73,6 +73,7 @@ export const builderCommand = z.discriminatedUnion("action", [
     })
     .strict(),
   z.object({ action: z.literal("SEMESTER_DELETE"), id, version }).strict(),
+  z.object({ action: z.literal("SEMESTER_CLEAR"), id, version }).strict(),
   z
     .object({
       action: z.literal("TEACHER_CREATE"),
@@ -755,6 +756,53 @@ export async function changeBuilder(
       writes.push(async () => {
         await tx.semester.delete({ where: { id: old.id } });
         await audit(old.id, d.action, old, null);
+      });
+    } else if (d.action === "SEMESTER_CLEAR") {
+      // «Удалить расписание полностью»: все занятия семестра получают статус
+      // DELETED (как при удалении одного занятия), правила повторения
+      // отвязываются от групп и больше не порождают занятий. История и отмены
+      // сохраняются; семестр можно заполнить заново, в том числе из таблицы.
+      const old = await scopedSemester(tx, universityId, d.id);
+      checkedVersion(old, d.version);
+      const live = await tx.scheduleEntry.findMany({
+        where: { semesterId: old.id, universityId, status: { not: "DELETED" } },
+        select: { id: true },
+        take: 10001,
+      });
+      if (live.length > 10000)
+        reject("Слишком много занятий для одной операции.", 413);
+      const templates = await tx.scheduleTemplate.count({
+        where: {
+          semesterId: old.id,
+          universityId,
+          groups: { some: { active: true } },
+        },
+      });
+      if (!live.length && !templates)
+        reject("В семестре нет занятий — удалять нечего.", 400);
+      warnings.push(
+        `Будет удалено занятий: ${live.length}. Студенты перестанут их видеть; история сохранится.`,
+      );
+      evidence.push(old, live.length, templates);
+      writes.push(async () => {
+        await tx.scheduleEntry.updateMany({
+          where: {
+            semesterId: old.id,
+            universityId,
+            status: { not: "DELETED" },
+          },
+          data: { status: "DELETED", version: { increment: 1 } },
+        });
+        await tx.templateGroup.updateMany({
+          where: { template: { semesterId: old.id, universityId } },
+          data: { active: false },
+        });
+        await audit(
+          old.id,
+          d.action,
+          { lessons: live.length, templates },
+          null,
+        );
       });
     } else if (d.action === "TEACHER_CREATE" || d.action === "TEACHER_EDIT") {
       const old =

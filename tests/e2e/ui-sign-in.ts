@@ -1,6 +1,12 @@
 import { expect, test, type Page, type Response } from "@playwright/test";
 import { rememberSession, reuseSession } from "./session-cache";
 
+/** STAFF после входа — «Учебная структура»; историческая сборка репетиции VPS вела на /staff. */
+export const staffLanding =
+  process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
+    ? /\/staff$/
+    : /\/staff\/structure$/;
+
 /** Reuse only a real, live seeded session; auth-specific cases still sign in. */
 export async function signInWithSession(
   page: Page,
@@ -58,7 +64,7 @@ export async function signInWithSession(
   expect(status, "HTTP-ответ входа E2E").toBe(200);
   await expect(page).toHaveURL(
     email === "staff@example.test"
-      ? /\/staff$/
+      ? staffLanding
       : process.env.CAMPUS_VPS_UPGRADE_REHEARSAL === "1"
         ? /\/cabinet$/
         : /\/today$/,
@@ -77,9 +83,9 @@ export async function signInWithSession(
 
 // Legacy journeys inspect the profile after verifying the new, status-aware entry.
 export async function expectSignInLanding(page: Page, email: string) {
-  await page.waitForURL(/\/(today|cabinet|staff)$/);
+  await page.waitForURL(/\/(today|cabinet|staff|staff\/structure)$/);
   if (email === "staff@example.test") {
-    await expect(page).toHaveURL(/\/staff$/);
+    await expect(page).toHaveURL(staffLanding);
     return;
   }
   const group = await page.request.get("/api/group");

@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "./ui-icon";
 import { CampusScene, PHASES, phaseAt, type DayPhase } from "./campus-scene";
+import { BrandLoader } from "./brand-loader";
+import { HelpTip } from "./help-tip";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   dayKey,
@@ -199,21 +201,26 @@ export function ScheduleView({
           </div>
           <figure className="greeting-scene">
             <CampusScene phase={phase} />
-            <div
-              className="phase-switch"
-              role="group"
-              aria-label="Время суток на иллюстрации"
-            >
-              {PHASES.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  aria-pressed={phase === p.id}
-                  onClick={() => setPhase(p.id)}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div className="phase-row">
+              <HelpTip
+                text={`Оформление изменяется в зависимости от реального часового пояса университета. Часовой пояс сейчас: ${data?.timezone ?? "Europe/Moscow"}. Демонстрационный проект — не является настоящим сервисом вуза.`}
+              />
+              <div
+                className="phase-switch"
+                role="group"
+                aria-label="Время суток на иллюстрации"
+              >
+                {PHASES.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    aria-pressed={phase === p.id}
+                    onClick={() => setPhase(p.id)}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </figure>
         </header>
@@ -306,11 +313,11 @@ export function ScheduleView({
           <Link href="/cabinet">Проверить профиль</Link>
         </div>
       ) : !data ? (
-        <div role="status" className="schedule-loading">
-          <Icon name="calendar" />
-          <h2>Загружаем актуальное расписание…</h2>
-          <p>Проверяем ваше прикрепление и время университета.</p>
-        </div>
+        <BrandLoader
+          className="schedule-loading"
+          title="Загружаем актуальное расписание…"
+          hint="Проверяем ваше прикрепление и время университета."
+        />
       ) : (
         <div className={home ? "student-layout" : ""}>
           <div className="student-main">

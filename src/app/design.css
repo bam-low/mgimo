@@ -3666,3 +3666,183 @@ form.schedule-controls:has(.group-filter-field) .localized-control > input[type=
 .student-schedule .segmented button {
   min-height: 44px;
 }
+
+/* «Удалить расписание полностью» — опасное, но обратимо-историческое действие */
+.semester-clear { display: grid; gap: 6px; }
+.semester-clear > button { margin: 0; justify-self: start; }
+.semester-clear .form-message { max-width: 420px; margin: 0; font-size: 0.8125rem; }
+button.danger-outline,
+button.secondary.danger-outline {
+  border-color: rgb(168 50 57 / 35%);
+  color: #8a3239;
+}
+button.secondary.danger-outline:hover:not(:disabled) {
+  border-color: #8a3239;
+  background: #fae9e9;
+  color: #8a3239;
+}
+@media (max-width: 479px) {
+  .semester-clear > button { justify-self: stretch; }
+}
+
+/* ---------- Фирменная загрузка ---------- */
+.brand-loader-screen {
+  display: grid;
+  place-items: center;
+  min-height: var(--campus-viewport, 100dvh);
+  padding: 24px 16px;
+  background: var(--bg);
+}
+.brand-loader {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 28px 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #fbf3f1, var(--card) 60%);
+  text-align: center;
+}
+.brand-loader.is-page {
+  max-width: 380px;
+  padding: 36px 28px 26px;
+  box-shadow: 0 18px 50px -24px rgb(37 40 59 / 25%);
+}
+.brand-loader-mark {
+  width: 64px;
+  height: 64px;
+  fill: var(--brand);
+  overflow: visible;
+}
+.brand-loader-mark .bl-col {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bl-rise 1.6s ease-in-out infinite;
+}
+.brand-loader-mark .bl-col-2 { animation-delay: 0.18s; }
+.brand-loader-mark .bl-col-3 { animation-delay: 0.36s; }
+.brand-loader-mark .bl-roof { animation: bl-glow 1.6s ease-in-out infinite; }
+@keyframes bl-rise {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.45; }
+  40%, 70% { transform: scaleY(1); opacity: 1; }
+}
+@keyframes bl-glow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.brand-loader-text { display: grid; gap: 4px; }
+.brand-loader-text strong {
+  color: var(--ink);
+  font: 600 1.1rem/1.3 var(--display);
+}
+.brand-loader-text span { color: var(--muted); font-size: 0.875rem; }
+.brand-loader-lines {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 320px);
+}
+.brand-loader-lines span {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #efe6e0 0%, #f8f1ec 45%, #efe6e0 90%);
+  background-size: 220% 100%;
+  animation: bl-shimmer 1.4s linear infinite;
+}
+@keyframes bl-shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+.brand-loader-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: #6b2f3f;
+  font: 600 0.6875rem/1.3 var(--body);
+  letter-spacing: 0.02em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader-mark .bl-col,
+  .brand-loader-mark .bl-roof,
+  .brand-loader-lines span { animation: none; }
+}
+.brand-loader.schedule-loading {
+  justify-items: center;
+  border-style: solid;
+  border-color: var(--line);
+  color: inherit;
+}
+
+/* ---------- Подсказка «?» ---------- */
+.phase-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 699px) {
+  .phase-row { justify-content: center; }
+}
+.help-tip { position: relative; display: inline-flex; flex: none; }
+.help-tip-button,
+.help-tip-button:not(:disabled) {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 70%);
+  color: var(--muted);
+  font: 700 0.75rem/1 var(--body);
+  box-shadow: none;
+  cursor: help;
+}
+.help-tip-button:hover:not(:disabled),
+.help-tip-button:focus-visible,
+.help-tip[data-open] .help-tip-button {
+  border-color: var(--brand);
+  background: #fff;
+  color: var(--brand);
+}
+.help-tip-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* Тап-зона больше самого кружка — удобно на телефоне */
+.help-tip-button::before { content: ""; position: absolute; inset: -11px; }
+.help-tip-bubble {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: min(280px, 80vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  font: 400 0.8125rem/1.45 var(--body);
+  text-align: left;
+  box-shadow: 0 12px 30px -12px rgb(37 40 59 / 45%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  pointer-events: none;
+}
+.help-tip:hover .help-tip-bubble,
+.help-tip:focus-within .help-tip-bubble,
+.help-tip[data-open] .help-tip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+@media (max-width: 699px) {
+  .help-tip-bubble { right: auto; left: -8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .help-tip-bubble { transition: none; }
+}
