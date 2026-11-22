@@ -4362,3 +4362,62 @@ section[aria-label="Результаты студента"] > h2:first-child { m
 @media (max-width: 1099px) {
   .home-upcoming .deadline-row.is-desktop-extra { display: none; }
 }
+
+/* ---------- Мобильные исправления по проверке на iPhone, 22.11.2026 ---------- */
+/* Подсказка «?»: сдвиг внутрь экрана считает компонент (--shift). */
+.help-tip-bubble { transform: translate(var(--shift, 0px), 4px); }
+.help-tip:hover .help-tip-bubble,
+.help-tip:focus-within .help-tip-bubble,
+.help-tip[data-open] .help-tip-bubble { transform: translate(var(--shift, 0px), 0); }
+
+/* Дата и время: Safari на iOS задаёт полям свою минимальную ширину — поле вылезало за колонку. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  min-width: 0;
+  max-width: 100%;
+}
+@supports (-webkit-touch-callout: none) {
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    text-align: left;
+    line-height: 1.2;
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+}
+
+/* Дедлайны сотрудника: «Отменить» не сжимается в столбик букв. */
+.deadline-row > button { flex: none; white-space: nowrap; }
+
+/* Заявка: блок справки и пометки — на ширину карточки, плашка переносится; карточки не слипаются. */
+.application-card > section,
+.application-card > .notice,
+.application-card > .application-work,
+.application-card > div { align-self: stretch; max-width: 100%; min-width: 0; }
+.application-card .badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.application-card + .application-card { margin-top: 16px; }
+.application-list > .application-card + .application-card { margin-top: 0; }
+
+/* Сессия сотрудника на телефоне: дата на всю строку, начало и конец рядом. */
+@media (max-width: 719px) {
+  .session-fields label:has(input[type="date"]) { grid-column: 1 / -1; }
+}
+
+/* Расписание студента на телефоне: переключатель, дата и стрелки — на всю ширину. */
+@media (max-width: 699px) {
+  .student-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .student-controls > .segmented { display: flex; width: 100%; }
+  .student-controls > .segmented button { flex: 1 1 0; }
+  .student-controls > .localized-field,
+  .student-controls > .localized-field .localized-control { width: 100%; max-width: none; }
+  .student-controls > .localized-field .localized-control > input { flex: 1 1 auto; width: 100%; min-width: 0; }
+  .student-controls .date-arrows { width: 100%; }
+  .student-controls .date-arrows button:nth-child(2) { flex: 1 1 auto; }
+}
